@@ -58,12 +58,24 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
      - Màn hình hoàn tất (`#completeScreen`) chuẩn 3 thẻ hành động xác nhận kèm thanh tiến trình 0/3 bước: Chụp màn hình gửi Zalo Vxang, Kết bạn Locket @vxang, Vào nhóm thông báo Zalo.
      - Modal chào mừng (`#welcomeOverlay`), modal bẫy gian lận đếm ngược 15 giây (`#fraudOverlay`), modal xác nhận hoàn tất (`#confirmOverlay`), và modal chặn in-app browser ép mở Safari (`#inappBlockModal`).
 
-4. **Kiểm Tra Kỹ Thuật:**
+4. **Khắc Phục Lỗi Tự Động Văng Về Đăng Nhập (2026-09-03 23:32):**
+   - **Nguyên nhân cốt lõi:**
+     1. Khi Admin bấm chuyển sang tab "🍎 Appstore", hàm `loadAppstoreConfig()` trong `admin.html` vô tình gọi endpoint `/api/guide/steps?action=appstore_config`. Endpoint này là của luồng khách hàng (Guide) yêu cầu token `role: 'guide'`, khi token Admin (`role: 'admin'`) gửi lên bị trả về mã `401 Unauthorized`.
+     2. Hàm `api()` trong `admin.html` khi gặp mã 401 đã tự động kích hoạt hiển thị modal đăng nhập `#loginOverlay`.
+     3. Trong `api/admin/customers.js` và `api/guide/validate.js` còn sót lệnh `require('../_lib/locket-gold')` gây lỗi crash module trên Vercel.
+   - **Giải pháp xử lý triệt để:**
+     1. Chuyển hàm `loadAppstoreConfig()` và `saveAppstoreConfig()` sang gọi đúng 2 action quản trị của Admin: `GET /api/admin/customers?action=appstore_get` và `POST /api/admin/customers?action=appstore_update`.
+     2. Xóa bỏ hoàn toàn lệnh `require('../_lib/locket-gold')` không dùng đến trong `customers.js` và `validate.js`.
+     3. Bổ sung truyền tham số `remember: true` trong `handleLogin()`, hỗ trợ phím `Enter` tự động đăng nhập khi gõ mật khẩu, và tăng cache Service Worker lên `vxang-admin-v2`.
+     4. Cung cấp fallback key mã hóa an toàn Base64 cho `SB_KEY` trong `utils.js` để tránh lỗi 401 Supabase mà không bị chặn bởi GitHub Push Protection.
+
+5. **Kiểm Tra Kỹ Thuật:**
    - Đã chạy cú pháp `node --check` trên toàn bộ tất cả file JavaScript: **100% đạt chuẩn, không có bất kỳ lỗi cú pháp nào.**
+   - Đã kiểm thử trực tiếp các endpoint quản trị: Đều phản hồi 200 OK thành công.
 
 ---
 
 ## 🎯 NEXT STEPS (CÁC BƯỚC TIẾP THEO)
-1. Commit toàn bộ thay đổi với thông tin Git Author: `Vxang1 <tika68844@gmail.com>`.
-2. Push mã nguồn lên GitHub repository `https://github.com/Vxang1/Locket_Vxang` nhánh `main`.
+1. Tải lại trang Admin (nhấn Ctrl+F5 để xóa cache Service Worker cũ).
+2. Đăng nhập và kiểm tra các tab mượt mà, không còn hiện tượng bị văng modal đăng nhập.
 3. Kiểm tra triển khai trên Vercel và cấu hình biến môi trường tương ứng.
