@@ -89,9 +89,26 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
      - Hiển thị đầy đủ danh sách mã truy cập trong modal chi tiết, cho phép bấm vào mã để bật lại mẫu tin nhắn Zalo kèm nút copy 1-chạm.
      - Tăng phiên bản cache Service Worker lên `vxang-admin-v4`.
 
+8. **🔥 SỬA TRIỆT ĐỂ TOÀN BỘ HỆ THỐNG (2026-09-03 23:58) — 8 file, ~50 lỗi:**
+   - **Backend crash (3 lỗi):**
+     - `customers.js`: Xóa import `getInitialWarrantyStart` (hàm không tồn tại), thay tất cả lời gọi bằng `new Date().toISOString()`.
+     - `create-customer.js` & `add-code.js`: Xóa `status: 'pending'` khỏi insert `access_codes` (cột không tồn tại trong DB).
+     - `validate.js`: Xóa import `getEmergencyConfig` (hàm không tồn tại).
+   - **Logic gói dịch vụ (~15 chỗ):**
+     - `customers.js`: Sửa tất cả kiểm tra `'150'`/`'180'`/`'15s'`/`'5s'` thành `'30k'`/`'40k'`. Sửa fallback gói, DNS pool assignment, flow đặc biệt detection.
+     - `validate.js`: Sửa kiểm tra `'15s'` -> `'40k'`, fallback `'5s'` -> `'30k'`.
+   - **Frontend admin.html (3 lỗi):**
+     - `loadStats`: Sửa đọc đúng field `customers`/`codes`/`completed`/`sessions` từ API.
+     - `togglePay`: Sửa từ `action=toggle_status` (không tồn tại) sang `action=update` + `{ service_status }`.
+   - **dns.html (2 lỗi nghiêm trọng):**
+     - Sửa endpoint từ `dns_private_view` (không tồn tại) sang `dns_check`.
+     - Thêm đầy đủ logic sinh file `.mobileconfig` XML chuẩn Apple (thay vì redirect URL thô không hoạt động trên iPhone).
+   - **ping.js:** Khôi phục logic dọn session rác quá 3 giờ.
+   - **sw.js:** Tăng cache lên `vxang-admin-v5`.
+
 ---
 
-## 🎯 NEXT STEPS (CÁC BƯỚC TIẾP THEO)
-1. Tải lại trang Admin (`Ctrl + F5`).
-2. Mở chi tiết khách hàng -> Kiểm tra tên, mã KH, danh sách mã truy cập hiển thị đầy đủ và rõ ràng.
-3. Bấm "🗑️ Xóa" thử nghiệm: Khách hàng được xóa thành công, không còn lỗi `uuid: "undefined"`.
+## 🎯 NEXT STEPS
+1. `Ctrl + F5` trang Admin, test tạo khách → cấp mã → xóa khách.
+2. Test trang DNS riêng trên iPhone Safari.
+3. Test flow khách hàng guide.html end-to-end.
