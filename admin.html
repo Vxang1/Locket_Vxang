@@ -1313,7 +1313,7 @@
     // 7. Mẫu Tin Nhắn Zalo
     function getZaloMessage(custCode, accessCode) {
       const origin = window.location.origin;
-      return `Xwuan gửi thông tin dịch vụ Locket_Vxang của bạn nè! 🌟\n\n👤 Mã khách hàng:\n${custCode}\n\n🔑 Mã truy cập:\n${accessCode}\n\n🔗 Link website:\n${origin}\n\n📲 Hướng dẫn vào:\n1. Mở ứng dụng SAFARI trên iPhone\n2. Truy cập link trên\n3. Nhập mã truy cập → Bấm Xác nhận\n4. Làm theo đúng từng bước hướng dẫn nhé!\n\n⏱ Lưu ý: Mã có hiệu lực trong 30 phút kể từ lúc xác thực. Bạn tranh thủ làm luôn một lần nhé!`;
+      return `Vxang gửi thông tin dịch vụ Locket_Vxang của bạn nè! 🌟\n\n👤 Mã khách hàng:\n${custCode}\n\n🔑 Mã truy cập:\n${accessCode}\n\n🔗 Link website:\n${origin}\n\n📲 Hướng dẫn vào:\n1. Mở ứng dụng SAFARI trên iPhone\n2. Truy cập link trên\n3. Nhập mã truy cập → Bấm Xác nhận\n4. Làm theo đúng từng bước hướng dẫn nhé!\n\n⏱ Lưu ý: Mã có hiệu lực trong 30 phút kể từ lúc xác thực. Bạn tranh thủ làm luôn một lần nhé!`;
     }
 
     function copyZaloMsg(btn) {
@@ -1348,7 +1348,7 @@
     }
     async function kickSession(id) {
       if (!confirm('Bạn có chắc muốn đóng phiên này?')) return;
-      await api('POST', `/api/admin/sessions?action=kick&id=${id}`);
+      await api('POST', '/api/admin/sessions', { session_id: id });
       loadSessions();
     }
 
@@ -1396,7 +1396,7 @@
 
     function sharePrivateDns(token, code) {
       const link = `${window.location.origin}/dns?t=${token}`;
-      const msg = `Xwuan gửi bạn link cài đặt DNS Riêng (Locket Gold):\n\n🔗 ${link}\n\n⏱ Lưu ý: Link có hiệu lực trong 10 phút. Bạn mở bằng Safari để cài luôn nhé!`;
+      const msg = `Vxang gửi bạn link cài đặt DNS Riêng (Locket Gold):\n\n🔗 ${link}\n\n⏱ Lưu ý: Link có hiệu lực trong 10 phút. Bạn mở bằng Safari để cài luôn nhé!`;
       document.getElementById('dnsMsgText').value = msg;
       document.getElementById('dnsMsgModal').style.display = 'flex';
     }

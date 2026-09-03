@@ -1010,7 +1010,7 @@
       }
 
       // STEP: DNS
-      else if (cur.type === 'dns') {
+      else if (cur.type === 'dns' || cur.type === 'choice') {
         const pkgText = state.package === '40k' ? '15s Vĩnh Viễn' : '5s Vĩnh Viễn';
         container.innerHTML = `
           <div class="step-card">
@@ -1071,32 +1071,130 @@
     }
 
     // 9. Xử lý các tác vụ của Bước
-    async function loadAppstoreAccount() {
+    
+    function escXml(s) {
+      return String(s ?? '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+    }
+    function randomUUIDGuide() {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID().toUpperCase();
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      }).toUpperCase();
+    }
+    function downloadDnsProfile(dnsUrl, pkgTypeArg, customerCodeArg) {
+      const pkgTag = pkgTypeArg === '40k' || pkgTypeArg === '15s' ? ' 15s' : ' 5s';
+      const displayName = `Locket_Vxang${pkgTag} ⚡`;
+      const description = `✨ Duy trì Locket Gold${pkgTag} ổn định vĩnh viễn 💛\n🚀 Tối ưu hóa mạng &amp; Chặn quảng cáo`;
+      const organization = customerCodeArg ? `Vxang DNS · ${customerCodeArg}` : 'Vxang DNS';
+      const profileUUID = randomUUIDGuide();
+      const payloadUUID = randomUUIDGuide();
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>DNSSettings</key>
+            <dict>
+                <key>DNSProtocol</key>
+                <string>HTTPS</string>
+                <key>ServerURL</key>
+                <string>${escXml(dnsUrl)}</string>
+            </dict>
+            <key>PayloadDisplayName</key>
+            <string>${escXml(displayName)}</string>
+            <key>PayloadIdentifier</key>
+            <string>com.apple.dnsSettings.managed.locket</string>
+            <key>PayloadType</key>
+            <string>com.apple.dnsSettings.managed</string>
+            <key>PayloadUUID</key>
+            <string>${payloadUUID}</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+        </dict>
+    </array>
+    <key>PayloadDescription</key>
+    <string>${escXml(description).replace(/\n/g, '&#xA;')}</string>
+    <key>PayloadDisplayName</key>
+    <string>${escXml(displayName)}</string>
+    <key>PayloadIdentifier</key>
+    <string>com.profile.system.locket</string>
+    <key>PayloadOrganization</key>
+    <string>${escXml(organization)}</string>
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadUUID</key>
+    <string>${profileUUID}</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+</dict>
+</plist>`;
+      const blob = new Blob([xml], { type: 'application/x-apple-aspen-config' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `dns-${pkgTypeArg}.mobileconfig`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    }
+
+    async function loadAppstoreAccount(force = false) {
+      const box = document.getElementById('acctBox');
+      if (!box) return;
       try {
-        const res = await api('/api/guide/validate?action=appstore_account');
-        const box = document.getElementById('acctBox');
-        if (!box) return;
+        const res = await api('/api/guide/validate?action=appstore&t=' + Date.now());
         state.appstoreData = res;
+        if (!res.ok || !res.email_real || !res.password) {
+          box.innerHTML = '<div style="color:var(--warning); font-size:0.8rem; text-align:center;">⏳ Đang chờ Vxang cập nhật tài khoản mới... Vui lòng đợi trong giây lát!</div>';
+          return;
+        }
+
+        const emailDisplay = res.email_masked || res.email_real;
         box.innerHTML = `
           <div>
-            <div style="font-size:0.72rem; color:var(--muted); margin-bottom:4px;">APPLE ID SHOP:</div>
-            <div class="acc-row">
-              <span class="acc-val">${res.apple_id || 'Đang cập nhật'}</span>
-              <button class="btn-copy-sm" onclick="copyText('${res.apple_id}')">Sao chép</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span style="font-size:0.72rem; color:var(--muted); font-weight:700;">APPLE ID SHOP:</span>
+              <button class="btn-copy-sm" onclick="copyText('${res.email_real}', this)">📋 Copy Email</button>
+            </div>
+            <div class="acc-row" onclick="copyText('${res.email_real}', this)" style="cursor:pointer;" title="Bấm để copy">
+              <span class="acc-val" style="font-family:'JetBrains Mono'; font-weight:700;">${emailDisplay}</span>
             </div>
           </div>
-          <div style="margin-top:6px;">
-            <div style="font-size:0.72rem; color:var(--muted); margin-bottom:4px;">MẬT KHẨU:</div>
-            <div class="acc-row">
-              <span class="acc-val" id="pwdVal">••••••••</span>
-              <button class="btn-copy-sm" onclick="copyPassword('${res.password}')">Sao chép mật khẩu</button>
+          <div style="margin-top:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span style="font-size:0.72rem; color:var(--muted); font-weight:700;">MẬT KHẨU:</span>
+              <button class="btn-copy-sm" onclick="copyPassword('${res.password}', this)">📋 Copy Pass</button>
+            </div>
+            <div class="acc-row" onclick="copyPassword('${res.password}', this)" style="cursor:pointer;" title="Bấm để copy">
+              <span class="acc-val" id="pwdVal" style="letter-spacing:2px; font-weight:700;">••••••••</span>
             </div>
           </div>
+          ${!state.specialFlow ? `
+            <div style="margin-top:12px; text-align:right;">
+              <button id="btnRefreshAppstore" class="btn-head" style="font-size:0.75rem; padding:4px 10px;" onclick="refreshAppstore(this)">🔄 Nhận tài khoản mới</button>
+            </div>
+          ` : ''}
         `;
       } catch {
-        const box = document.getElementById('acctBox');
-        if (box) box.innerHTML = `<div style="color:#ef4444; font-size:0.8rem;">Không thể tải tài khoản App Store. Vui lòng nhắn Zalo cho shop!</div>`;
+        box.innerHTML = '<div style="color:#ef4444; font-size:0.8rem; text-align:center;">Không thể tải tài khoản App Store. Vui lòng liên hệ shop!</div>';
       }
+    }
+
+    async function refreshAppstore(btn) {
+      btn.disabled = true;
+      btn.textContent = '⏳ Đang lấy...';
+      await loadAppstoreAccount(true);
+      btn.textContent = '✅ Đã làm mới';
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = '🔄 Nhận tài khoản mới';
+      }, 3000);
     }
 
     async function loadDnsPool() {
@@ -1119,7 +1217,12 @@
       window.location.href = state.dnsUrl;
     }
 
-    function copyText(txt) {
+    function copyText(txt, btn = null) {
+      if (btn) {
+        const orig = btn.textContent;
+        btn.textContent = '✓ Đã copy!';
+        setTimeout(() => { btn.textContent = orig; }, 2000);
+      }
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(txt).then(() => alert('✓ Đã sao chép!'));
       } else {
@@ -1127,7 +1230,12 @@
       }
     }
 
-    function copyPassword(pwd) {
+    function copyPassword(pwd, btn = null) {
+      if (btn) {
+        const orig = btn.textContent;
+        btn.textContent = '✓ Đã copy!';
+        setTimeout(() => { btn.textContent = orig; }, 2000);
+      }
       if (!pwd) return;
       document.getElementById('pwdVal').textContent = pwd;
       copyText(pwd);

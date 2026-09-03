@@ -1,22 +1,69 @@
-const { sb, requireGuide, allowMethods, notifyTelegram, escMd } = require('../_lib/utils');
+'use strict';
+const { sb, requireGuide, allowMethods, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, normalizePackage } = require('../_lib/utils');
 
 module.exports = async (req, res) => {
   if (!allowMethods(req, res, ['POST'])) return;
-  const p = requireGuide(req);
-  if (!p) return res.status(401).json({ error: 'Unauthorized' });
+  const payload = await requireGuide(req, res);
+  if (!payload) return;
 
-  const now = new Date().toISOString();
-  await Promise.all([
-    sb(`access_codes?code=eq.${p.code}`, { method: 'PATCH', body: { completed_at: now, status: 'completed' } }),
-    sb(`customers?id=eq.${p.customer_id}`, { method: 'PATCH', body: { service_status: 'active', activated_at: now } })
-  ]);
+  const { choice } = req.body || {};
 
-  const cust = await sb(`customers?id=eq.${p.customer_id}&select=name,customer_code,package`);
-  const cName = cust && cust[0] ? cust[0].name : '';
-  const cCode = cust && cust[0] ? cust[0].customer_code : '';
-  const cPkg = cust && cust[0] ? cust[0].package : '';
+  try {
+    const updateBody = { completed_at: new Date().toISOString(), is_active: false };
+    if (choice) updateBody.locket_choice = choice;
 
-  notifyTelegram(`🎉 *KHÁCH ĐÃ HOÀN TẤT CÁC BƯỚC*\n───────────────\n👤 Khách: *${escMd(cName)}* (\`${escMd(cCode)}\`)\n🔑 Mã: \`${escMd(p.code)}\`\n📦 Gói: *${escMd(cPkg)}*\n📸 Nhắc khách gửi ảnh màn hình qua Zalo Admin\\!`);
+    const updated = await sb('PATCH', 'access_codes', {
+      q: `code=eq.${encodeURIComponent(payload.code)}&is_active=eq.true&completed_at=is.null`,
+      body: updateBody,
+      prefer: 'return=representation',
+    });
 
-  return res.status(200).json({ ok: true });
+    if (!updated?.length) {
+      await sb('DELETE', 'sessions', {
+        q: `session_token=eq.${encodeURIComponent(payload.sessionToken)}`,
+      });
+      return res.json({ ok: true });
+    }
+
+    await sb('DELETE', 'sessions', {
+      q: `session_token=eq.${encodeURIComponent(payload.sessionToken)}`,
+    });
+
+    const cust = await lookupCustomerByCode(payload.code);
+    const who = cust.name ? escTgHtml(cust.name) : 'Khách';
+    const pkg = normalizePackage(payload.package || '30k');
+
+    // Cập nhật CRM khách hàng thành active
+    if (cust?.id) {
+      try {
+        await sb('PATCH', 'customers', {
+          q: `id=eq.${encodeURIComponent(cust.id)}`,
+          body: { service_status: 'active' },
+        });
+      } catch (crmErr) {
+        console.warn('Lỗi cập nhật CRM khách hàng active:', crmErr.message);
+      }
+    }
+
+    let extra = {};
+    if (cust.customerCode) {
+      extra.reply_markup = {
+        inline_keyboard: [
+          [{ text: '🔍 TRA CỨU KHÁCH NÀY', callback_data: `lookup_code:${payload.code}` }]
+        ]
+      };
+    }
+
+    await notifyTelegram(
+      `🎉 <b>${who}</b> đã hoàn tất các bước cài đặt!\n` +
+      codeDetailLines(payload.code, payload.package, cust) +
+      (cust.phone ? `\n📞 SĐT: <code>${cust.phone}</code>` : ''),
+      extra
+    );
+
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error('[guide/complete] error:', e.message);
+    return res.status(500).json({ error: e.message });
+  }
 };

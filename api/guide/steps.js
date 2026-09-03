@@ -1,49 +1,57 @@
-const { sb, requireGuide, allowMethods } = require('../_lib/utils');
+'use strict';
+const { sb, requireGuide, allowMethods, normalizePackage, DEFAULT_STEP_FLOW, DEFAULT_STEP_FLOW_SPECIAL } = require('../_lib/utils');
 
 module.exports = async (req, res) => {
   if (!allowMethods(req, res, ['GET'])) return;
-  const p = requireGuide(req);
-  if (!p) return res.status(401).json({ error: 'Unauthorized' });
+  const payload = await requireGuide(req, res);
+  if (!payload) return;
 
-  const custRows = await sb(`customers?id=eq.${p.customer_id}&select=package,special_flow,locket_username`);
-  if (!custRows || !custRows.length) return res.status(404).json({ error: 'Không tìm thấy hồ sơ' });
+  try {
+    const pkg = normalizePackage(payload.package);
 
-  const cust = custRows[0];
-  const pkg = (cust.package === '40k' || cust.package === '15s') ? '40k' : '30k';
-  const special = !!cust.special_flow;
+    const [sessions, codes] = await Promise.all([
+      sb('GET', 'sessions', {
+        q: `session_token=eq.${encodeURIComponent(payload.sessionToken)}&is_kicked=eq.false`,
+      }),
+      sb('GET', 'access_codes', {
+        q: `code=eq.${encodeURIComponent(payload.code)}&select=customer_id,skip_username_step`,
+      }),
+    ]);
 
-  // Luồng tĩnh mặc định
-  let steps = [];
-  if (pkg === '30k') {
-    steps = special ? [
-      { id: 's0', order_num: 1, type: 'appstore', title: 'Cài Shadowrocket' },
-      { id: 's1', order_num: 2, type: 'ipa', title: 'Cài Locket hạ cấp' },
-      { id: 's2', order_num: 3, type: 'gold', title: 'Lên Locket Gold' }
-    ] : [
-      { id: 's0', order_num: 1, type: 'appstore', title: 'Cài Shadowrocket' },
-      { id: 's1', order_num: 2, type: 'choice', title: 'Cài đặt DNS giữ Gold' },
-      { id: 's2', order_num: 3, type: 'gold', title: 'Lên Locket Gold' }
-    ];
-  } else {
-    steps = special ? [
-      { id: 's0', order_num: 1, type: 'appstore', title: 'Cài Shadowrocket' },
-      { id: 's1', order_num: 2, type: 'ipa', title: 'Cài Locket hạ cấp' },
-      { id: 's2', order_num: 3, type: 'vpn', title: 'Cài đặt VPN (Mỹ)' },
-      { id: 's3', order_num: 4, type: 'choice', title: 'Cài đặt DNS giữ Gold' },
-      { id: 's4', order_num: 5, type: 'gold', title: 'Lên Locket Gold' }
-    ] : [
-      { id: 's0', order_num: 1, type: 'appstore', title: 'Cài Shadowrocket' },
-      { id: 's1', order_num: 2, type: 'choice', title: 'Cài đặt DNS giữ Gold' },
-      { id: 's2', order_num: 3, type: 'vpn', title: 'Cài đặt VPN (Mỹ)' },
-      { id: 's3', order_num: 4, type: 'gold', title: 'Lên Locket Gold' }
-    ];
+    if (!sessions?.length) return res.status(403).json({ error: 'Phiên đã bị kết thúc' });
+
+    const codeRow = codes?.[0];
+    const customerId = codeRow?.customer_id;
+    let locket_username = null;
+    let special_flow = !!payload.specialFlow;
+
+    if (customerId) {
+      const custs = await sb('GET', 'customers', {
+        q: `id=eq.${encodeURIComponent(customerId)}&select=locket_username,customer_code,special_flow`,
+      });
+      if (custs?.length) {
+        locket_username = custs[0].locket_username || null;
+        special_flow = !!custs[0].special_flow;
+      }
+    }
+
+    const flowList = special_flow ? DEFAULT_STEP_FLOW_SPECIAL[pkg] : DEFAULT_STEP_FLOW[pkg];
+    const steps = flowList.map((s, idx) => ({
+      id: 'step_' + idx,
+      order_num: idx + 1,
+      type: s.type,
+      title: s.title,
+    }));
+
+    return res.json({
+      ok: true,
+      steps,
+      package: pkg,
+      locket_username,
+      special_flow,
+    });
+  } catch (e) {
+    console.error('[guide/steps] error:', e.message);
+    return res.status(500).json({ error: e.message });
   }
-
-  return res.status(200).json({
-    ok: true,
-    package: pkg,
-    special_flow: special,
-    locket_username: cust.locket_username || '',
-    steps
-  });
 };
