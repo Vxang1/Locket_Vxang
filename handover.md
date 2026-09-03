@@ -37,9 +37,15 @@ Toàn bộ hệ thống `Locket_Vxang` đã được khởi tạo và lập trì
    - [`index.html`](file:///c:/Users/ADMIN/Downloads/Locket_Vxang/index.html): Màn hình nhập mã truy cập `XW-xxxxxx`, modal khóa thiết bị PC/Android và ép mở bằng Safari.
    - [`guide.html`](file:///c:/Users/ADMIN/Downloads/Locket_Vxang/guide.html): Trình hướng dẫn từng bước trực quan, sinh cấu hình Apple `.mobileconfig` trực tiếp trên client, sao chép tài khoản ẩn mật khẩu 1-chạm, tải IPA hạ cấp OTA, live heartbeat 4s và modal đếm lùi 15s chống chia sẻ mã.
    - [`admin.html`](file:///c:/Users/ADMIN/Downloads/Locket_Vxang/admin.html): Dashboard quản trị CRM tinh gọn, ô nhập liên hệ duy nhất, nút 1-chạm đổi trạng thái thanh toán, cấp mã mới cho khách cũ, quản lý DNS Pool, DNS riêng, xuất báo cáo Excel qua SheetJS.
-   - [`dns.html`](file:///c:/Users/ADMIN/Downloads/Locket_Vxang/dns.html): Màn hình cài đặt profile DNS riêng biệt với bộ đếm lùi TTL 10 phút.
+    - [`dns.html`](file:///c:/Users/ADMIN/Downloads/Locket_Vxang/dns.html): Màn hình cài đặt profile DNS riêng biệt với bộ đếm lùi TTL 10 phút.
 
-5. **Xác Minh Kỹ Thuật:**
+5. **Kết Nối & Cấu Hình Git Trực Tiếp Với GitHub Vxang (2026-09-03):**
+   - Đã khởi tạo Git repository và liên kết trực tiếp với remote repository `https://github.com/Vxang1/Locket_Vxang`.
+   - Cấu hình chuẩn Git Author: `Vxang1 <tika68844@gmail.com>`.
+   - Cấu hình remote URL: `https://Vxang1@github.com/Vxang1/Locket_Vxang.git`.
+   - Đã đồng bộ mã nguồn mới nhất từ branch `main` và lưu trữ tài liệu khóa bố cục chuẩn `PROMPT_CHINH_SUA_BO_CUC.md`.
+
+6. **Xác Minh Kỹ Thuật:**
    - Đã chạy lệnh `Get-ChildItem -Path "api" -Filter *.js -Recurse | ForEach-Object { node --check $_.FullName }` thành công: **100% file JavaScript không có lỗi cú pháp.**
 
 ---
@@ -58,3 +64,4 @@ Toàn bộ hệ thống `Locket_Vxang` đã được khởi tạo và lập trì
    - `TELEGRAM_BOT_TOKEN` và `TELEGRAM_CHAT_ID`
 2. Thiết lập Webhook cho Telegram Bot trỏ về endpoint `POST https://[domain]/api/admin/stats`.
 3. Kiểm tra thực tế quy trình trên thiết bị iPhone với trình duyệt Safari.
+

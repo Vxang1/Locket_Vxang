@@ -131,3 +131,16 @@ Locket_Vxang/
 ├── gemini.md
 └── handover.md
 ```
+
+---
+
+## 6. QUY ĐỊNH VỀ TÀI KHOẢN GITHUB & GIT PUSH
+
+- **Tên tài khoản GitHub:** `Vxang1`
+- **Email GitHub:** `tika68844@gmail.com`
+- **Địa chỉ Repository:** `https://github.com/Vxang1/Locket_Vxang`
+- **Git Commit Author:** `Vxang1 <tika68844@gmail.com>`
+- **Lệnh Git Push bắt buộc:**
+  ```bash
+  git push https://Vxang1@github.com/Vxang1/Locket_Vxang.git main
+  ```
