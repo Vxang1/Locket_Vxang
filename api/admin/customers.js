@@ -1,6 +1,5 @@
 'use strict';
 const { sb, requireAdmin, allowMethods, genCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, normalizePackage, isPermPackage, getAppstoreConfig, setAppConfig, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, getInitialWarrantyStart, parseContactInput } = require('../_lib/utils');
-const { parseLocketTokenText, getDynamicTokenSets, saveDynamicTokenSets, deleteDynamicTokenSets, resolveUid, injectGold, decodeJwtPayload, formatExpiryDate, verifyTokenLiveWithRevenueCat, TOKEN_SETS } = require('../_lib/locket-gold');
 
 module.exports = async (req, res) => {
   if (!allowMethods(req, res, ['GET', 'POST', 'DELETE', 'PATCH'])) return;

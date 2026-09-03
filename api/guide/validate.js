@@ -1,11 +1,7 @@
 'use strict';
 const { sb, signJWT, verifyJWT, getToken, allowMethods, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, expireCodeAndNotify, lookupCustomerByDnsCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, dnsPrivateUrl, normalizePackage, isPermPackage, getAppConfig, setAppConfig, getAppstoreConfig, getEmergencyConfig, maskAppstoreEmail, claimDnsFromPool, DNS_POOL_FULL_MSG } = require('../_lib/utils');
-const { resolveUid, injectGold } = require('../_lib/locket-gold');
 const { randomUUID } = require('crypto');
 
-// Mã có hiệu lực bao lâu kể từ lúc khách kích hoạt. Gói vĩnh viễn (150/180) được
-// 45 phút thay vì 30: flow dài hơn (cài Shadowrocket bằng tài khoản Appstore chung
-// → đăng xuất/đăng nhập App Store → cài IPA qua OTA), 30 phút không đủ.
 const CODE_VALID_MS      = 30 * 60 * 1000;
 const CODE_VALID_MS_PERM = 45 * 60 * 1000;
 function codeValidMs(pkg) {
