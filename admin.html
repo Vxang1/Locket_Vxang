@@ -1512,19 +1512,47 @@
     let currentCust = null;
     async function openCustDetail(id) {
       try {
-        const c = await api('GET', `/api/admin/customers?id=${id}`);
+        const res = await api('GET', `/api/admin/customers?id=${id}`);
+        const c = res?.customer || res || {};
+        const codes = res?.codes || c.access_codes || [];
+        c.access_codes = codes;
         currentCust = c;
-        document.getElementById('dTitle').textContent = `Hồ Sơ: ${c.name}`;
+
+        document.getElementById('dTitle').textContent = `Hồ Sơ: ${c.name || 'Khách Hàng'}`;
         const b = document.getElementById('dBody');
+
+        const codesList = codes.map(ac => {
+          const isDone = !!ac.completed_at;
+          const isExp = ac.expires_at && new Date(ac.expires_at) < new Date();
+          let stTag = '<span style="color:var(--warning);">Chưa kích hoạt</span>';
+          if (isDone) stTag = '<span style="color:var(--accent);">✓ Hoàn tất</span>';
+          else if (isExp) stTag = '<span style="color:var(--danger);">Hết hạn</span>';
+          else if (ac.is_active) stTag = '<span style="color:var(--p1);">Đang làm</span>';
+
+          return `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#090e1a; border:1px solid var(--border); border-radius:8px; padding:8px 12px; margin-top:6px;">
+              <div>
+                <span style="font-family:'JetBrains Mono'; font-weight:800; color:var(--p1); cursor:pointer;" onclick="showCodeZaloMsg('${c.customer_code}', '${ac.code}')" title="Bấm để xem & sao chép tin nhắn Zalo">${ac.code}</span>
+                <span style="font-size:0.75rem; margin-left:8px;">${stTag}</span>
+              </div>
+              <button class="btn-head" style="padding:2px 8px; font-size:0.72rem;" onclick="showCodeZaloMsg('${c.customer_code}', '${ac.code}')">📋 Zalo</button>
+            </div>
+          `;
+        }).join('') || '<div style="color:var(--muted); font-size:0.8rem; margin-top:6px;">Chưa có mã nào</div>';
+
         b.innerHTML = `
           <div style="display:flex; flex-direction:column; gap:10px; font-size:0.86rem;">
-            <div><b>Mã KH:</b> <span style="font-family:'JetBrains Mono'; color:var(--p1); font-weight:800;">${c.customer_code}</span></div>
-            <div><b>Số điện thoại:</b> ${c.phone || 'Chưa có'}</div>
+            <div><b>Mã KH:</b> <span style="font-family:'JetBrains Mono'; color:var(--p1); font-weight:800;">${c.customer_code || '---'}</span></div>
+            <div><b>Số điện thoại:</b> ${c.phone || 'Chưa có'} ${c.social_link ? `<a href="${c.social_link}" target="_blank" style="color:var(--p1); margin-left:6px;">[Mở Profile]</a>` : ''}</div>
             <div><b>Gói dịch vụ:</b> <span class="badge-${c.package}">${c.package}</span> ${c.special_flow ? '⚡ (Flow Đặc Biệt)' : ''}</div>
             <div><b>Trạng thái:</b> ${c.service_status === 'completed' ? '<span class="badge-paid">Hoàn thành</span>' : '<span class="badge-pending">Chờ thu</span>'}</div>
-            <div><b>Mã truy cập hiện tại:</b> <span style="font-family:'JetBrains Mono'; color:var(--accent); font-weight:800;">${c.active_code || 'Chưa cấp'}</span></div>
             <div><b>Ghi chú:</b> ${c.notes || 'Không có'}</div>
             
+            <div style="margin-top:8px;">
+              <div style="font-weight:700; font-size:0.82rem; color:var(--text-dim);">DANH SÁCH MÃ TRUY CẬP (Bấm mã để copy tin nhắn Zalo):</div>
+              ${codesList}
+            </div>
+
             <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:14px;">
               <button class="btn-cyber" style="flex:1;" onclick="submitAddCode('${c.id}')">➕ Cấp Mã Mới</button>
               <button class="btn-outline" onclick="openEditCust()">✏️ Sửa</button>
@@ -1537,6 +1565,15 @@
     }
     function closeCustDetail() { document.getElementById('detailModal').style.display = 'none'; }
 
+    function showCodeZaloMsg(custCode, accessCode) {
+      const zaloMsg = getZaloMessage(custCode, accessCode);
+      document.getElementById('zaloMsgText').value = zaloMsg;
+      document.getElementById('msgModal').style.display = 'flex';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(zaloMsg).catch(() => {});
+      }
+    }
+
     async function submitAddCode(custId) {
       try {
         const res = await api('POST', '/api/admin/add-code', { customer_id: custId });
@@ -1548,10 +1585,10 @@
 
     function openEditCust() {
       if (!currentCust) return;
-      document.getElementById('eId').value = currentCust.id;
-      document.getElementById('eN').value = currentCust.name;
+      document.getElementById('eId').value = currentCust.id || '';
+      document.getElementById('eN').value = currentCust.name || '';
       document.getElementById('eContact').value = currentCust.phone || currentCust.social_link || '';
-      document.getElementById('ePkg').value = currentCust.package;
+      document.getElementById('ePkg').value = currentCust.package || '30k';
       document.getElementById('eSf').checked = !!currentCust.special_flow;
       document.getElementById('eNo').value = currentCust.notes || '';
       document.getElementById('editModal').style.display = 'flex';
@@ -1560,6 +1597,7 @@
 
     async function saveEditCust() {
       const id = document.getElementById('eId').value;
+      if (!id || id === 'undefined') return alert('Không tìm thấy ID khách hàng!');
       const name = document.getElementById('eN').value.trim();
       const contact = document.getElementById('eContact').value.trim();
       const pkg = document.getElementById('ePkg').value;
@@ -1576,9 +1614,11 @@
     }
 
     async function deleteCustomer(id) {
-      if (!confirm('Bạn có chắc chắn muốn xóa khách hàng này không?')) return;
+      const targetId = id || currentCust?.id;
+      if (!targetId || targetId === 'undefined') return alert('Không tìm thấy ID khách hàng hợp lệ để xóa!');
+      if (!confirm('Bạn có chắc chắn muốn xóa khách hàng này không? Mọi mã truy cập và dữ liệu của khách sẽ bị xóa hoàn toàn.')) return;
       try {
-        await api('DELETE', `/api/admin/customers?id=${id}`);
+        await api('DELETE', `/api/admin/customers?id=${targetId}`);
         closeCustDetail();
         loadCustomers();
         loadStats();

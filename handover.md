@@ -77,10 +77,21 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
      - Khi **CÓ tích chọn**: Token được lưu vào `localStorage` với hạn 365 ngày, cho phép F5 hay đóng mở trình duyệt vẫn giữ trạng thái đăng nhập.
      - Tăng phiên bản cache Service Worker lên `vxang-admin-v3`.
 
+7. **Khắc Phục Lỗi Xóa Khách Hàng (2026-09-03 23:39):**
+   - **Hiện tượng:** Khi mở modal chi tiết khách hàng, tiêu đề hiển thị `Hồ Sơ: undefined`, Mã KH `undefined`, và khi bấm nút "🗑️ Xóa" thì hệ thống báo lỗi `Supabase 400: invalid input syntax for type uuid: "undefined"`.
+   - **Nguyên nhân:**
+     - Endpoint `GET /api/admin/customers?id=...` trả về cấu trúc bọc: `{ customer: {...}, codes: [...], private_dns: ... }`.
+     - Hàm `openCustDetail()` trong `admin.html` trước đó gán trực tiếp biến kết quả `c = res` mà không unwrap `res.customer`. Do đó `c.id`, `c.name`, `c.customer_code` đều bị `undefined`.
+     - Nút Xóa sinh ra lệnh gọi `deleteCustomer('undefined')` gửi lên API `DELETE /api/admin/customers?id=undefined`, khiến Supabase ném lỗi cú pháp UUID.
+   - **Xử lý:**
+     - Unwrap chuẩn xác `const c = res?.customer || res || {}` và gán `codes = res?.codes || []` trong `openCustDetail()`.
+     - Đặt thêm guard bảo vệ trong `deleteCustomer()` và backend `customers.js` để chặn tuyệt đối `targetId === 'undefined'`.
+     - Hiển thị đầy đủ danh sách mã truy cập trong modal chi tiết, cho phép bấm vào mã để bật lại mẫu tin nhắn Zalo kèm nút copy 1-chạm.
+     - Tăng phiên bản cache Service Worker lên `vxang-admin-v4`.
+
 ---
 
 ## 🎯 NEXT STEPS (CÁC BƯỚC TIẾP THEO)
 1. Tải lại trang Admin (`Ctrl + F5`).
-2. Thử nghiệm 2 kịch bản:
-   - Kịch bản 1: Không tích "Ghi nhớ đăng nhập" -> Nhập pass -> Đăng nhập -> F5/Ctrl+F5 -> Hệ thống lập tức out về modal đăng nhập.
-   - Kịch bản 2: Tích chọn "Ghi nhớ đăng nhập" -> Nhập pass -> Đăng nhập -> F5/Ctrl+F5 -> Hệ thống giữ nguyên đăng nhập.
+2. Mở chi tiết khách hàng -> Kiểm tra tên, mã KH, danh sách mã truy cập hiển thị đầy đủ và rõ ràng.
+3. Bấm "🗑️ Xóa" thử nghiệm: Khách hàng được xóa thành công, không còn lỗi `uuid: "undefined"`.

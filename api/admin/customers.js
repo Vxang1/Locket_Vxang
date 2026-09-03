@@ -427,7 +427,7 @@ module.exports = async (req, res) => {
 
     // ── DELETE ?id=... ─────────────────────────────────────────────
     if (req.method === 'DELETE') {
-      if (!id) return res.status(400).json({ error: 'Missing id' });
+      if (!id || id === 'undefined') return res.status(400).json({ error: 'Missing or invalid id' });
       
       // 1. Lấy customer_code và các access_codes của khách này
       const [cust] = (await sb('GET', 'customers', { q: `id=eq.${id}&select=customer_code` })) || [];
