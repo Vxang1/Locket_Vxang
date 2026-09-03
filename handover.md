@@ -69,13 +69,18 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
      3. Bổ sung truyền tham số `remember: true` trong `handleLogin()`, hỗ trợ phím `Enter` tự động đăng nhập khi gõ mật khẩu, và tăng cache Service Worker lên `vxang-admin-v2`.
      4. Cung cấp fallback key mã hóa an toàn Base64 cho `SB_KEY` trong `utils.js` để tránh lỗi 401 Supabase mà không bị chặn bởi GitHub Push Protection.
 
-5. **Kiểm Tra Kỹ Thuật:**
-   - Đã chạy cú pháp `node --check` trên toàn bộ tất cả file JavaScript: **100% đạt chuẩn, không có bất kỳ lỗi cú pháp nào.**
-   - Đã kiểm thử trực tiếp các endpoint quản trị: Đều phản hồi 200 OK thành công.
+6. **Cập Nhật Cơ Chế "Ghi Nhớ Đăng Nhập" (2026-09-03 23:36):**
+   - Trước đây hàm `setToken()` luôn lưu token vào `localStorage` vô điều kiện, khiến cho dù người dùng không tích chọn "Ghi nhớ đăng nhập 365 ngày" thì khi bấm `Ctrl + F5` hoặc reload web, trình duyệt vẫn tự động lấy lại token từ `localStorage` và không thoát ra màn hình đăng nhập.
+   - **Xử lý:**
+     - Đưa checkbox `rememberMe` về trạng thái không tích chọn mặc định (`checked = false`).
+     - Khi **KHÔNG tích chọn**: Token chỉ được giữ trong bộ nhớ tạm runtime (`inMemoryToken`), đồng thời xóa sạch `localStorage.removeItem('xw_admin_token')`. Khi reload/refresh hoặc F5/Ctrl+F5, bộ nhớ runtime bị xóa, hệ thống lập tức out ra modal đăng nhập yêu cầu nhập lại mật khẩu.
+     - Khi **CÓ tích chọn**: Token được lưu vào `localStorage` với hạn 365 ngày, cho phép F5 hay đóng mở trình duyệt vẫn giữ trạng thái đăng nhập.
+     - Tăng phiên bản cache Service Worker lên `vxang-admin-v3`.
 
 ---
 
 ## 🎯 NEXT STEPS (CÁC BƯỚC TIẾP THEO)
-1. Tải lại trang Admin (nhấn Ctrl+F5 để xóa cache Service Worker cũ).
-2. Đăng nhập và kiểm tra các tab mượt mà, không còn hiện tượng bị văng modal đăng nhập.
-3. Kiểm tra triển khai trên Vercel và cấu hình biến môi trường tương ứng.
+1. Tải lại trang Admin (`Ctrl + F5`).
+2. Thử nghiệm 2 kịch bản:
+   - Kịch bản 1: Không tích "Ghi nhớ đăng nhập" -> Nhập pass -> Đăng nhập -> F5/Ctrl+F5 -> Hệ thống lập tức out về modal đăng nhập.
+   - Kịch bản 2: Tích chọn "Ghi nhớ đăng nhập" -> Nhập pass -> Đăng nhập -> F5/Ctrl+F5 -> Hệ thống giữ nguyên đăng nhập.

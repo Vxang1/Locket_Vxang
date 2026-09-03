@@ -601,7 +601,7 @@
       <div style="font-size:0.84rem; color:var(--muted); margin-bottom:20px;">Đăng nhập quản trị hệ thống</div>
       <input type="password" id="adminPassword" onkeydown="if(event.key==='Enter') handleLogin()" style="width:100%; height:46px; background:#090e1a; border:1.5px solid var(--border); border-radius:10px; text-align:center; font-size:18px; color:var(--text); margin-bottom:12px; outline:none;" placeholder="Mật khẩu Admin..."/>
       <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:18px; font-size:0.8rem; color:var(--text-dim);">
-        <input type="checkbox" id="rememberMe" checked/>
+        <input type="checkbox" id="rememberMe"/>
         <label for="rememberMe">Ghi nhớ đăng nhập 365 ngày</label>
       </div>
       <button class="btn-cyber btn-block" onclick="handleLogin()">ĐĂNG NHẬP</button>
@@ -1009,16 +1009,25 @@
 
   <script>
     // 1. Quản lý Phiên Admin & Token
-    function getToken() { return localStorage.getItem('xw_admin_token') || ''; }
-    function setToken(t) { localStorage.setItem('xw_admin_token', t); }
+    let inMemoryToken = null;
+    function getToken() { return inMemoryToken || localStorage.getItem('xw_admin_token') || ''; }
+    function setToken(t, remember = true) {
+      inMemoryToken = t;
+      if (remember) {
+        localStorage.setItem('xw_admin_token', t);
+      } else {
+        localStorage.removeItem('xw_admin_token');
+      }
+    }
     function doLogout() {
+      inMemoryToken = null;
       localStorage.removeItem('xw_admin_token');
       location.reload();
     }
 
     async function handleLogin() {
       const pwd = document.getElementById('adminPassword').value.trim();
-      const remember = document.getElementById('rememberMe')?.checked ?? true;
+      const remember = document.getElementById('rememberMe')?.checked ?? false;
       const err = document.getElementById('loginErr');
       if (!pwd) return;
       try {
@@ -1029,7 +1038,7 @@
         });
         const data = await res.json();
         if (!res.ok || !data.ok) throw new Error(data.error || 'Sai mật khẩu');
-        setToken(data.token);
+        setToken(data.token, remember);
         document.getElementById('loginOverlay').style.display = 'none';
         initDashboard();
       } catch (e) {
@@ -1049,6 +1058,7 @@
         body: body ? JSON.stringify(body) : null
       });
       if (res.status === 401 && path !== '/api/admin/login') {
+        inMemoryToken = null;
         localStorage.removeItem('xw_admin_token');
         document.getElementById('loginOverlay').style.display = 'flex';
         throw new Error('Chưa đăng nhập hoặc phiên đã hết hạn');
