@@ -661,7 +661,7 @@
       </div>
       <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
         <button class="btn-outline" onclick="closeModal('createCustomerModal')">Hủy</button>
-        <button class="btn-cyber" onclick="submitCreateCustomer()">Tạo Khách Hàng</button>
+        <button class="btn-cyber" id="btnSubmitCreateCust" onclick="submitCreateCustomer()">Tạo Khách Hàng</button>
       </div>
     </div>
   </div>
@@ -950,15 +950,30 @@
       document.getElementById('custNotes').value = '';
       document.getElementById('custSpecialFlow').checked = false;
       document.getElementById('createCustomerModal').style.display = 'flex';
+      setTimeout(() => {
+        const inp = document.getElementById('custName');
+        if (inp) inp.focus();
+      }, 80);
     }
     async function submitCreateCustomer() {
+      const btn = document.getElementById('btnSubmitCreateCust');
       const name = document.getElementById('custName').value.trim();
       const contact = document.getElementById('custContact').value.trim();
       const pkg = document.getElementById('custPkg').value;
       const special_flow = document.getElementById('custSpecialFlow').checked;
       const notes = document.getElementById('custNotes').value.trim();
 
-      if (!name) return alert('Vui lòng nhập tên khách!');
+      if (!name) {
+        alert('Vui lòng nhập tên khách hàng!');
+        document.getElementById('custName').focus();
+        return;
+      }
+
+      const origText = btn ? btn.textContent : 'Tạo Khách Hàng';
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Đang tạo...';
+      }
 
       try {
         const res = await api('POST', '/api/admin/create-customer', {
@@ -970,13 +985,22 @@
 
         // Mẫu Zalo gửi khách chuẩn Safari
         const zaloMsg = getZaloMessage(res.customer_code, res.access_code);
-        navigator.clipboard.writeText(zaloMsg).then(() => {
-          alert(`✓ Đã tạo khách thành công!\n🔑 Mã truy cập: ${res.access_code}\n\nĐÃ TỰ ĐỘNG SAO CHÉP MẪU TIN NHẮN ZALO VÀO BỘ NHỚ TẠM!`);
-        }).catch(() => {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(zaloMsg).then(() => {
+            alert(`✓ Đã tạo khách thành công!\n🔑 Mã truy cập: ${res.access_code}\n\nĐÃ TỰ ĐỘNG SAO CHÉP MẪU TIN NHẮN ZALO VÀO BỘ NHỚ TẠM!`);
+          }).catch(() => {
+            prompt('Mã truy cập mới:', res.access_code);
+          });
+        } else {
           prompt('Mã truy cập mới:', res.access_code);
-        });
+        }
       } catch (e) {
-        alert('Lỗi: ' + e.message);
+        alert('Lỗi tạo khách: ' + e.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = origText;
+        }
       }
     }
 

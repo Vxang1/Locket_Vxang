@@ -34,12 +34,16 @@ async function sb(path, opts = {}) {
   const ctrl = new AbortController();
   const tId = setTimeout(() => ctrl.abort(), 7000);
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    const fetchOpts = {
       ...opts,
       headers,
       signal: ctrl.signal,
       keepalive: true
-    });
+    };
+    if (fetchOpts.body && typeof fetchOpts.body !== 'string' && !Buffer.isBuffer(fetchOpts.body)) {
+      fetchOpts.body = JSON.stringify(fetchOpts.body);
+    }
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, fetchOpts);
     if (res.status === 204) return null;
     const data = await res.json().catch(() => null);
     if (!res.ok) throw new Error((data && data.message) || res.statusText || `HTTP ${res.status}`);
@@ -217,7 +221,7 @@ async function dnsPoolHasCapacity(pkg, customerCode) {
       sb(`dns_pool?package=eq.${key}&is_active=eq.true`)
     ]);
     if (privateRows && privateRows.length) return true;
-    if (!poolRows || !poolRows.length) return false;
+    if (!poolRows || !poolRows.length) return true;
     if (customerCode && poolRows.some(r => (r.used_codes || []).includes(customerCode))) return true;
     return poolRows.some(r => !r.is_full && (r.used || 0) < (r.max || 5));
   } catch {
