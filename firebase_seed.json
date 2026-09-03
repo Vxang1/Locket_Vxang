@@ -1,0 +1,10 @@
+{
+  "appstore": {
+    "email": "appleid.shop@icloud.com",
+    "password": "MatKhauShop123@",
+    "scraper_url": "",
+    "scraper_url_backup": "",
+    "ipa_url": "",
+    "dev_mode": false
+  }
+}
