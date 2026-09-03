@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>Locket_Vxang ⚡ — Cyber Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet"/>
+  <!-- CDN SheetJS duy nhất để xuất Excel cho Admin -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --bg: #07090e;
+      --bg-surface: #0f172a;
+      --bg-card: rgba(15, 23, 42, 0.85);
+      --border: rgba(0, 240, 255, 0.16);
+      --border-focus: #00f0ff;
+      --p1: #00f0ff;
+      --p2: #8b5cf6;
+      --accent: #10b981;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+      --muted: #64748b;
+      --warning: #f59e0b;
+      --red: #ef4444;
+      --radius: 14px;
+      --radius-sm: 8px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Be Vietnam Pro', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-bottom: 60px;
+    }
+
+    /* HEADER */
+    .header {
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--p1), var(--p2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .badge-cyber {
+      padding: 3px 8px;
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--p1);
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* STATS CARDS */
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 20px 16px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .stat-val {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--p1);
+      margin-top: 6px;
+    }
+
+    /* NAV TABS */
+    .tabs-bar {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      padding: 10px 18px;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-dim);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active {
+      color: var(--p1);
+      border-bottom-color: var(--p1);
+    }
+
+    /* ACTION BAR */
+    .action-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .search-input {
+      flex: 1;
+      min-width: 240px;
+      background: #0b1120;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+    }
+    .filter-select {
+      background: #0b1120;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+    }
+
+    /* BUTTONS */
+    .btn-cyber {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 16px;
+      background: linear-gradient(135deg, var(--p1), var(--p2));
+      border: none;
+      border-radius: 10px;
+      color: #030712;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.86rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-cyber:active { transform: scale(0.97); }
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 14px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 0.76rem;
+      border-radius: 6px;
+    }
+
+    /* DATA TABLE */
+    .table-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+    th {
+      background: rgba(15, 23, 42, 0.95);
+      padding: 12px 16px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 800;
+      color: var(--p1);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      vertical-align: middle;
+    }
+    tr:hover td {
+      background: rgba(0, 240, 255, 0.02);
+    }
+
+    /* BADGES */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .tag-30k { background: rgba(0, 240, 255, 0.15); color: var(--p1); border: 1px solid rgba(0, 240, 255, 0.3); }
+    .tag-40k { background: rgba(139, 92, 246, 0.18); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.35); }
+    .tag-paid { background: rgba(16, 185, 129, 0.15); color: var(--accent); border: 1px solid rgba(16, 185, 129, 0.35); cursor: pointer; }
+    .tag-pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.35); cursor: pointer; }
+
+    /* MODAL */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(7, 9, 14, 0.88);
+      backdrop-filter: blur(12px);
+      padding: 20px;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: #0f172a;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 580px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+    }
+    .modal-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: var(--p1);
+      margin-bottom: 16px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-dim);
+    }
+    .form-input, .form-textarea, .form-select {
+      background: #0b1120;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      font-family: inherit;
+    }
+    .form-input:focus, .form-textarea:focus {
+      border-color: var(--p1);
+    }
+
+    /* LOGIN OVERLAY */
+    .login-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: var(--bg);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-box {
+      max-width: 380px;
+      width: 100%;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 30px 24px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <!-- LOGIN OVERLAY -->
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-box">
+      <div class="brand-logo" style="font-size:1.8rem; margin-bottom:6px;">Locket_Vxang ⚡</div>
+      <div style="font-size:0.84rem; color:var(--muted); margin-bottom:20px;">Đăng nhập quản trị hệ thống</div>
+      <input type="password" id="adminPassword" class="form-input" style="width:100%; text-align:center; font-size:18px; margin-bottom:12px;" placeholder="Mật khẩu Admin..."/>
+      <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:18px; font-size:0.8rem; color:var(--text-dim);">
+        <input type="checkbox" id="rememberMe" checked/>
+        <label for="rememberMe">Ghi nhớ đăng nhập 365 ngày</label>
+      </div>
+      <button class="btn-cyber" style="width:100%; justify-content:center; min-height:44px;" onclick="handleLogin()">Đăng Nhập</button>
+      <div id="loginErr" style="color:#ef4444; font-size:0.8rem; margin-top:10px; display:none;"></div>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="brand-group">
+      <div class="brand-logo">Locket_Vxang ⚡</div>
+      <span class="badge-cyber">Cyber Edition</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn-outline btn-sm" id="btnDevMode" onclick="toggleDevMode()">🛠️ Dev Mode: Tắt</button>
+      <button class="btn-outline btn-sm" onclick="handleLogout()">Đăng Xuất</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Tổng Khách Hàng</div>
+        <div class="stat-val" id="statCustomers">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Tổng Mã Đã Cấp</div>
+        <div class="stat-val" id="statCodes">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Mã Hoàn Thành</div>
+        <div class="stat-val" id="statCompleted">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Đang Online (40s)</div>
+        <div class="stat-val" id="statSessions" style="color:var(--accent);">0</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs-bar">
+      <button class="tab-btn active" onclick="switchTab('customers')">👥 Khách Hàng (CRM)</button>
+      <button class="tab-btn" onclick="switchTab('dns_pool')">🌐 DNS Pool</button>
+      <button class="tab-btn" onclick="switchTab('dns_private')">🔒 DNS Riêng</button>
+      <button class="tab-btn" onclick="switchTab('settings')">⚙️ Cài Đặt</button>
+    </div>
+
+    <!-- TAB 1: KHÁCH HÀNG (CRM) -->
+    <div id="tabCustomers">
+      <div class="action-bar">
+        <div style="display:flex; gap:10px; flex:1; flex-wrap:wrap;">
+          <input type="text" id="crmSearch" class="search-input" placeholder="🔍 Tìm theo Tên, SĐT, Mã KH, Mã truy cập..." oninput="renderCustomerTable()"/>
+          <select id="crmFilterPkg" class="filter-select" onchange="renderCustomerTable()">
+            <option value="all">Mọi gói dịch vụ</option>
+            <option value="30k">Gói 30k (5s)</option>
+            <option value="40k">Gói 40k (15s)</option>
+          </select>
+          <select id="crmFilterStatus" class="filter-select" onchange="renderCustomerTable()">
+            <option value="all">Mọi trạng thái</option>
+            <option value="completed">Đã hoàn thành</option>
+            <option value="pending">Chưa hoàn thành</option>
+          </select>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-outline" onclick="exportExcel()">📊 Xuất Excel</button>
+          <button class="btn-cyber" onclick="openCreateCustomerModal()">➕ Tạo Khách Mới</button>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Khách Hàng</th>
+              <th>Mã KH & Gói</th>
+              <th>Trạng Thái & Thanh Toán</th>
+              <th>Ngày Tạo</th>
+              <th style="text-align:right;">Thao Tác</th>
+            </tr>
+          </thead>
+          <tbody id="customerTableBody">
+            <tr><td colspan="5" style="text-align:center; padding:30px; color:var(--muted);">Đang tải dữ liệu...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 2: DNS POOL -->
+    <div id="tabDnsPool" style="display:none;">
+      <div class="action-bar">
+        <div style="font-family:'Space Grotesk'; font-size:1.1rem; font-weight:800; color:var(--p1);">
+          QUẢN LÝ DNS POOL XOAY VÒNG
+        </div>
+        <button class="btn-cyber" onclick="openAddDnsPoolModal()">➕ Thêm Link DNS Pool</button>
+      </div>
+
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Gói</th>
+              <th>URL DNS</th>
+              <th>Sức Chứa (Used/Max)</th>
+              <th>Mã Đang Giữ Slot</th>
+              <th>Trạng Thái</th>
+              <th style="text-align:right;">Thao Tác</th>
+            </tr>
+          </thead>
+          <tbody id="dnsPoolTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 3: DNS RIÊNG -->
+    <div id="tabDnsPrivate" style="display:none;">
+      <div class="action-bar">
+        <div style="font-family:'Space Grotesk'; font-size:1.1rem; font-weight:800; color:var(--p1);">
+          DANH SÁCH LINK DNS RIÊNG (TTL 10 PHÚT)
+        </div>
+        <button class="btn-cyber" onclick="openCreatePrivateDnsModal()">➕ Cấp Link DNS Riêng</button>
+      </div>
+
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Mã KH</th>
+              <th>Gói</th>
+              <th>NextDNS URL</th>
+              <th>Trạng Thái</th>
+              <th>Thời Gian TTL</th>
+              <th style="text-align:right;">Thao Tác</th>
+            </tr>
+          </thead>
+          <tbody id="dnsPrivateTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 4: CÀI ĐẶT -->
+    <div id="tabSettings" style="display:none;">
+      <div class="table-card" style="padding:24px; max-width:600px;">
+        <div class="modal-title">Cấu Hình DNS Template</div>
+        <div class="form-group">
+          <label class="form-label">Mẫu Template URL:</label>
+          <input type="text" id="dnsTemplateInput" class="form-input" value="https://apple.dns.nextdns.io/{CODE}"/>
+          <div style="font-size:0.75rem; color:var(--muted);">Sử dụng {CODE} để tự động thay thế mã ID NextDNS khi dán nhanh.</div>
+        </div>
+        <button class="btn-cyber" onclick="saveDnsTemplate()">Lưu Mẫu Template</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL TẠO KHÁCH MỚI (Ô NHẬP LIÊN HỆ DUY NHẤT) -->
+  <div class="modal" id="createCustomerModal">
+    <div class="modal-content">
+      <div class="modal-title">➕ Tạo Khách Hàng Mới</div>
+      <div class="form-group">
+        <label class="form-label">Tên khách hàng:</label>
+        <input type="text" id="custName" class="form-input" placeholder="Ví dụ: Nguyễn Văn A"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">📞 Số điện thoại hoặc Link Profile (Zalo / FB / Tele / TikTok...):</label>
+        <input type="text" id="custContact" class="form-input" placeholder="0912345678 hoặc https://facebook.com/..."/>
+        <div style="font-size:0.75rem; color:var(--muted);">Hệ thống tự động phân loại SĐT và link Profile mạng xã hội.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Gói dịch vụ:</label>
+        <select id="custPkg" class="form-select">
+          <option value="30k">Gói 30k (5s Vĩnh viễn)</option>
+          <option value="40k">Gói 40k (15s Vĩnh viễn)</option>
+        </select>
+      </div>
+      <div class="form-group" style="flex-direction:row; align-items:center; gap:8px;">
+        <input type="checkbox" id="custSpecialFlow"/>
+        <label for="custSpecialFlow" style="font-size:0.82rem; font-weight:700; color:#fde68a;">⚡ Sử dụng Flow Đặc Biệt (Cài Locket IPA Hạ Cấp)</label>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ghi chú (Tùy chọn):</label>
+        <input type="text" id="custNotes" class="form-input" placeholder="Ghi chú thêm..."/>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+        <button class="btn-outline" onclick="closeModal('createCustomerModal')">Hủy</button>
+        <button class="btn-cyber" onclick="submitCreateCustomer()">Tạo Khách Hàng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CHI TIẾT KHÁCH HÀNG -->
+  <div class="modal" id="customerDetailModal">
+    <div class="modal-content">
+      <div class="modal-title" id="detTitle">Hồ Sơ Khách Hàng</div>
+      <div id="detBody" style="display:flex; flex-direction:column; gap:14px;"></div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+        <button class="btn-outline" onclick="closeModal('customerDetailModal')">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL THÊM DNS POOL -->
+  <div class="modal" id="addDnsPoolModal">
+    <div class="modal-content">
+      <div class="modal-title">➕ Thêm Link Vào DNS Pool</div>
+      <div class="form-group">
+        <label class="form-label">Phân nhóm gói:</label>
+        <select id="poolPkg" class="form-select">
+          <option value="5s">Pool 5s (Dành cho gói 30k)</option>
+          <option value="15s">Pool 15s (Dành cho gói 40k)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Danh sách Link DNS hoặc ID (Mỗi link 1 dòng):</label>
+        <textarea id="poolUrls" class="form-textarea" rows="4" placeholder="d82b01&#10;https://apple.dns.nextdns.io/a92f81"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Giới hạn slot tối đa (mặc định 5):</label>
+        <input type="number" id="poolMax" class="form-input" value="5"/>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+        <button class="btn-outline" onclick="closeModal('addDnsPoolModal')">Hủy</button>
+        <button class="btn-cyber" onclick="submitAddDnsPool()">Thêm Vào Pool</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CẤP DNS RIÊNG -->
+  <div class="modal" id="createPrivateDnsModal">
+    <div class="modal-content">
+      <div class="modal-title">🔒 Cấp Link DNS Riêng</div>
+      <div class="form-group">
+        <label class="form-label">Mã khách hàng (KH-xxxxxxx):</label>
+        <input type="text" id="privCustCode" class="form-input" placeholder="KH-1234567"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Gói dịch vụ:</label>
+        <select id="privPkg" class="form-select">
+          <option value="5s">Gói 5s (30k)</option>
+          <option value="15s">Gói 15s (40k)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Link DNS hoặc ID NextDNS:</label>
+        <input type="text" id="privUrl" class="form-input" placeholder="https://apple.dns.nextdns.io/..."/>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+        <button class="btn-outline" onclick="closeModal('createPrivateDnsModal')">Hủy</button>
+        <button class="btn-cyber" onclick="submitCreatePrivateDns()">Cấp Link Riêng</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let rawCustomers = [];
+    let curTab = 'customers';
+
+    // 1. Phân loại liên hệ thông minh
+    function parseContactInput(input) {
+      const str = String(input || '').trim();
+      if (!str) return { phone: '', social_link: '', social_platform: 'zalo' };
+      if (/^(https?:\/\/|[a-z0-9-]+\.[a-z]{2,})/i.test(str) || /facebook\.com|fb\.com|zalo\.me|t\.me|tiktok\.com|instagram\.com|\//i.test(str)) {
+        let platform = 'zalo';
+        if (/facebook\.com|fb\.com/i.test(str)) platform = 'facebook';
+        else if (/t\.me|telegram/i.test(str)) platform = 'telegram';
+        else if (/tiktok\.com/i.test(str)) platform = 'tiktok';
+        else if (/instagram\.com/i.test(str)) platform = 'instagram';
+        else if (/zalo\.me/i.test(str)) platform = 'zalo';
+        let link = str;
+        if (!/^https?:\/\//i.test(link)) link = 'https://' + link;
+        const phoneMatch = str.match(/zalo\.me\/(0[0-9]{9}|\+84[0-9]{9})/);
+        const phone = phoneMatch ? phoneMatch[1] : '';
+        return { phone, social_link: link, social_platform: platform };
+      }
+      const cleanDigits = str.replace(/[^0-9+]/g, '');
+      if (cleanDigits.length >= 8) {
+        const standardPhone = cleanDigits.replace(/^\+84/, '0');
+        return { phone: standardPhone, social_link: `https://zalo.me/${standardPhone}`, social_platform: 'zalo' };
+      }
+      return { phone: '', social_link: str, social_platform: 'zalo' };
+    }
+
+    // 2. Token & API
+    function getToken() { return localStorage.getItem('xwAdminToken') || ''; }
+    async function api(method, path, body = null) {
+      const headers = { 'Content-Type': 'application/json' };
+      const token = getToken();
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(path, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : null
+      });
+      if (res.status === 401) {
+        document.getElementById('loginOverlay').style.display = 'flex';
+        throw new Error('Chưa đăng nhập');
+      }
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error((data && data.error) || 'Lỗi xử lý');
+      return data;
+    }
+
+    // 3. Đăng nhập / Đăng xuất
+    async function handleLogin() {
+      const pw = document.getElementById('adminPassword').value;
+      const rem = document.getElementById('rememberMe').checked;
+      const errEl = document.getElementById('loginErr');
+      errEl.style.display = 'none';
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw, remember: rem })
+        });
+        const d = await res.json();
+        if (!res.ok) throw new Error(d.error || 'Sai mật khẩu');
+        localStorage.setItem('xwAdminToken', d.token);
+        document.getElementById('loginOverlay').style.display = 'none';
+        initDashboard();
+      } catch (e) {
+        errEl.textContent = e.message;
+        errEl.style.display = 'block';
+      }
+    }
+    function handleLogout() {
+      localStorage.removeItem('xwAdminToken');
+      document.getElementById('loginOverlay').style.display = 'flex';
+    }
+
+    // 4. Dev Mode
+    function updateDevModeUI() {
+      const isDev = localStorage.getItem('xw_dev_mode') === '1';
+      const btn = document.getElementById('btnDevMode');
+      btn.textContent = isDev ? '🛠️ Dev Mode: BẬT' : '🛠️ Dev Mode: Tắt';
+      btn.style.color = isDev ? 'var(--p1)' : 'var(--text-dim)';
+      btn.style.borderColor = isDev ? 'var(--p1)' : 'var(--border)';
+    }
+    function toggleDevMode() {
+      const cur = localStorage.getItem('xw_dev_mode') === '1';
+      localStorage.setItem('xw_dev_mode', cur ? '0' : '1');
+      updateDevModeUI();
+      alert(cur ? 'Đã tắt Dev Mode!' : 'Đã bật Dev Mode! Bạn có thể test hệ thống trên PC/Chrome mà không bị chặn Safari.');
+    }
+
+    // 5. Tabs
+    function switchTab(t) {
+      curTab = t;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('tabCustomers').style.display = t === 'customers' ? 'block' : 'none';
+      document.getElementById('tabDnsPool').style.display = t === 'dns_pool' ? 'block' : 'none';
+      document.getElementById('tabDnsPrivate').style.display = t === 'dns_private' ? 'block' : 'none';
+      document.getElementById('tabSettings').style.display = t === 'settings' ? 'block' : 'none';
+      if (t === 'dns_pool') loadDnsPool();
+      if (t === 'dns_private') loadDnsPrivate();
+      if (t === 'settings') loadDnsTemplate();
+    }
+
+    // 6. Thống kê & Dữ liệu
+    async function loadStats() {
+      try {
+        const s = await api('GET', '/api/admin/stats');
+        document.getElementById('statCustomers').textContent = s.customers || 0;
+        document.getElementById('statCodes').textContent = s.codes || 0;
+        document.getElementById('statCompleted').textContent = s.completed || 0;
+        document.getElementById('statSessions').textContent = s.sessions || 0;
+      } catch {}
+    }
+
+    async function loadCustomers() {
+      try {
+        rawCustomers = await api('GET', '/api/admin/customers');
+        renderCustomerTable();
+      } catch {}
+    }
+
+    function renderCustomerTable() {
+      const tbody = document.getElementById('customerTableBody');
+      const search = (document.getElementById('crmSearch').value || '').toLowerCase().trim();
+      const pkgFilter = document.getElementById('crmFilterPkg').value;
+      const statusFilter = document.getElementById('crmFilterStatus').value;
+
+      const filtered = (rawCustomers || []).filter(c => {
+        if (pkgFilter !== 'all' && c.package !== pkgFilter) return false;
+        if (statusFilter === 'completed' && c.service_status !== 'active') return false;
+        if (statusFilter === 'pending' && c.service_status === 'active') return false;
+        if (search) {
+          const mName = (c.name || '').toLowerCase().includes(search);
+          const mPhone = (c.phone || '').includes(search);
+          const mCode = (c.customer_code || '').toLowerCase().includes(search);
+          return mName || mPhone || mCode;
+        }
+        return true;
+      });
+
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--muted);">Không tìm thấy khách hàng nào.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(c => {
+        const isPaid = (c.deposit_note || '').includes('Đã thu');
+        const isDone = c.service_status === 'active';
+        return `
+          <tr>
+            <td>
+              <div style="font-weight:800; color:var(--text);">${c.name}</div>
+              <div style="font-size:0.75rem; color:var(--muted); margin-top:2px;">
+                ${c.phone || 'Chưa có SĐT'}
+                ${c.social_link ? `<a href="${c.social_link}" target="_blank" style="color:var(--p1); margin-left:6px; text-decoration:none;">🔗 MXH</a>` : ''}
+              </div>
+            </td>
+            <td>
+              <div style="font-family:'JetBrains Mono'; font-size:0.8rem; color:var(--text-dim);">${c.customer_code}</div>
+              <span class="tag ${c.package === '40k' ? 'tag-40k' : 'tag-30k'}" style="margin-top:4px;">
+                ${c.package === '40k' ? '15s (40k)' : '5s (30k)'}
+              </span>
+            </td>
+            <td>
+              <div>${isDone ? '<span style="color:var(--accent); font-weight:700;">🟢 Hoàn thành</span>' : '<span style="color:var(--warning); font-weight:700;">🟡 Đang chờ</span>'}</div>
+              <span class="tag ${isPaid ? 'tag-paid' : 'tag-pending'}" style="margin-top:4px;" onclick="toggleDeposit(event, '${c.id}', '${c.deposit_note || ''}')">
+                ${c.deposit_note || 'Chờ thu tiền'}
+              </span>
+            </td>
+            <td style="font-size:0.76rem; color:var(--muted);">
+              ${new Date(c.created_at).toLocaleDateString('vi-VN')}
+            </td>
+            <td style="text-align:right;">
+              <button class="btn-outline btn-sm" onclick="openCustomerDetail('${c.id}')">👁️ Xem</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // 7. 1-Chạm đổi trạng thái thanh toán
+    window.toggleDeposit = async function(e, custId, curNote) {
+      e.stopPropagation();
+      const nextNote = curNote.includes('Đã thu') ? 'Chờ thu tiền' : 'Đã thu đủ';
+      try {
+        await api('PATCH', `/api/admin/customers?id=${custId}`, { deposit_note: nextNote });
+        loadCustomers();
+      } catch (err) {
+        alert(err.message);
+      }
+    };
+
+    // 8. Tạo Khách Mới
+    function openCreateCustomerModal() {
+      document.getElementById('custName').value = '';
+      document.getElementById('custContact').value = '';
+      document.getElementById('custNotes').value = '';
+      document.getElementById('custSpecialFlow').checked = false;
+      document.getElementById('createCustomerModal').style.display = 'flex';
+    }
+    async function submitCreateCustomer() {
+      const name = document.getElementById('custName').value.trim();
+      const contact = document.getElementById('custContact').value.trim();
+      const pkg = document.getElementById('custPkg').value;
+      const special_flow = document.getElementById('custSpecialFlow').checked;
+      const notes = document.getElementById('custNotes').value.trim();
+
+      if (!name) return alert('Vui lòng nhập tên khách!');
+
+      try {
+        const res = await api('POST', '/api/admin/create-customer', {
+          name, contact, package: pkg, special_flow, notes
+        });
+        closeModal('createCustomerModal');
+        loadCustomers();
+        loadStats();
+
+        // Mẫu Zalo gửi khách chuẩn Safari
+        const zaloMsg = getZaloMessage(res.customer_code, res.access_code);
+        navigator.clipboard.writeText(zaloMsg).then(() => {
+          alert(`✓ Đã tạo khách thành công!\n🔑 Mã truy cập: ${res.access_code}\n\nĐÃ TỰ ĐỘNG SAO CHÉP MẪU TIN NHẮN ZALO VÀO BỘ NHỚ TẠM!`);
+        }).catch(() => {
+          prompt('Mã truy cập mới:', res.access_code);
+        });
+      } catch (e) {
+        alert('Lỗi: ' + e.message);
+      }
+    }
+
+    // 9. Mẫu tin nhắn Zalo chuẩn Safari (Duy nhất 1 mẫu)
+    function getZaloMessage(custCode, accessCode) {
+      const origin = window.location.origin;
+      return `Xwuan gửi thông tin dịch vụ Locket_Vxang của bạn nè! 🌟
+
+👤 Mã khách hàng:
+${custCode}
+
+🔑 Mã truy cập:
+${accessCode}
+
+🔗 Link website:
+${origin}
+
+📲 Hướng dẫn vào:
+1. Mở ứng dụng SAFARI trên iPhone
+2. Truy cập link trên
+3. Nhập mã truy cập → Bấm Xác nhận
+4. Làm theo đúng từng bước hướng dẫn nhé!
+
+⏱ Lưu ý: Mã có hiệu lực trong 30 phút kể từ lúc xác thực. Bạn tranh thủ làm luôn một lần nhé!`;
+    }
+
+    // 10. Modal Chi Tiết Khách Hàng
+    async function openCustomerDetail(id) {
+      try {
+        const c = await api('GET', `/api/admin/customers?id=${id}`);
+        const modal = document.getElementById('customerDetailModal');
+        const body = document.getElementById('detBody');
+        document.getElementById('detTitle').textContent = `Hồ Sơ: ${c.name}`;
+
+        const codes = (c.access_codes || []).map(cd => `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#0b1120; padding:8px 12px; border-radius:8px; border:1px solid var(--border);">
+            <div>
+              <span style="font-family:'JetBrains Mono'; font-weight:800; color:var(--p1);">${cd.code}</span>
+              <span style="font-size:0.75rem; color:var(--muted); margin-left:6px;">[${cd.status}]</span>
+            </div>
+            <button class="btn-outline btn-sm" onclick="copyZalo('${c.customer_code}', '${cd.code}')">📋 Copy Zalo</button>
+          </div>
+        `).join('') || '<div style="color:var(--muted); font-size:0.8rem;">Chưa có mã nào</div>';
+
+        body.innerHTML = `
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:0.84rem;">
+            <div><span style="color:var(--muted);">Mã KH:</span> <b>${c.customer_code}</b></div>
+            <div><span style="color:var(--muted);">SĐT:</span> <b>${c.phone || '—'}</b></div>
+            <div><span style="color:var(--muted);">Gói:</span> <b>${c.package === '40k' ? '15s (40k)' : '5s (30k)'}</b></div>
+            <div><span style="color:var(--muted);">Luồng:</span> <b>${c.special_flow ? 'Flow Đặc Biệt (IPA)' : 'Flow Thường (DNS)'}</b></div>
+            <div><span style="color:var(--muted);">Locket User:</span> <b>${c.locket_username || 'Chưa có'}</b></div>
+            <div><span style="color:var(--muted);">Thanh toán:</span> <b>${c.deposit_note || 'Chờ thu tiền'}</b></div>
+          </div>
+
+          <div style="margin-top:10px;">
+            <div style="font-weight:800; color:var(--p1); font-size:0.84rem; margin-bottom:8px;">LỊCH SỬ MÃ TRUY CẬP:</div>
+            <div style="display:flex; flex-direction:column; gap:6px;">${codes}</div>
+          </div>
+
+          <div style="display:flex; gap:10px; margin-top:10px;">
+            <button class="btn-cyber" style="flex:1;" onclick="addCodeForCustomer('${c.id}')">➕ Cấp Mã Mới</button>
+            <button class="btn-outline" style="color:#ef4444; border-color:rgba(239,68,68,0.4);" onclick="deleteCustomer('${c.id}')">🗑️ Xóa Khách</button>
+          </div>
+        `;
+        modal.style.display = 'flex';
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    function copyZalo(custCode, code) {
+      const msg = getZaloMessage(custCode, code);
+      navigator.clipboard.writeText(msg).then(() => alert('✓ Đã sao chép mẫu tin nhắn Zalo!'));
+    }
+
+    async function addCodeForCustomer(custId) {
+      try {
+        const res = await api('POST', '/api/admin/add-code', { customer_id: custId });
+        alert(`✓ Đã cấp mã mới: ${res.access_code}`);
+        openCustomerDetail(custId);
+        loadStats();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function deleteCustomer(custId) {
+      if (!confirm('Bạn có chắc chắn muốn xóa khách hàng này?')) return;
+      try {
+        await api('DELETE', `/api/admin/customers?id=${custId}`);
+        closeModal('customerDetailModal');
+        loadCustomers();
+        loadStats();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    // 11. DNS Pool
+    async function loadDnsPool() {
+      const tbody = document.getElementById('dnsPoolTableBody');
+      try {
+        const list = await api('GET', '/api/admin/customers?action=dns_pool_list');
+        tbody.innerHTML = (list || []).map(r => `
+          <tr>
+            <td><span class="tag ${r.package === '15s' ? 'tag-40k' : 'tag-30k'}">${r.package}</span></td>
+            <td style="font-family:'JetBrains Mono'; font-size:0.78rem; max-width:260px; overflow:hidden; text-overflow:ellipsis;">${r.dns_url}</td>
+            <td><b>${r.used || 0} / ${r.max || 5}</b> ${r.is_full ? '<span style="color:#ef4444;">(Đầy)</span>' : ''}</td>
+            <td style="font-size:0.75rem; color:var(--muted);">${(r.used_codes || []).join(', ') || '—'}</td>
+            <td>${r.is_active ? '<span style="color:var(--accent);">Active</span>' : '<span style="color:var(--muted);">Tắt</span>'}</td>
+            <td style="text-align:right;">
+              <button class="btn-outline btn-sm" onclick="deleteDnsPool('${r.id}')">Xóa</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch {}
+    }
+    function openAddDnsPoolModal() {
+      document.getElementById('poolUrls').value = '';
+      document.getElementById('addDnsPoolModal').style.display = 'flex';
+    }
+    async function submitAddDnsPool() {
+      const pkg = document.getElementById('poolPkg').value;
+      const raw = document.getElementById('poolUrls').value.trim();
+      const max = parseInt(document.getElementById('poolMax').value) || 5;
+      const urls = raw.split('\n').map(u => u.trim()).filter(Boolean);
+      if (!urls.length) return alert('Vui lòng nhập link hoặc ID!');
+      try {
+        await api('POST', '/api/admin/customers?action=dns_pool_add', { urls, package: pkg, max_uses: max });
+        closeModal('addDnsPoolModal');
+        loadDnsPool();
+      } catch (e) { alert(e.message); }
+    }
+    async function deleteDnsPool(id) {
+      if (!confirm('Xóa link này khỏi DNS Pool?')) return;
+      await api('DELETE', `/api/admin/customers?action=dns_pool_delete&id=${id}`);
+      loadDnsPool();
+    }
+
+    // 12. DNS Riêng
+    async function loadDnsPrivate() {
+      const tbody = document.getElementById('dnsPrivateTableBody');
+      try {
+        const list = await api('GET', '/api/admin/customers?action=dns_list');
+        tbody.innerHTML = (list || []).map(r => `
+          <tr>
+            <td><b>${r.customer_code}</b></td>
+            <td><span class="tag ${r.package === '15s' ? 'tag-40k' : 'tag-30k'}">${r.package}</span></td>
+            <td style="font-family:'JetBrains Mono'; font-size:0.78rem;">${r.nextdns_url}</td>
+            <td><span class="tag ${r.status === 'active' ? 'tag-paid' : 'tag-pending'}">${r.status}</span></td>
+            <td style="font-size:0.75rem; color:var(--muted);">${r.expires_at ? new Date(r.expires_at).toLocaleTimeString('vi-VN') : 'Chưa mở'}</td>
+            <td style="text-align:right;">
+              <button class="btn-outline btn-sm" onclick="copyPrivateDns('${r.token}')">📋 Link</button>
+              <button class="btn-outline btn-sm" onclick="reactivatePrivateDns('${r.id}')">↻ Hồi sinh</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch {}
+    }
+    function copyPrivateDns(token) {
+      const url = `${window.location.origin}/dns?t=${token}`;
+      navigator.clipboard.writeText(url).then(() => alert('✓ Đã copy link DNS riêng!'));
+    }
+    async function reactivatePrivateDns(id) {
+      await api('PATCH', `/api/admin/customers?action=dns_reactivate&id=${id}`);
+      alert('✓ Đã hồi sinh TTL 10 phút!');
+      loadDnsPrivate();
+    }
+    function openCreatePrivateDnsModal() {
+      document.getElementById('privCustCode').value = '';
+      document.getElementById('privUrl').value = '';
+      document.getElementById('createPrivateDnsModal').style.display = 'flex';
+    }
+    async function submitCreatePrivateDns() {
+      const cc = document.getElementById('privCustCode').value.trim();
+      const url = document.getElementById('privUrl').value.trim();
+      const pkg = document.getElementById('privPkg').value;
+      if (!cc || !url) return alert('Vui lòng điền đủ thông tin!');
+      try {
+        const res = await api('POST', '/api/admin/customers?action=dns_create', {
+          customer_code: cc, nextdns_url: url, package: pkg
+        });
+        closeModal('createPrivateDnsModal');
+        copyPrivateDns(res.token);
+        loadDnsPrivate();
+      } catch (e) { alert(e.message); }
+    }
+
+    // 13. Cài Đặt DNS Template
+    async function loadDnsTemplate() {
+      try {
+        const res = await api('GET', '/api/admin/customers?action=dns_template_get');
+        if (res.template) document.getElementById('dnsTemplateInput').value = res.template;
+      } catch {}
+    }
+    async function saveDnsTemplate() {
+      const tmpl = document.getElementById('dnsTemplateInput').value.trim();
+      await api('POST', '/api/admin/customers?action=dns_template_set', { template: tmpl });
+      alert('✓ Đã lưu DNS Template!');
+    }
+
+    // 14. Xuất Excel
+    function exportExcel() {
+      if (!rawCustomers || !rawCustomers.length) return alert('Không có dữ liệu!');
+      const data = rawCustomers.map(c => ({
+        'Mã KH': c.customer_code,
+        'Họ Tên': c.name,
+        'Số Điện Thoại': c.phone || '',
+        'Gói': c.package === '40k' ? '15s Vĩnh viễn' : '5s Vĩnh viễn',
+        'Luồng': c.special_flow ? 'Flow Đặc Biệt' : 'Flow Thường',
+        'Locket Username': c.locket_username || '',
+        'Thanh Toán': c.deposit_note || '',
+        'Trạng Thái': c.service_status === 'active' ? 'Hoàn thành' : 'Đang chờ',
+        'Ngày Tạo': new Date(c.created_at).toLocaleString('vi-VN')
+      }));
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'KhachHang_LocketVxang');
+      XLSX.writeFile(wb, `Locket_Vxang_Customers_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    }
+
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    function initDashboard() {
+      updateDevModeUI();
+      loadStats();
+      loadCustomers();
+      setInterval(loadStats, 10000);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (!getToken()) {
+        document.getElementById('loginOverlay').style.display = 'flex';
+      } else {
+        initDashboard();
+      }
+    });
+  </script>
+</body>
+</html>

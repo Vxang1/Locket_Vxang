@@ -1,0 +1,9 @@
+{
+  "name": "locket-vxang",
+  "version": "1.0.0",
+  "description": "Locket_Vxang Cyber Tech Architecture Unified",
+  "engines": {
+    "node": "24.x"
+  },
+  "private": true
+}

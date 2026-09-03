@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+  <title>Locket_Vxang 💫 — Hướng Dẫn Cài Đặt</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #07090e;
+      --bg-surface: #0f172a;
+      --bg-card: rgba(15, 23, 42, 0.82);
+      --bg-card-hover: rgba(30, 41, 59, 0.88);
+      --border: rgba(0, 240, 255, 0.16);
+      --border-focus: #00f0ff;
+      --border-glow: 0 0 16px rgba(0, 240, 255, 0.25);
+      --p1: #00f0ff;
+      --p2: #8b5cf6;
+      --accent: #10b981;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+      --muted: #64748b;
+      --warning: #f59e0b;
+      --red: #ef4444;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --radius-lg: 20px;
+      --tap: 46px;
+      --topbar-h: 60px;
+      --navbar-h: 70px;
+      --sa-top: env(safe-area-inset-top, 0px);
+      --sa-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Be Vietnam Pro', sans-serif;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    .page-container {
+      max-width: 440px;
+      margin: 0 auto;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background: radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.05) 0%, transparent 50%);
+    }
+
+    /* TOPBAR */
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      max-width: 440px;
+      margin: 0 auto;
+      z-index: 100;
+      background: rgba(7, 9, 14, 0.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+      padding: calc(10px + var(--sa-top)) 16px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .topbar-brand {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--p1), var(--p2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.01em;
+    }
+    .topbar-timer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      background: rgba(0, 240, 255, 0.08);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--p1);
+    }
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* MAIN CONTENT */
+    .content-area {
+      flex: 1;
+      padding-top: calc(var(--topbar-h) + 16px);
+      padding-bottom: calc(var(--navbar-h) + 20px);
+      padding-left: 16px;
+      padding-right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* STEP PROGRESS BAR */
+    .progress-bar-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .progress-title {
+      color: var(--p1);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .progress-track {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--p1), var(--p2));
+      border-radius: 10px;
+      transition: width 0.3s ease;
+    }
+
+    /* USERNAME BANNER */
+    .username-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .username-input-wrap {
+      display: flex;
+      gap: 8px;
+    }
+    .username-input {
+      flex: 1;
+      background: #0b1120;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px !important; /* Chống auto-zoom */
+      color: var(--text);
+      font-weight: 700;
+      outline: none;
+    }
+    .username-input:focus {
+      border-color: var(--p1);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.25);
+    }
+    .btn-save-user {
+      padding: 0 16px;
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid var(--p1);
+      color: var(--p1);
+      font-weight: 800;
+      font-size: 0.8rem;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    /* STEP CARDS */
+    .step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: var(--radius-lg);
+      padding: 22px 18px;
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: rgba(139, 92, 246, 0.18);
+      border: 1px solid rgba(139, 92, 246, 0.35);
+      border-radius: 20px;
+      color: #c4b5fd;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      align-self: flex-start;
+    }
+    .step-heading {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.35;
+    }
+    .step-desc {
+      font-size: 0.86rem;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+
+    /* COPY ACCOUNT BOX */
+    .acct-box {
+      background: #090e17;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .acct-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 10px;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 10px;
+    }
+    .acct-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      min-width: 65px;
+    }
+    .acct-val {
+      flex: 1;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.86rem;
+      font-weight: 800;
+      color: var(--p1);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .btn-copy-chip {
+      padding: 7px 12px;
+      background: rgba(0, 240, 255, 0.14);
+      border: 1px solid var(--p1);
+      border-radius: 8px;
+      color: var(--p1);
+      font-size: 0.76rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .btn-copy-chip:active {
+      transform: scale(0.95);
+    }
+
+    /* ALERTS & NOTICES */
+    .notice-box {
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      line-height: 1.55;
+    }
+    .notice-info {
+      background: rgba(0, 240, 255, 0.07);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      color: #93c5fd;
+    }
+    .notice-warning {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: #fde68a;
+    }
+    .notice-danger {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1.5px solid #ef4444;
+      color: #fca5a5;
+      font-weight: 600;
+    }
+
+    /* ACTION BUTTONS */
+    .btn-action-big {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 48px;
+      padding: 13px 18px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--p1), var(--p2));
+      color: #030712;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #4c1d95, 0 0 20px rgba(0, 240, 255, 0.3);
+      transition: all 0.15s ease;
+      touch-action: manipulation;
+    }
+    .btn-action-big:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #4c1d95;
+    }
+
+    /* FIXED NAVBAR */
+    .navbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: 440px;
+      margin: 0 auto;
+      z-index: 100;
+      background: rgba(7, 9, 14, 0.94);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-top: 1px solid var(--border);
+      padding: 10px 16px calc(10px + var(--sa-bottom));
+      display: flex;
+      gap: 12px;
+    }
+    .btn-nav-prev {
+      flex: 1;
+      min-height: 46px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-dim);
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+    .btn-nav-next {
+      flex: 2;
+      min-height: 46px;
+      background: linear-gradient(135deg, var(--p1), var(--p2));
+      border: none;
+      border-radius: 12px;
+      color: #030712;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 900;
+      font-size: 0.92rem;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #4c1d95, 0 0 18px rgba(0, 240, 255, 0.3);
+      transition: all 0.15s;
+    }
+    .btn-nav-next:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+      filter: grayscale(0.8);
+    }
+
+    /* FRAUD MODAL */
+    .modal-fraud {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999999;
+      background: rgba(7, 9, 14, 0.98);
+      backdrop-filter: blur(25px);
+      padding: 24px;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-fraud-box {
+      max-width: 380px;
+      width: 100%;
+      background: #180909;
+      border: 2px solid #ef4444;
+      border-radius: 20px;
+      padding: 30px 20px;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(239, 68, 68, 0.4);
+    }
+    .fraud-timer {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: #ef4444;
+      margin: 16px 0;
+      text-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+    }
+
+    /* COMPLETE SCREEN */
+    .complete-screen {
+      display: none;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 30px 20px;
+      text-align: center;
+      box-shadow: 0 0 35px rgba(0, 240, 255, 0.2);
+    }
+    .complete-icon {
+      font-size: 56px;
+      margin-bottom: 12px;
+      animation: bounce 1.5s infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-container">
+    <!-- TOPBAR -->
+    <header class="topbar" id="topBar">
+      <div class="topbar-brand">Locket_Vxang 💫</div>
+      <div class="topbar-timer">
+        <span class="live-dot"></span>
+        <span id="timerText">30:00</span>
+      </div>
+    </header>
+
+    <!-- CONTENT AREA -->
+    <main class="content-area" id="contentArea">
+      <!-- PROGRESS -->
+      <div class="progress-bar-wrap" id="progressWrap">
+        <div class="progress-meta">
+          <span class="progress-title" id="stepIndicator">Bước 1 / 3</span>
+          <span id="pkgBadge" style="color:var(--text-dim); font-size:0.75rem;">Gói 5s Vĩnh viễn</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill" style="width: 33%;"></div>
+        </div>
+      </div>
+
+      <!-- USERNAME CARD (HIỆN KHI CHƯA CÓ USERNAME) -->
+      <div class="username-card" id="userCard" style="display:none;">
+        <div style="font-size:0.8rem; color:var(--p1); font-weight:700;">👤 Locket Username của bạn:</div>
+        <div class="username-input-wrap">
+          <input type="text" id="usernameInput" class="username-input" placeholder="Nhập username Locket..." autocomplete="off"/>
+          <button class="btn-save-user" onclick="saveUsername()">Lưu</button>
+        </div>
+      </div>
+
+      <!-- DYNAMIC STEP VIEW -->
+      <div id="stepContainer"></div>
+
+      <!-- COMPLETE SCREEN -->
+      <div class="complete-screen" id="completeScreen">
+        <div class="complete-icon">🎉</div>
+        <div style="font-family:'Space Grotesk'; font-size:1.5rem; font-weight:900; color:var(--p1); margin-bottom:8px;">
+          KÍCH HOẠT HOÀN TẤT!
+        </div>
+        <div style="font-size:0.88rem; color:#cbd5e1; line-height:1.6; margin-bottom:20px;">
+          Chúc mừng bạn đã hoàn thành toàn bộ các bước cấu hình Locket Gold Vĩnh Viễn!
+        </div>
+
+        <div style="text-align:left; background:rgba(0,240,255,0.06); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:20px;">
+          <div style="font-weight:800; color:var(--p1); margin-bottom:10px; font-size:0.86rem;">📸 CHECKLIST XÁC NHẬN VỚI SHOP:</div>
+          <div style="font-size:0.82rem; color:#e2e8f0; line-height:1.6;">
+            1. Mở app Locket chụp ảnh màn hình giao diện Gold.<br/>
+            2. Chụp màn hình mục Cài đặt Shadowrocket.<br/>
+            3. Bấm nút bên dưới để gửi ảnh xác nhận cho Admin shop nhé!
+          </div>
+        </div>
+
+        <button class="btn-action-big" onclick="openZaloAdmin()">
+          💬 Gửi Xác Nhận Qua Zalo Cho Shop
+        </button>
+      </div>
+    </main>
+
+    <!-- FIXED NAVBAR -->
+    <nav class="navbar" id="navBar">
+      <button class="btn-nav-prev" id="btnPrev" onclick="prevStep()">← Quay lại</button>
+      <button class="btn-nav-next" id="btnNext" onclick="nextStep()">Tiếp theo →</button>
+    </nav>
+  </div>
+
+  <!-- FRAUD ALERT MODAL (BẪY GIAN LẬN 2 THIẾT BỊ) -->
+  <div class="modal-fraud" id="fraudModal">
+    <div class="modal-fraud-box">
+      <div style="font-size:46px;">🚨</div>
+      <div style="font-family:'Space Grotesk'; font-weight:900; font-size:1.25rem; color:#ef4444; margin-top:8px;">
+        CẢNH BÁO CHIA SẺ MÃ!
+      </div>
+      <div style="font-size:0.84rem; color:#fca5a5; margin-top:10px; line-height:1.5;">
+        Hệ thống phát hiện có <b>thiết bị thứ hai</b> đang truy cập cùng mã này. Mã truy cập sẽ bị hủy vĩnh viễn sau:
+      </div>
+      <div class="fraud-timer" id="fraudTimer">15</div>
+      <div style="font-size:0.75rem; color:#94a3b8;">
+        Vui lòng đóng ngay các thiết bị khác để tránh bị khóa tài khoản!
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 1. Quản lý Device ID & Environment
+    function getDeviceId() {
+      let id = localStorage.getItem('xwDeviceId');
+      if (!id) {
+        id = 'dev_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+        localStorage.setItem('xwDeviceId', id);
+      }
+      return id;
+    }
+
+    // 2. Đồng bộ chiều cao Safe Area & Bars
+    function syncBarHeights() {
+      const topbar = document.getElementById('topBar');
+      const navbar = document.getElementById('navBar');
+      if (!topbar || !navbar) return;
+      const set = () => {
+        document.documentElement.style.setProperty('--topbar-h', Math.round(topbar.getBoundingClientRect().height) + 'px');
+        document.documentElement.style.setProperty('--navbar-h', Math.round(navbar.getBoundingClientRect().height) + 'px');
+      };
+      set();
+      if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(set).observe(topbar);
+        new ResizeObserver(set).observe(navbar);
+      }
+    }
+
+    // 3. State toàn cục
+    let state = {
+      code: '',
+      token: '',
+      expiresAt: null,
+      package: '30k',
+      specialFlow: false,
+      locketUsername: '',
+      steps: [],
+      curIndex: 0,
+      appstoreData: null,
+      dnsUrl: '',
+      pingInterval: null,
+      timerInterval: null
+    };
+
+    // 4. API Gọi Serverless
+    async function api(path, opts = {}) {
+      const headers = { 'Content-Type': 'application/json', ...opts.headers };
+      if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
+      const res = await fetch(path, { ...opts, headers });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error((data && data.error) || 'Lỗi mạng');
+      return data;
+    }
+
+    // 5. Khởi tạo phiên
+    async function initSession() {
+      const params = new URLSearchParams(window.location.search);
+      let c = params.get('code');
+      if (!c) {
+        c = prompt('Vui lòng nhập mã truy cập (XW-xxxxxx):');
+        if (!c) { window.location.href = '/'; return; }
+      }
+      state.code = c.trim().toUpperCase();
+
+      try {
+        const valRes = await api('/api/guide/validate', {
+          method: 'POST',
+          body: JSON.stringify({ code: state.code, device_id: getDeviceId() })
+        });
+        state.token = valRes.token;
+        state.expiresAt = new Date(valRes.expires_at);
+
+        startCountdownTimer();
+        startHeartbeat();
+
+        // Tải danh sách steps
+        const stepRes = await api('/api/guide/steps');
+        state.package = stepRes.package;
+        state.specialFlow = stepRes.special_flow;
+        state.locketUsername = stepRes.locket_username || '';
+        state.steps = stepRes.steps || [];
+
+        document.getElementById('pkgBadge').textContent = state.package === '40k' ? '15s Vĩnh viễn (40k)' : '5s Vĩnh viễn (30k)';
+
+        // Kiểm tra username
+        if (!state.locketUsername) {
+          document.getElementById('userCard').style.display = 'block';
+        }
+
+        renderCurrentStep();
+      } catch (err) {
+        alert(err.message || 'Mã truy cập không hợp lệ hoặc đã hết hạn!');
+        window.location.href = '/';
+      }
+    }
+
+    // 6. Countdown Timer (30 phút)
+    function startCountdownTimer() {
+      if (state.timerInterval) clearInterval(state.timerInterval);
+      const timerEl = document.getElementById('timerText');
+      state.timerInterval = setInterval(() => {
+        if (!state.expiresAt) return;
+        const diff = Math.max(0, state.expiresAt.getTime() - Date.now());
+        if (diff <= 0) {
+          clearInterval(state.timerInterval);
+          alert('Phiên làm việc đã hết 30 phút. Vui lòng liên hệ shop để nhận mã mới nếu chưa xong!');
+          window.location.href = '/';
+          return;
+        }
+        const m = Math.floor(diff / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        timerEl.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      }, 1000);
+    }
+
+    // 7. Live Heartbeat Ping (4s)
+    function startHeartbeat() {
+      if (state.pingInterval) clearInterval(state.pingInterval);
+      state.pingInterval = setInterval(async () => {
+        try {
+          const res = await api('/api/guide/ping', {
+            method: 'POST',
+            body: JSON.stringify({ currentStep: state.curIndex, username: state.locketUsername })
+          });
+          if (res.kicked) {
+            clearInterval(state.pingInterval);
+            alert('Phiên này đã bị Admin đóng!');
+            window.location.href = '/';
+          }
+          if (res.expired) {
+            clearInterval(state.pingInterval);
+            alert('Mã truy cập đã hết hạn hoặc bị khóa do vi phạm!');
+            window.location.href = '/';
+          }
+          if (res.fraud_warning) {
+            showFraudModal(res.seconds_left || 15);
+          }
+        } catch {}
+      }, 4000);
+    }
+
+    // Bẫy gian lận
+    function showFraudModal(sec) {
+      const modal = document.getElementById('fraudModal');
+      const timer = document.getElementById('fraudTimer');
+      modal.style.display = 'flex';
+      let left = sec;
+      timer.textContent = left;
+      const count = setInterval(() => {
+        left--;
+        if (left <= 0) {
+          clearInterval(count);
+          alert('Mã truy cập đã bị khóa vĩnh viễn do phát hiện chia sẻ mã!');
+          window.location.href = '/';
+        } else {
+          timer.textContent = left;
+        }
+      }, 1000);
+    }
+
+    // 8. Render Bước Hiện Tại
+    async function renderCurrentStep() {
+      const container = document.getElementById('stepContainer');
+      const cur = state.steps[state.curIndex];
+      if (!cur) return;
+
+      const total = state.steps.length;
+      document.getElementById('stepIndicator').textContent = `Bước ${state.curIndex + 1} / ${total}`;
+      document.getElementById('progressFill').style.width = `${Math.round(((state.curIndex + 1) / total) * 100)}%`;
+
+      document.getElementById('btnPrev').style.visibility = state.curIndex === 0 ? 'hidden' : 'visible';
+      const btnNext = document.getElementById('btnNext');
+      btnNext.textContent = state.curIndex === total - 1 ? '✅ Hoàn Thành' : 'Tiếp theo →';
+      btnNext.disabled = false;
+
+      // Bước 1: App Store (Shadowrocket)
+      if (cur.type === 'appstore') {
+        container.innerHTML = `
+          <div class="step-card">
+            <span class="step-badge">Bước 1 • Cài Đặt Ứng Dụng</span>
+            <div class="step-heading">Cài Đặt Shadowrocket Từ App Store</div>
+            <div class="step-desc">
+              Đăng nhập tài khoản App Store của shop bên dưới để tải ứng dụng <b>Shadowrocket</b> miễn phí.
+            </div>
+
+            <div class="acct-box" id="acctBox">
+              <div style="font-size:0.75rem; color:var(--muted); text-align:center;">ĐANG TẢI TÀI KHOẢN APP STORE...</div>
+            </div>
+
+            <div class="notice-box notice-danger">
+              ⛔ <b>LƯU Ý QUAN TRỌNG:</b> Giữ lại app Shadowrocket trên máy, tuyệt đối không được xóa app Shadowrocket đi.
+            </div>
+
+            <div class="notice-box notice-info">
+              ${state.specialFlow 
+                ? '⚠️ <b>LƯU Ý ĐẶC BIỆT:</b> Tải xong Shadowrocket KHÔNG ĐĂNG XUẤT tài khoản App Store vì cần phải dùng cho bước cài Locket IPA tiếp theo.'
+                : '💡 Tải xong Shadowrocket thì phải đăng xuất tài khoản App Store của shop rồi đăng nhập lại tài khoản App Store cá nhân của bạn.'}
+            </div>
+          </div>
+        `;
+        loadAppstoreAccount();
+      }
+
+      // Bước 2: IPA Hạ Cấp (Dành cho Special Flow)
+      else if (cur.type === 'ipa') {
+        const manifestUrl = `itms-services://?action=download-manifest&url=${encodeURIComponent(window.location.origin + '/api/guide/validate?action=ipa_plist')}`;
+        container.innerHTML = `
+          <div class="step-card">
+            <span class="step-badge">Bước ${state.curIndex + 1} • Cài Đặt Bản Hạ Cấp</span>
+            <div class="step-heading">Cài Đặt Locket IPA Hạ Cấp</div>
+            <div class="step-desc">
+              Bấm nút tải bên dưới để cài đặt bản Locket IPA phiên bản tối ưu tính năng Gold.
+            </div>
+
+            <button class="btn-action-big" onclick="window.location.href='${manifestUrl}'">
+              ⬇ Tải Locket IPA Về Máy
+            </button>
+
+            <div class="notice-box notice-danger" style="border-width:2px; font-size:0.86rem;">
+              ⛔ <b>LƯU Ý CỰC KỲ QUAN TRỌNG:</b><br/>
+              Tuyệt đối <b>KHÔNG ĐƯỢC XÓA ỨNG DỤNG LOCKET</b> sau khi đã tải/cài đặt xong! Nếu xóa bạn sẽ bị mất bản hạ cấp và không thể tự cài lại được.
+            </div>
+
+            <div class="notice-box notice-info">
+              💡 Tải xong Locket thì bạn hãy đăng xuất tài khoản App Store của shop rồi đăng nhập lại tài khoản cá nhân của bạn.
+            </div>
+          </div>
+        `;
+      }
+
+      // Bước 3: DNS Profile (Choice)
+      else if (cur.type === 'choice') {
+        container.innerHTML = `
+          <div class="step-card">
+            <span class="step-badge">Bước ${state.curIndex + 1} • Cấu Hình DNS</span>
+            <div class="step-heading">Cài Đặt DNS Giữ Locket Gold</div>
+            <div class="step-desc">
+              Tải hồ sơ cấu hình DNS mã hóa chuẩn Apple về máy để duy trì kết nối gói <b>${state.package === '40k' ? '15s' : '5s'}</b>.
+            </div>
+
+            <button class="btn-action-big" id="btnDownloadDns" onclick="downloadDnsProfile()">
+              ⬇ Tải File Cấu Hình DNS Về Máy
+            </button>
+
+            <div class="notice-box notice-info">
+              📲 <b>Hướng dẫn sau khi bấm tải:</b><br/>
+              1. Bấm <b>"Cho phép"</b> khi Safari hỏi tải hồ sơ cấu hình.<br/>
+              2. Mở ứng dụng <b>Cài đặt (Settings)</b> trên iPhone → Chọn <b>"Đã tải về hồ sơ"</b> ở trên cùng.<br/>
+              3. Bấm <b>Cài đặt</b> ở góc phải trên cùng và làm theo hướng dẫn trên màn hình.
+            </div>
+          </div>
+        `;
+        loadDnsPool();
+      }
+
+      // Bước VPN (Dành cho gói 40k)
+      else if (cur.type === 'vpn') {
+        container.innerHTML = `
+          <div class="step-card">
+            <span class="step-badge">Bước ${state.curIndex + 1} • Kết Nối VPN</span>
+            <div class="step-heading">Cài Đặt VPN Server Mỹ (US)</div>
+            <div class="step-desc">
+              Cài đặt ứng dụng VPN và kết nối đến vị trí <b>United States (Mỹ)</b> để mở khóa video 15 giây.
+            </div>
+
+            <button class="btn-action-big" onclick="window.location.href='https://apps.apple.com/app/vpn-super-unlimited-proxy/id1370293473'">
+              📲 Mở App Store Tải VPN
+            </button>
+
+            <div class="notice-box notice-danger">
+              ⛔ <b>LƯU Ý QUAN TRỌNG:</b> Giữ lại ứng dụng VPN trên máy, tuyệt đối không được xóa app VPN đi.
+            </div>
+
+            ${state.specialFlow ? `
+              <div class="notice-box notice-warning">
+                ⚠️ <b>LƯU Ý ĐẶC BIỆT:</b> Hãy bỏ qua bước xóa và cài đặt lại Locket ở trong video hướng dẫn.
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+
+      // Bước Gold: Hoàn tất cấu hình
+      else if (cur.type === 'gold') {
+        const configUrl = 'https://raw.githubusercontent.com/locket-gold/module/main/locket.sgmodule';
+        container.innerHTML = `
+          <div class="step-card">
+            <span class="step-badge">Bước ${state.curIndex + 1} • Lên Gold</span>
+            <div class="step-heading">Kích Hoạt & Hoàn Tất Locket Gold</div>
+            <div class="step-desc">
+              Sao chép đường dẫn module Shadowrocket bên dưới và dán vào Shadowrocket để hoàn tất kích hoạt.
+            </div>
+
+            <button class="btn-action-big" onclick="copyConfig('${configUrl}')">
+              📋 Sao Chép Link Cấu Hình Gold
+            </button>
+
+            <div class="notice-box notice-warning">
+              ⚠️ <b>CẢNH BÁO QUAN TRỌNG:</b> Đây là bước bắt buộc để duy trì Locket Gold ổn định và không bị mất gói.
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // 9. Lấy tài khoản App Store
+    async function loadAppstoreAccount() {
+      try {
+        const data = await api('/api/guide/validate?action=appstore');
+        state.appstoreData = data;
+        const box = document.getElementById('acctBox');
+        if (!box) return;
+
+        if (!data.email_real || !data.password) {
+          box.innerHTML = `<div style="font-size:0.8rem; color:#ef4444; text-align:center;">Chưa có tài khoản khả dụng. Vui lòng liên hệ Admin!</div>`;
+          document.getElementById('btnNext').disabled = true;
+          document.getElementById('btnNext').textContent = 'Đợi cập nhật';
+          return;
+        }
+
+        box.innerHTML = `
+          <div class="acct-row">
+            <span class="acct-label">Email:</span>
+            <span class="acct-val">${data.email_masked || data.email_real}</span>
+            <button class="btn-copy-chip" onclick="copyText('${data.email_real}', 'Email')">⧉ Copy</button>
+          </div>
+          <div class="acct-row">
+            <span class="acct-label">Mật khẩu:</span>
+            <span class="acct-val">••••••••</span>
+            <button class="btn-copy-chip" onclick="copyText('${data.password}', 'Mật khẩu')">⧉ Copy</button>
+          </div>
+        `;
+      } catch {
+        const box = document.getElementById('acctBox');
+        if (box) box.innerHTML = `<div style="font-size:0.8rem; color:#ef4444; text-align:center;">Lỗi kết nối App Store scraper. Vui lòng thử lại sau!</div>`;
+      }
+    }
+
+    // 10. Lấy link DNS từ Pool
+    async function loadDnsPool() {
+      try {
+        const data = await api('/api/guide/validate?action=dns_pool_claim');
+        state.dnsUrl = data.dns_url || '';
+      } catch (e) {
+        const btn = document.getElementById('btnNext');
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = 'Lỗi DNS';
+        }
+      }
+    }
+
+    // 11. Client-Side .mobileconfig Generator
+    function downloadDnsProfile() {
+      const url = state.dnsUrl || 'https://apple.dns.nextdns.io/demo';
+      const is15s = state.package === '40k';
+      const profileName = is15s ? 'Locket_Vxang 15s' : 'Locket_Vxang';
+      const fileName = is15s ? 'Locket_Vxang_15s.mobileconfig' : 'Locket_Vxang.mobileconfig';
+
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>PayloadContent</key>
+  <array>
+    <dict>
+      <key>DNSSettings</key>
+      <dict>
+        <key>DNSProtocol</key>
+        <string>HTTPS</string>
+        <key>ServerURL</key>
+        <string>${url}</string>
+      </dict>
+      <key>PayloadDescription</key>
+      <string>Cấu hình DNS DoH mã hóa Locket_Vxang</string>
+      <key>PayloadDisplayName</key>
+      <string>${profileName} DNS</string>
+      <key>PayloadIdentifier</key>
+      <string>com.locketvxang.dns.${Date.now()}</string>
+      <key>PayloadType</key>
+      <string>com.apple.dnsSettings.managed</string>
+      <key>PayloadUUID</key>
+      <string>335d288a-2114-4364-9a96-${Math.random().toString(36).substring(2, 14)}</string>
+      <key>PayloadVersion</key>
+      <integer>1</integer>
+      <key>ProhibitDisablement</key>
+      <false/>
+    </dict>
+  </array>
+  <key>PayloadDisplayName</key>
+  <string>${profileName}</string>
+  <key>PayloadIdentifier</key>
+  <string>com.locketvxang.profile.${Date.now()}</string>
+  <key>PayloadRemovalDisallowed</key>
+  <false/>
+  <key>PayloadType</key>
+  <string>Configuration</string>
+  <key>PayloadUUID</key>
+  <string>98f5b821-2e11-4fca-86bc-${Math.random().toString(36).substring(2, 14)}</string>
+  <key>PayloadVersion</key>
+  <integer>1</integer>
+</dict>
+</plist>`;
+
+      const blob = new Blob([xml], { type: 'application/x-apple-aspen-config;charset=utf-8' });
+      const dlLink = document.createElement('a');
+      dlLink.href = URL.createObjectURL(blob);
+      dlLink.download = fileName;
+      document.body.appendChild(dlLink);
+      dlLink.click();
+      document.body.removeChild(dlLink);
+      alert('✓ Đang tải file cấu hình DNS! Vui lòng bấm "Cho phép" và vào Cài đặt iPhone để cài đặt hồ sơ.');
+    }
+
+    // 12. Điều Hướng Bước
+    function prevStep() {
+      if (state.curIndex > 0) {
+        state.curIndex--;
+        renderCurrentStep();
+      }
+    }
+
+    async function nextStep() {
+      const total = state.steps.length;
+      if (state.curIndex < total - 1) {
+        state.curIndex++;
+        renderCurrentStep();
+      } else {
+        // Hoàn tất
+        try {
+          await api('/api/guide/complete', { method: 'POST' });
+          document.getElementById('stepContainer').style.display = 'none';
+          document.getElementById('progressWrap').style.display = 'none';
+          document.getElementById('navBar').style.display = 'none';
+          document.getElementById('completeScreen').style.display = 'block';
+        } catch (e) {
+          alert('Lỗi hoàn tất: ' + e.message);
+        }
+      }
+    }
+
+    // 13. Helpers
+    function copyText(str, label) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(str).then(() => alert(`✓ Đã sao chép ${label}!`));
+      } else {
+        prompt(`Sao chép ${label}:`, str);
+      }
+    }
+
+    function copyConfig(url) {
+      copyText(url, 'Link cấu hình Locket Gold');
+    }
+
+    function saveUsername() {
+      const u = document.getElementById('usernameInput').value.trim();
+      if (!u) return alert('Vui lòng điền username!');
+      state.locketUsername = u;
+      alert('✓ Đã lưu username Locket!');
+    }
+
+    function openZaloAdmin() {
+      window.location.href = 'https://zalo.me/0912345678';
+    }
+
+    // Khởi chạy
+    window.addEventListener('DOMContentLoaded', () => {
+      syncBarHeights();
+      initSession();
+    });
+  </script>
+</body>
+</html>

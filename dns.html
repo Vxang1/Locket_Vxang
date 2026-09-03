@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+  <title>Locket_Vxang 🔒 — Cài Đặt DNS Riêng</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #07090e;
+      --bg-card: rgba(15, 23, 42, 0.82);
+      --border: rgba(0, 240, 255, 0.16);
+      --p1: #00f0ff;
+      --p2: #8b5cf6;
+      --accent: #10b981;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+      --muted: #64748b;
+      --warning: #f59e0b;
+      --red: #ef4444;
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Be Vietnam Pro', sans-serif;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: calc(20px + env(safe-area-inset-top, 0px)) 16px calc(20px + env(safe-area-inset-bottom, 0px));
+      background-image: 
+        radial-gradient(circle at 50% 15%, rgba(0, 240, 255, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 85%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+    }
+    .app-frame {
+      width: 100%;
+      max-width: 440px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .brand-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--p1), var(--p2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+    .card-glass {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: var(--radius);
+      padding: 26px 20px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .btn-cyber {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 50px;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--p1), var(--p2));
+      color: #030712;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.96rem;
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #4c1d95, 0 0 22px rgba(0, 240, 255, 0.35);
+      transition: all 0.15s ease;
+      touch-action: manipulation;
+    }
+    .btn-cyber:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #4c1d95;
+    }
+    .timer-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 20px;
+      color: #fde68a;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      font-size: 0.82rem;
+      margin: 0 auto;
+    }
+    .instruction-box {
+      text-align: left;
+      background: rgba(0, 240, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      font-size: 0.82rem;
+      color: #e2e8f0;
+      line-height: 1.6;
+    }
+    .notice-danger {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      text-align: left;
+      line-height: 1.5;
+    }
+    .state-view {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-frame">
+    <div class="brand-title">Locket_Vxang 🔒</div>
+    <div style="font-size:0.84rem; color:var(--muted); margin-bottom:20px;">Cài Đặt Cấu Hình DNS Riêng Biệt</div>
+
+    <!-- LOADING VIEW -->
+    <div id="viewLoading" class="card-glass">
+      <div style="font-size:1.1rem; font-weight:700; color:var(--p1);">ĐANG KIỂM TRA LINK DNS...</div>
+      <div style="font-size:0.82rem; color:var(--text-dim);">Vui lòng giữ kết nối trong giây lát</div>
+    </div>
+
+    <!-- ACTIVE VIEW -->
+    <div id="viewActive" class="card-glass state-view">
+      <div class="timer-badge">
+        <span>⏱ Hết hạn sau:</span>
+        <span id="countdown">10:00</span>
+      </div>
+
+      <div style="text-align:left;">
+        <div style="font-size:0.75rem; color:var(--muted); font-weight:700; text-transform:uppercase;">DÀNH CHO KHÁCH HÀNG:</div>
+        <div style="font-family:'JetBrains Mono'; font-size:1.1rem; font-weight:900; color:var(--p1);" id="custCodeText">KH-XXXXXXX</div>
+      </div>
+
+      <button class="btn-cyber" onclick="downloadPrivateDnsProfile()">
+        🔒 CÀI ĐẶT DNS RIÊNG
+      </button>
+
+      <div class="instruction-box">
+        📲 <b>Các bước cài đặt trên iPhone:</b><br/>
+        1. Bấm nút <b>Cài đặt DNS Riêng</b> ở trên.<br/>
+        2. Safari hiện thông báo → Bấm <b>Cho phép (Allow)</b>.<br/>
+        3. Mở ứng dụng <b>Cài đặt (Settings)</b> trên màn hình chính.<br/>
+        4. Chọn dòng <b>"Đã tải về hồ sơ"</b> ở trên cùng → Bấm <b>Cài đặt</b> góc phải.<br/>
+        5. Nhập mật khẩu mở khóa màn hình và hoàn tất!
+      </div>
+
+      <div class="notice-danger">
+        ⚠️ <b>Lưu ý:</b> Link này chỉ có hiệu lực cài đặt trong vòng 10 phút. Sau khi hết hạn, bạn sẽ không thể tải lại được nữa.
+      </div>
+    </div>
+
+    <!-- EXPIRED VIEW -->
+    <div id="viewExpired" class="card-glass state-view">
+      <div style="font-size:44px;">⏳</div>
+      <div style="font-family:'Space Grotesk'; font-size:1.2rem; font-weight:900; color:#ef4444;">
+        LINK DNS ĐÃ HẾT HẠN
+      </div>
+      <div style="font-size:0.84rem; color:var(--text-dim); line-height:1.6;">
+        Link DNS riêng này đã vượt quá thời hạn 10 phút sử dụng.<br/><br/>
+        Nếu bạn chưa kịp cài đặt hoặc cần cấp lại, vui lòng liên hệ trực tiếp cho Admin qua Zalo để hồi sinh link nhé!
+      </div>
+      <button class="btn-cyber" onclick="window.location.href='https://zalo.me/0912345678'">
+        💬 Nhắn Tin Cho Admin Zalo
+      </button>
+    </div>
+
+    <!-- ERROR VIEW -->
+    <div id="viewError" class="card-glass state-view">
+      <div style="font-size:44px;">❌</div>
+      <div style="font-family:'Space Grotesk'; font-size:1.2rem; font-weight:900; color:#ef4444;">
+        LINK KHÔNG HỢP LỆ
+      </div>
+      <div id="errDesc" style="font-size:0.84rem; color:var(--text-dim); line-height:1.6;">
+        Không tìm thấy thông tin cấu hình cho link này.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let dnsData = null;
+    let timerInterval = null;
+
+    function isIOS() {
+      const ua = (navigator.userAgent || '').toLowerCase();
+      return /ipad|iphone|ipod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    }
+    function isInApp() {
+      const ua = (navigator.userAgent || '').toLowerCase();
+      return /zalo|fbav|fban|messenger|instagram|tiktok|telegram/.test(ua);
+    }
+
+    async function checkDnsToken() {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('t');
+      if (!token) {
+        showView('viewError');
+        document.getElementById('errDesc').textContent = 'Thiếu mã token xác thực trên đường dẫn!';
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/guide/validate?action=dns_check&t=${encodeURIComponent(token)}`);
+        const data = await res.json();
+        if (data.expired) {
+          showView('viewExpired');
+          return;
+        }
+        if (!res.ok || !data.ok) {
+          showView('viewError');
+          document.getElementById('errDesc').textContent = data.error || 'Link không tồn tại hoặc đã bị thu hồi!';
+          return;
+        }
+
+        dnsData = data;
+        document.getElementById('custCodeText').textContent = data.customer_code || 'KH-VIP';
+        showView('viewActive');
+        startTimer(600); // 10 phút
+      } catch {
+        showView('viewError');
+      }
+    }
+
+    function showView(viewId) {
+      document.getElementById('viewLoading').style.display = 'none';
+      document.getElementById('viewActive').style.display = 'none';
+      document.getElementById('viewExpired').style.display = 'none';
+      document.getElementById('viewError').style.display = 'none';
+      document.getElementById(viewId).style.display = 'flex';
+    }
+
+    function startTimer(seconds) {
+      let left = seconds;
+      const el = document.getElementById('countdown');
+      timerInterval = setInterval(() => {
+        left--;
+        if (left <= 0) {
+          clearInterval(timerInterval);
+          showView('viewExpired');
+          return;
+        }
+        const m = Math.floor(left / 60);
+        const s = left % 60;
+        el.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      }, 1000);
+    }
+
+    function downloadPrivateDnsProfile() {
+      if (!dnsData || !dnsData.ublockdns_url) return alert('Chưa tải được cấu hình DNS!');
+      const url = dnsData.ublockdns_url;
+      const is15s = dnsData.package === '15s';
+      const profileName = is15s ? 'Locket_Vxang 15s Riêng' : 'Locket_Vxang Riêng';
+      const fileName = is15s ? 'Locket_Vxang_15s_Private.mobileconfig' : 'Locket_Vxang_Private.mobileconfig';
+
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>PayloadContent</key>
+  <array>
+    <dict>
+      <key>DNSSettings</key>
+      <dict>
+        <key>DNSProtocol</key>
+        <string>HTTPS</string>
+        <key>ServerURL</key>
+        <string>${url}</string>
+      </dict>
+      <key>PayloadDescription</key>
+      <string>Hồ sơ cấu hình DNS riêng Locket_Vxang</string>
+      <key>PayloadDisplayName</key>
+      <string>${profileName} DNS</string>
+      <key>PayloadIdentifier</key>
+      <string>com.locketvxang.private.${Date.now()}</string>
+      <key>PayloadType</key>
+      <string>com.apple.dnsSettings.managed</string>
+      <key>PayloadUUID</key>
+      <string>441a288a-3314-4364-9a96-${Math.random().toString(36).substring(2, 14)}</string>
+      <key>PayloadVersion</key>
+      <integer>1</integer>
+      <key>ProhibitDisablement</key>
+      <false/>
+    </dict>
+  </array>
+  <key>PayloadDisplayName</key>
+  <string>${profileName}</string>
+  <key>PayloadIdentifier</key>
+  <string>com.locketvxang.profile.private.${Date.now()}</string>
+  <key>PayloadRemovalDisallowed</key>
+  <false/>
+  <key>PayloadType</key>
+  <string>Configuration</string>
+  <key>PayloadUUID</key>
+  <string>77f5b821-4e11-4fca-86bc-${Math.random().toString(36).substring(2, 14)}</string>
+  <key>PayloadVersion</key>
+  <integer>1</integer>
+</dict>
+</plist>`;
+
+      const blob = new Blob([xml], { type: 'application/x-apple-aspen-config;charset=utf-8' });
+      const dlLink = document.createElement('a');
+      dlLink.href = URL.createObjectURL(blob);
+      dlLink.download = fileName;
+      document.body.appendChild(dlLink);
+      dlLink.click();
+      document.body.removeChild(dlLink);
+      alert('✓ Đang tải file cấu hình DNS! Vui lòng bấm "Cho phép" và vào Cài đặt iPhone để cài đặt hồ sơ.');
+    }
+
+    window.addEventListener('DOMContentLoaded', checkDnsToken);
+  </script>
+</body>
+</html>

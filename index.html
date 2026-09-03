@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+  <title>Locket_Vxang 💫 — Cài Đặt Locket Gold</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #07090e;
+      --bg-surface: #0f172a;
+      --bg-card: rgba(15, 23, 42, 0.78);
+      --border: rgba(0, 240, 255, 0.16);
+      --border-focus: #00f0ff;
+      --p1: #00f0ff;
+      --p2: #8b5cf6;
+      --accent: #10b981;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+      --muted: #64748b;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --tap: 46px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Be Vietnam Pro', sans-serif;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: calc(20px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px));
+      background-image: 
+        radial-gradient(circle at 50% 10%, rgba(0, 240, 255, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 50% 90%, rgba(139, 92, 246, 0.08) 0%, transparent 40%);
+    }
+    .app-frame {
+      width: 100%;
+      max-width: 440px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .brand-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--p1), var(--p2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+    .brand-subtitle {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 26px;
+      line-height: 1.5;
+    }
+    .card-glass {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: var(--radius);
+      padding: 30px 22px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 25px rgba(0, 240, 255, 0.08);
+    }
+    .input-label {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      font-weight: 600;
+      margin-bottom: 10px;
+      display: block;
+      text-align: left;
+    }
+    .input-cyber {
+      width: 100%;
+      background: #0b1120;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px !important; /* >= 16px chống iOS auto-zoom trap */
+      color: var(--p1);
+      font-weight: 800;
+      text-align: center;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      outline: none;
+      margin-bottom: 20px;
+      transition: all 0.2s ease;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+    .input-cyber:focus {
+      border-color: var(--p1);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+    .btn-cyber {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 50px;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--p1), var(--p2));
+      color: #030712;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.96rem;
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #4c1d95, 0 0 22px rgba(0, 240, 255, 0.35);
+      transition: all 0.15s ease;
+      touch-action: manipulation;
+    }
+    .btn-cyber:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 4px 0 #4c1d95, 0 0 28px rgba(0, 240, 255, 0.45);
+    }
+    .btn-cyber:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #4c1d95, 0 0 12px rgba(0, 240, 255, 0.2);
+    }
+    .hint-box {
+      margin-top: 18px;
+      padding: 12px 14px;
+      background: rgba(0, 240, 255, 0.05);
+      border: 1px dashed rgba(0, 240, 255, 0.2);
+      border-radius: var(--radius-sm);
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+      text-align: left;
+    }
+    .error-box {
+      display: none;
+      margin-top: 14px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+      font-size: 0.84rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    /* MODAL CHẶN THIẾT BỊ & IN-APP BROWSER */
+    .modal-lock {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 999999;
+      background: rgba(7, 9, 14, 0.97);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 24px;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-box {
+      max-width: 390px;
+      width: 100%;
+      background: #0f172a;
+      border: 1.5px solid var(--p1);
+      border-radius: 20px;
+      padding: 30px 22px;
+      text-align: center;
+      box-shadow: 0 0 35px rgba(0, 240, 255, 0.28);
+    }
+    .modal-icon {
+      font-size: 46px;
+      margin-bottom: 12px;
+    }
+    .modal-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 900;
+      font-size: 1.25rem;
+      color: var(--p1);
+      margin-bottom: 14px;
+    }
+    .modal-desc {
+      font-size: 0.86rem;
+      color: #cbd5e1;
+      line-height: 1.6;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .modal-desc b {
+      color: #f8fafc;
+    }
+    .modal-desc .step-line {
+      margin-top: 8px;
+      padding-left: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-frame">
+    <div class="brand-title">Locket_Vxang 💫</div>
+    <div class="brand-subtitle">Hệ thống kích hoạt & duy trì Locket Gold Vĩnh Viễn chuẩn iOS</div>
+
+    <div class="card-glass">
+      <label class="input-label" for="codeInput">Nhập mã truy cập được cấp:</label>
+      <input 
+        type="text" 
+        id="codeInput" 
+        class="input-cyber" 
+        placeholder="XW-XXXXXX" 
+        maxlength="9" 
+        autocomplete="off" 
+        autocorrect="off" 
+        autocapitalize="characters" 
+        spellcheck="false"
+      />
+      <button class="btn-cyber" id="btnEnter" onclick="handleEnter()">
+        <span>Xác Nhận Mã Truy Cập</span>
+        <span>→</span>
+      </button>
+
+      <div id="errMsg" class="error-box"></div>
+
+      <div class="hint-box">
+        💡 <b>Lưu ý:</b> Mã truy cập có dạng <b>XW-xxxxxx</b> do shop cung cấp. Vui lòng mở trang web này bằng trình duyệt <b>Safari</b> trên iPhone.
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CHẶN PC / ANDROID HOẶC IN-APP WEBVIEW -->
+  <div class="modal-lock" id="blockModal">
+    <div class="modal-box">
+      <div class="modal-icon" id="blockIcon">🧭</div>
+      <div class="modal-title" id="blockTitle">Bắt Buộc Mở Bằng Safari</div>
+      <div class="modal-desc" id="blockDesc">
+        Dịch vụ yêu cầu mở bằng <b>Safari trên iPhone</b> để cài đặt cấu hình DNS và chứng chỉ.
+      </div>
+      <button class="btn-cyber" id="btnCopyLink" onclick="copyLink()">
+        📋 Sao Chép Liên Kết Để Mở Safari
+      </button>
+    </div>
+  </div>
+
+  <script>
+    function isIOS() {
+      const ua = (navigator.userAgent || navigator.vendor || window.opera || '').toLowerCase();
+      return /ipad|iphone|ipod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    }
+
+    function isInAppBrowser() {
+      const ua = (navigator.userAgent || navigator.vendor || window.opera || '').toLowerCase();
+      return /zalo|zalomessenger|fbav|fban|fb_iab|messenger|instagram|tiktok|snapchat|line\/|micromessenger|telegram|crios|fxios|edgios/i.test(ua);
+    }
+
+    function checkEnvironment() {
+      if (localStorage.getItem('xw_dev_mode') === '1') return true;
+
+      const modal = document.getElementById('blockModal');
+      const icon = document.getElementById('blockIcon');
+      const title = document.getElementById('blockTitle');
+      const desc = document.getElementById('blockDesc');
+
+      if (!isIOS()) {
+        icon.textContent = '📱';
+        title.textContent = 'Yêu Cầu Mở Trên iPhone';
+        desc.innerHTML = `
+          ⛔ Dịch vụ <b>Locket_Vxang</b> chỉ hỗ trợ cài đặt trên điện thoại <b>iPhone / iPad</b>.<br/><br/>
+          Vui lòng sao chép liên kết này, gửi qua Zalo/Tin nhắn cho chính bạn và <b>dùng iPhone mở bằng Safari</b> nhé!
+        `;
+        modal.style.display = 'flex';
+        return false;
+      }
+
+      if (isInAppBrowser()) {
+        icon.textContent = '🧭';
+        title.textContent = 'Bắt Buộc Mở Bằng Safari';
+        desc.innerHTML = `
+          ⛔ Trình duyệt ứng dụng này chặn tải file cấu hình DNS và chứng chỉ.<br/><br/>
+          <b>Cách chuyển sang Safari:</b>
+          <div class="step-line">• <b>Cách 1:</b> Bấm dấu ba chấm <b>(•••)</b> ở góc màn hình → Chọn <b>"Mở bằng trình duyệt"</b> (Safari).</div>
+          <div class="step-line">• <b>Cách 2:</b> Bấm nút sao chép bên dưới, mở ứng dụng <b>Safari</b> trên màn hình chính và dán vào.</div>
+        `;
+        modal.style.display = 'flex';
+        return false;
+      }
+
+      return true;
+    }
+
+    function copyLink() {
+      const url = window.location.href;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => {
+          alert('✓ Đã sao chép liên kết! Bạn hãy mở ứng dụng Safari trên màn hình chính iPhone và dán vào nhé.');
+        }).catch(() => {
+          prompt('Sao chép liên kết dưới đây để dán vào Safari:', url);
+        });
+      } else {
+        prompt('Sao chép liên kết dưới đây để dán vào Safari:', url);
+      }
+    }
+
+    function showError(msg) {
+      const err = document.getElementById('errMsg');
+      err.textContent = msg;
+      err.style.display = 'block';
+    }
+
+    function handleEnter() {
+      if (!checkEnvironment()) return;
+      const input = document.getElementById('codeInput');
+      let val = (input.value || '').trim().toUpperCase();
+
+      if (!val) {
+        showError('Vui lòng nhập mã truy cập của bạn');
+        input.focus();
+        return;
+      }
+
+      if (!val.startsWith('XW-')) {
+        val = 'XW-' + val.replace(/[^A-Z0-9]/g, '');
+      }
+
+      window.location.href = '/guide?code=' + encodeURIComponent(val);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      checkEnvironment();
+      const params = new URLSearchParams(window.location.search);
+      const codeParam = params.get('code');
+      if (codeParam) {
+        const input = document.getElementById('codeInput');
+        input.value = codeParam.trim().toUpperCase();
+      }
+
+      const input = document.getElementById('codeInput');
+      input.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') handleEnter();
+      });
+
+      // Đánh thức serverless trong nền để giảm cold start
+      fetch('/api/guide/validate?action=warmup').catch(() => {});
+    });
+  </script>
+</body>
+</html>
