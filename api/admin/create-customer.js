@@ -73,7 +73,6 @@ module.exports = async (req, res) => {
         code: access_code,
         package: pkg,
         is_active: true,
-        status: 'pending',
       },
       prefer: 'return=minimal',
     });

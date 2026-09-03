@@ -30,8 +30,7 @@ module.exports = async (req, res) => {
         customer_id: cust.id,
         code: access_code,
         package: pkg,
-        is_active: true,
-        status: 'pending'
+        is_active: true
       },
       prefer: 'return=minimal'
     });

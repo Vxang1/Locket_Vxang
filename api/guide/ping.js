@@ -87,6 +87,12 @@ module.exports = async (req, res) => {
       }
     }
 
+    // 🧹 Dọn session rác (fire-and-forget)
+    const cutoff = new Date(Date.now() - 3 * 3600 * 1000).toISOString();
+    sb('DELETE', 'sessions', {
+      q: `last_ping=lt.${encodeURIComponent(cutoff)}&is_kicked=eq.false`,
+    }).catch(() => {});
+
     return res.json({ ok: true });
   } catch (e) {
     console.error('[guide/ping] error:', e.message);

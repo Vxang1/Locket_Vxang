@@ -250,6 +250,8 @@
 
   <script>
     let privateDnsUrl = '';
+    let pkg = '30k';
+    let customerCode = null;
 
     function isIOS() {
       const ua = (navigator.userAgent || navigator.vendor || window.opera || '').toLowerCase();
@@ -280,6 +282,18 @@
       }
     }
 
+    function escXml(s){
+      return String(s ?? '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+    }
+    function randomUUID(){
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID().toUpperCase();
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      }).toUpperCase();
+    }
+
     async function init() {
       if (!checkEnvironment()) return;
       const params = new URLSearchParams(window.location.search);
@@ -292,14 +306,16 @@
       }
 
       try {
-        const res = await fetch(`/api/guide/validate?action=dns_private_view&token=${encodeURIComponent(token)}`);
+        const res = await fetch(`/api/guide/validate?action=dns_check&t=${encodeURIComponent(token)}`);
         const data = await res.json();
         document.getElementById('loadingArea').style.display = 'none';
 
-        if (!res.ok || !data.ok || data.expired) {
+        if (!res.ok || data.error || data.expired) {
           document.getElementById('expiredArea').style.display = 'block';
         } else {
-          privateDnsUrl = data.dns_url || '';
+          privateDnsUrl = data.ublockdns_url || data.dns_url || '';
+          pkg = data.package || '30k';
+          customerCode = data.customer_code || null;
           document.getElementById('validArea').style.display = 'block';
         }
       } catch {
@@ -314,7 +330,71 @@
       m.style.display = 'block';
       m.style.color = 'var(--p1)';
       m.textContent = 'Đang chuyển hướng tải cấu hình DNS...';
-      window.location.href = privateDnsUrl;
+
+      const pkgTag = pkg === '40k' ? ' 40k' : (pkg === '30k' ? ' 30k' : '');
+      const displayName = `Locket_Vxang${pkgTag} 💫`;
+      const description = `✨ Duy trì Locket_Vxang${pkgTag} ổn định💛\n🚀 Tối ưu hóa mạng\n🚫 Chặn quảng cáo`;
+      const organization = customerCode ? `Vxang DNS · ${customerCode}` : 'Vxang DNS';
+      const profileUUID = randomUUID();
+      const payloadUUID = randomUUID();
+
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>DNSSettings</key>
+            <dict>
+                <key>DNSProtocol</key>
+                <string>HTTPS</string>
+                <key>ServerURL</key>
+                <string>${escXml(privateDnsUrl)}</string>
+            </dict>
+            <key>PayloadDisplayName</key>
+            <string>${escXml(displayName)}</string>
+            <key>PayloadIdentifier</key>
+            <string>com.apple.dnsSettings.managed.locket</string>
+            <key>PayloadType</key>
+            <string>com.apple.dnsSettings.managed</string>
+            <key>PayloadUUID</key>
+            <string>${payloadUUID}</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+        </dict>
+    </array>
+    <key>PayloadDescription</key>
+    <string>${escXml(description).replace(/\n/g, '&#xA;')}</string>
+    <key>PayloadDisplayName</key>
+    <string>${escXml(displayName)}</string>
+    <key>PayloadIdentifier</key>
+    <string>com.profile.system.locket</string>
+    <key>PayloadOrganization</key>
+    <string>${escXml(organization)}</string>
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadUUID</key>
+    <string>${profileUUID}</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+</dict>
+</plist>
+`;
+
+      const blob = new Blob([xml], { type: 'application/x-apple-aspen-config' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `dns-${pkg || '30k'}.mobileconfig`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+
+      m.style.color = 'var(--accent)';
+      m.textContent = '✓ Đã tải xong — mở Cài đặt để hoàn tất cài đặt DNS.';
     }
 
     window.addEventListener('DOMContentLoaded', init);

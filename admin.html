@@ -643,8 +643,8 @@
     <section class="tab-content active" id="tab-dashboard">
       <div class="stat-grid-4">
         <div class="stat-box"><span class="sb-label">TỔNG KHÁCH</span><span class="sb-val" id="statCust">0</span></div>
-        <div class="stat-box"><span class="sb-label">GÓI 30K (5S)</span><span class="sb-val" id="stat30k">0</span></div>
-        <div class="stat-box"><span class="sb-label">GÓI 40K (15S)</span><span class="sb-val" id="stat40k">0</span></div>
+        <div class="stat-box"><span class="sb-label">MÃ TRUY CẬP</span><span class="sb-val" id="stat30k">0</span></div>
+        <div class="stat-box"><span class="sb-label">HOÀN THÀNH</span><span class="sb-val" id="stat40k">0</span></div>
         <div class="stat-box"><span class="sb-label">PHIÊN ĐANG LIVE</span><span class="sb-val" id="statLive" style="color:var(--accent);">0</span></div>
       </div>
 
@@ -1092,10 +1092,10 @@
     async function loadStats() {
       try {
         const d = await api('GET', '/api/admin/stats');
-        document.getElementById('statCust').textContent = d.total_customers || 0;
-        document.getElementById('stat30k').textContent = d.total_30k || 0;
-        document.getElementById('stat40k').textContent = d.total_40k || 0;
-        document.getElementById('statLive').textContent = d.live_sessions || 0;
+        document.getElementById('statCust').textContent = d.customers || 0;
+        document.getElementById('stat30k').textContent = d.codes || 0;
+        document.getElementById('stat40k').textContent = d.completed || 0;
+        document.getElementById('statLive').textContent = d.sessions || 0;
       } catch {}
     }
 
@@ -1626,10 +1626,12 @@
     }
 
     async function togglePay(id) {
+      const cust = (allCustomers || []).find(c => c.id === id);
+      const newStatus = (cust && cust.service_status === 'completed') ? 'pending' : 'completed';
       try {
-        await api('PATCH', `/api/admin/customers?action=toggle_status&id=${id}`);
+        await api('PATCH', `/api/admin/customers?action=update&id=${id}`, { service_status: newStatus });
         loadCustomers();
-      } catch {}
+      } catch (e) { alert(e.message); }
     }
 
     // 12. Xuất Excel

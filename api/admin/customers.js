@@ -1,5 +1,5 @@
 'use strict';
-const { sb, requireAdmin, allowMethods, genCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, normalizePackage, isPermPackage, getAppstoreConfig, setAppConfig, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, getInitialWarrantyStart, parseContactInput } = require('../_lib/utils');
+const { sb, requireAdmin, allowMethods, genCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, normalizePackage, isPermPackage, getAppstoreConfig, setAppConfig, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, parseContactInput } = require('../_lib/utils');
 
 module.exports = async (req, res) => {
   if (!allowMethods(req, res, ['GET', 'POST', 'DELETE', 'PATCH'])) return;
@@ -65,7 +65,7 @@ module.exports = async (req, res) => {
       }
 
       // Gói: '5s', '15s', '150', '180'
-      const p = normalizePackage(pkg || '5s');
+      const p = normalizePackage(pkg || '30k');
 
       // BẮT BUỘC mã KH phải tồn tại thật trong customers (theo yêu cầu chốt trước).
       const custs = await sb('GET', 'customers', { q: `customer_code=eq.${encodeURIComponent(customer_code)}&select=id,name` });
@@ -210,7 +210,7 @@ module.exports = async (req, res) => {
       if (!rawList.length) return res.status(400).json({ error: 'Thiếu link DNS' });
 
       // Chỉ có 2 nhóm pool: '5s' và '15s' (gói 180 dùng chung nhóm '15s' — xem dnsPoolKey).
-      const p = String(pkg || '5s').trim() === '15s' ? '15s' : '5s';
+      const p = (normalizePackage(pkg) === '40k') ? '15s' : '5s';
       const maxU = Math.max(1, Math.min(50, parseInt(max_uses, 10) || 5));
 
       const activeTemplate = await getDnsTemplate();
@@ -339,13 +339,13 @@ module.exports = async (req, res) => {
           const finalType = type !== undefined ? type : current.type;
           const finalPkg = pkg !== undefined ? normalizePackage(pkg) : current.package;
           const finalDur = duration !== undefined ? duration : current.duration;
-          warrantyStartVal = getInitialWarrantyStart(finalType, finalPkg, finalDur);
+          warrantyStartVal = new Date().toISOString();
         }
       }
 
       if (special_flow === true) {
           const finalPkg = pkg !== undefined ? normalizePackage(pkg) : current.package;
-          if (finalPkg === '150' || finalPkg === '180') {
+          if (finalPkg === '30k' || finalPkg === '40k') {
             const { getAppstoreConfig } = require('../_lib/utils');
             const cfg = await getAppstoreConfig();
             if (!cfg.email || !cfg.password) {
@@ -356,8 +356,8 @@ module.exports = async (req, res) => {
         
         const finalPkg2 = pkg !== undefined ? normalizePackage(pkg) : current.package;
           const finalSf2 = special_flow !== undefined ? special_flow : current.special_flow;
-          const oldConfig = (current.package === '150' && current.special_flow) ? null : ((current.package === '15s' || current.package === '180') ? '15s' : '5s');
-          const newConfig = (finalPkg2 === '150' && finalSf2) ? null : ((finalPkg2 === '15s' || finalPkg2 === '180') ? '15s' : '5s');
+          const oldConfig = (current.package === '30k' && current.special_flow) ? null : (normalizePackage(current.package) === '40k' ? '15s' : '5s');
+          const newConfig = (finalPkg2 === '30k' && finalSf2) ? null : (normalizePackage(finalPkg2) === '40k' ? '15s' : '5s');
           
           if (current && oldConfig !== newConfig) {
           const { releaseCustomerFromDnsPool } = require('../_lib/utils');
@@ -413,7 +413,7 @@ module.exports = async (req, res) => {
                   nextdns_url: resolvedUrl,
                   nextdns_email: String(nextdns_email || '').trim(),
                   nextdns_password: String(nextdns_password || '').trim(),
-                  package: cust.package || '180',
+                  package: cust.package || '40k',
                 },
                 prefer: 'return=minimal',
               });
@@ -512,7 +512,7 @@ module.exports = async (req, res) => {
       if (hasCompletedCode && customer.service_status === 'pending_gold' && isPermPackage(customer.package)) {
         customer.service_status = 'active';
         if (!customer.warranty_started_at) {
-          customer.warranty_started_at = getInitialWarrantyStart(customer.type, customer.package, customer.duration);
+          customer.warranty_started_at = new Date().toISOString();
         }
         sb('PATCH', 'customers', {
           q: `id=eq.${id}`,
@@ -564,7 +564,7 @@ module.exports = async (req, res) => {
       let status = c.service_status;
       if (hasCompleted && status === 'pending_gold' && isPermPackage(c.package)) {
         status = 'active';
-        const startVal = c.warranty_started_at || getInitialWarrantyStart(c.type, c.package, c.duration);
+        const startVal = c.warranty_started_at || new Date().toISOString();
         sb('PATCH', 'customers', {
           q: `id=eq.${c.id}`,
           body: { service_status: 'active', warranty_started_at: startVal }

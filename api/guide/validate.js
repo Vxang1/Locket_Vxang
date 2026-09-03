@@ -1,5 +1,5 @@
 'use strict';
-const { sb, signJWT, verifyJWT, getToken, allowMethods, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, expireCodeAndNotify, lookupCustomerByDnsCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, dnsPrivateUrl, normalizePackage, isPermPackage, getAppConfig, setAppConfig, getAppstoreConfig, getEmergencyConfig, maskAppstoreEmail, claimDnsFromPool, DNS_POOL_FULL_MSG } = require('../_lib/utils');
+const { sb, signJWT, verifyJWT, getToken, allowMethods, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, expireCodeAndNotify, lookupCustomerByDnsCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, dnsPrivateUrl, normalizePackage, isPermPackage, getAppConfig, setAppConfig, getAppstoreConfig, maskAppstoreEmail, claimDnsFromPool, DNS_POOL_FULL_MSG } = require('../_lib/utils');
 const { randomUUID } = require('crypto');
 
 const CODE_VALID_MS      = 30 * 60 * 1000;
@@ -270,7 +270,7 @@ async function handleDnsCheck(req, res) {
       await notifyTelegram(
         `🔒 <b>${who}</b> vừa bấm vào link DNS riêng\n` +
         `🆔 Mã KH: <code>${escTgHtml(row.customer_code)}</code>\n` +
-        `${row.package === '15s' ? '🌟' : '⭐'} Gói: <b>${escTgHtml(row.package || '5s')}</b>`
+        `${normalizePackage(row.package) === '40k' ? '🌟' : '⭐'} Gói: <b>${escTgHtml(row.package || '30k')}</b>`
       );
       // Fresh access → chắc chắn chưa hết hạn, khỏi cần check thêm.
       return res.json({ ok: true, expired: false, dns_url: dnsPrivateUrl(row), ublockdns_url: dnsPrivateUrl(row), package: row.package, customer_code: row.customer_code });
@@ -295,7 +295,7 @@ async function handleDnsPoolClaim(req, res) {
   const payload = verifyJWT(getToken(req));
   if (!payload || payload.role !== 'guide') return res.status(401).json({ error: 'Unauthorized' });
   try {
-    const pkg = normalizePackage(payload.package || '5s');
+    const pkg = normalizePackage(payload.package || '30k');
     const cust = await lookupCustomerByCode(payload.code);
     const customerCode = cust?.customerCode || payload.code || '';
     const claim = await claimDnsFromPool(pkg, customerCode);
