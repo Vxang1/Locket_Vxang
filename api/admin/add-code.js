@@ -15,7 +15,7 @@ module.exports = async (req, res) => {
   const needsDns = !(cleanPkg === '30k' && cust.special_flow === true);
 
   if (needsDns && !await dnsPoolHasCapacity(cleanPkg, cust.customer_code)) {
-    return res.status(503).json({ error: 'DNS pool đã đầy, vui lòng thêm link DNS mới!' });
+    return res.status(400).json({ error: 'DNS Pool cho gói này hiện chưa có link khả dụng (hoặc đã đầy tất cả slot)! Vui lòng vào tab 🌐 DNS Pool thêm link mới trước khi cấp mã.' });
   }
 
   const accCode = genCode('XW-');

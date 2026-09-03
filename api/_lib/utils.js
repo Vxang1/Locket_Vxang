@@ -221,7 +221,7 @@ async function dnsPoolHasCapacity(pkg, customerCode) {
       sb(`dns_pool?package=eq.${key}&is_active=eq.true`)
     ]);
     if (privateRows && privateRows.length) return true;
-    if (!poolRows || !poolRows.length) return true;
+    if (!poolRows || !poolRows.length) return false;
     if (customerCode && poolRows.some(r => (r.used_codes || []).includes(customerCode))) return true;
     return poolRows.some(r => !r.is_full && (r.used || 0) < (r.max || 5));
   } catch {

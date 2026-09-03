@@ -41,7 +41,7 @@ module.exports = async (req, res) => {
   // Kiểm tra sức chứa DNS Pool nếu luồng cần DNS (Flow 30k đặc biệt không cần DNS)
   const needsDns = !(cleanPkg === '30k' && special_flow === true);
   if (needsDns && !await dnsPoolHasCapacity(cleanPkg)) {
-    return res.status(503).json({ error: `DNS pool cho gói ${cleanPkg} đã đầy! Vui lòng thêm link mới.` });
+    return res.status(400).json({ error: `DNS Pool cho gói ${cleanPkg} hiện chưa có link khả dụng (hoặc đã đầy tất cả slot)! Vui lòng vào tab '🌐 DNS Pool' thêm link mới trước khi tạo khách hàng.` });
   }
 
   const custCode = 'KH-' + Math.floor(1000000 + Math.random() * 9000000);

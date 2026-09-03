@@ -646,13 +646,14 @@
       </div>
       <div class="form-group">
         <label class="form-label">Gói dịch vụ:</label>
-        <select id="custPkg" class="form-select">
+        <select id="custPkg" class="form-select" onchange="updateDnsPoolIndicator()">
           <option value="30k">Gói 30k (5s Vĩnh viễn)</option>
           <option value="40k">Gói 40k (15s Vĩnh viễn)</option>
         </select>
+        <div id="dnsPoolIndicator" style="font-size:0.78rem; font-weight:700; margin-top:6px;"></div>
       </div>
       <div class="form-group" style="flex-direction:row; align-items:center; gap:8px;">
-        <input type="checkbox" id="custSpecialFlow"/>
+        <input type="checkbox" id="custSpecialFlow" onchange="updateDnsPoolIndicator()"/>
         <label for="custSpecialFlow" style="font-size:0.82rem; font-weight:700; color:#fde68a;">⚡ Sử dụng Flow Đặc Biệt (Cài Locket IPA Hạ Cấp)</label>
       </div>
       <div class="form-group">
@@ -944,12 +945,42 @@
     };
 
     // 8. Tạo Khách Mới
+    let cachedDnsPoolForModal = null;
+    async function updateDnsPoolIndicator() {
+      const ind = document.getElementById('dnsPoolIndicator');
+      if (!ind) return;
+      const pkg = document.getElementById('custPkg').value;
+      const isSpecial = document.getElementById('custSpecialFlow').checked;
+
+      if (pkg === '30k' && isSpecial) {
+        ind.innerHTML = `<span style="color:var(--accent);">⚡ Luồng Đặc Biệt (IPA hạ cấp) không yêu cầu link DNS.</span>`;
+        return;
+      }
+
+      const targetGroup = pkg === '40k' ? '15s' : '5s';
+      try {
+        if (!cachedDnsPoolForModal) {
+          cachedDnsPoolForModal = await api('GET', '/api/admin/customers?action=dns_pool_list');
+        }
+        const available = (cachedDnsPoolForModal || []).filter(r => r.package === targetGroup && r.is_active && !r.is_full && (r.used || 0) < (r.max || 5));
+        if (available.length > 0) {
+          ind.innerHTML = `<span style="color:var(--accent);">🟢 DNS Pool: Sẵn sàng (${available.length} link còn slot khả dụng)</span>`;
+        } else {
+          ind.innerHTML = `<span style="color:#ef4444; background:rgba(239,68,68,0.12); padding:4px 8px; border-radius:6px; border:1px solid rgba(239,68,68,0.3); display:inline-block;">⚠️ CẢNH BÁO: DNS Pool gói ${pkg} chưa có link hoặc đã hết slot! Bạn cần thêm link vào tab '🌐 DNS Pool'.</span>`;
+        }
+      } catch {
+        ind.innerHTML = '';
+      }
+    }
+
     function openCreateCustomerModal() {
       document.getElementById('custName').value = '';
       document.getElementById('custContact').value = '';
       document.getElementById('custNotes').value = '';
       document.getElementById('custSpecialFlow').checked = false;
       document.getElementById('createCustomerModal').style.display = 'flex';
+      cachedDnsPoolForModal = null;
+      updateDnsPoolIndicator();
       setTimeout(() => {
         const inp = document.getElementById('custName');
         if (inp) inp.focus();
