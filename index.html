@@ -3,249 +3,449 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
-  <title>Locket_Vxang 💫 — Cài Đặt Locket Gold</title>
+  <title>Locket_Vxang ⚡ — Nhập Mã Truy Cập</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet"/>
   <style>
     :root {
       --bg: #07090e;
       --bg-surface: #0f172a;
-      --bg-card: rgba(15, 23, 42, 0.78);
-      --border: rgba(0, 240, 255, 0.16);
-      --border-focus: #00f0ff;
+      --bg-card: rgba(15, 23, 42, 0.82);
+      --border: rgba(0, 240, 255, 0.18);
+      --border-glow: 0 0 16px rgba(0, 240, 255, 0.25);
       --p1: #00f0ff;
       --p2: #8b5cf6;
       --accent: #10b981;
       --text: #f8fafc;
       --text-dim: #94a3b8;
       --muted: #64748b;
-      --radius: 16px;
-      --radius-sm: 10px;
+      --radius: 18px;
+      --radius-sm: 12px;
       --tap: 46px;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
+    body.cyber-theme {
       background: var(--bg);
       color: var(--text);
       font-family: 'Be Vietnam Pro', sans-serif;
       min-height: 100vh;
       min-height: 100dvh;
       overflow-x: hidden;
+      position: relative;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Hiệu ứng nền Cyber Grid & Glow */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, rgba(0, 240, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: radial-gradient(circle at 50% 30%, black 40%, transparent 80%);
+      -webkit-mask-image: radial-gradient(circle at 50% 30%, black 40%, transparent 80%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .bg-glow-orbs {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .bg-glow-orbs span {
+      position: absolute;
+      font-size: 1.2rem;
+      opacity: 0.2;
+      animation: floatOrb 8s infinite alternate ease-in-out;
+    }
+    .bg-glow-orbs span:nth-child(1) { top: 12%; left: 10%; animation-duration: 6s; color: var(--p1); }
+    .bg-glow-orbs span:nth-child(2) { top: 25%; right: 12%; animation-duration: 9s; color: var(--p2); }
+    .bg-glow-orbs span:nth-child(3) { bottom: 20%; left: 15%; animation-duration: 7s; color: var(--accent); }
+    .bg-glow-orbs span:nth-child(4) { bottom: 35%; right: 18%; animation-duration: 10s; color: var(--p1); }
+    @keyframes floatOrb {
+      0% { transform: translateY(0) scale(0.9); opacity: 0.15; }
+      100% { transform: translateY(-20px) scale(1.15); opacity: 0.35; }
+    }
+
+    /* Khung Viewport Mobile */
+    .wrap {
+      max-width: 460px;
+      margin: 0 auto;
+      padding: calc(28px + env(safe-area-inset-top, 0px)) 16px calc(72px + env(safe-area-inset-bottom, 0px));
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    /* 1. HERO SECTION */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .avatar-wrap {
+      position: relative;
+      width: 96px;
+      height: 96px;
+      margin-bottom: 14px;
+    }
+    .hero-avatar {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      border: 2px solid var(--p1);
+      box-shadow: 0 0 24px rgba(0, 240, 255, 0.4), inset 0 0 12px rgba(0, 240, 255, 0.3);
+      object-fit: cover;
+      display: block;
+    }
+    .avatar-wrap .badge {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid #07090e;
+      background: #0f172a;
+      box-shadow: 0 0 12px rgba(139, 92, 246, 0.5);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: calc(20px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px));
-      background-image: 
-        radial-gradient(circle at 50% 10%, rgba(0, 240, 255, 0.08) 0%, transparent 40%),
-        radial-gradient(circle at 50% 90%, rgba(139, 92, 246, 0.08) 0%, transparent 40%);
+      overflow: hidden;
     }
-    .app-frame {
+    .avatar-wrap .badge img {
       width: 100%;
-      max-width: 440px;
-      margin: 0 auto;
-      text-align: center;
+      height: 100%;
+      object-fit: cover;
     }
-    .brand-title {
+    .brand {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 2.2rem;
+      font-size: 1.65rem;
       font-weight: 900;
       background: linear-gradient(135deg, var(--p1), var(--p2));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       letter-spacing: -0.02em;
     }
-    .brand-subtitle {
-      font-size: 0.88rem;
-      color: var(--muted);
-      margin-bottom: 26px;
-      line-height: 1.5;
-    }
-    .card-glass {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-radius: var(--radius);
-      padding: 30px 22px;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 25px rgba(0, 240, 255, 0.08);
-    }
-    .input-label {
-      font-size: 0.82rem;
+    .tagline {
+      font-size: 0.8rem;
       color: var(--text-dim);
       font-weight: 600;
-      margin-bottom: 10px;
-      display: block;
-      text-align: left;
+      letter-spacing: 0.02em;
+      line-height: 1.4;
     }
-    .input-cyber {
-      width: 100%;
-      background: #0b1120;
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      padding: 14px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 18px !important; /* >= 16px chống iOS auto-zoom trap */
-      color: var(--p1);
+
+    /* 2. QUICK ENTRY SECTION */
+    .quick-entry {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: var(--radius);
+      padding: 22px 18px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 240, 255, 0.06);
+    }
+    .entry-label {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.82rem;
       font-weight: 800;
-      text-align: center;
-      letter-spacing: 0.14em;
+      color: var(--p1);
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      outline: none;
-      margin-bottom: 20px;
-      transition: all 0.2s ease;
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
-    }
-    .input-cyber:focus {
-      border-color: var(--p1);
-      box-shadow: 0 0 20px rgba(0, 240, 255, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.4);
-    }
-    .btn-cyber {
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
-      justify-content: center;
+      gap: 6px;
+    }
+    .entry-row {
+      display: flex;
       gap: 8px;
-      width: 100%;
-      min-height: 50px;
-      padding: 14px 20px;
-      border: none;
-      border-radius: 12px;
+      align-items: stretch;
+    }
+    .entry-input {
+      flex: 1;
+      min-width: 0;
+      height: 48px;
+      background: #0b1120;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 17px !important; /* >= 16px chống iOS auto-zoom trap */
+      font-weight: 800;
+      color: var(--p1);
+      letter-spacing: 0.08em;
+      text-align: center;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .entry-input:focus {
+      border-color: var(--p1);
+      box-shadow: 0 0 14px rgba(0, 240, 255, 0.25);
+    }
+    .btn-entry {
+      flex-shrink: 0;
+      height: 48px;
+      padding: 0 18px;
       background: linear-gradient(135deg, var(--p1), var(--p2));
+      border: none;
+      border-radius: var(--radius-sm);
       color: #030712;
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.96rem;
+      font-size: 0.86rem;
       font-weight: 900;
       letter-spacing: 0.03em;
-      text-transform: uppercase;
       cursor: pointer;
-      box-shadow: 0 4px 0 #4c1d95, 0 0 22px rgba(0, 240, 255, 0.35);
-      transition: all 0.15s ease;
-      touch-action: manipulation;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      box-shadow: 0 4px 0 #4c1d95, 0 0 16px rgba(0, 240, 255, 0.3);
+      transition: all 0.15s;
     }
-    .btn-cyber:hover {
-      filter: brightness(1.08);
-      box-shadow: 0 4px 0 #4c1d95, 0 0 28px rgba(0, 240, 255, 0.45);
-    }
-    .btn-cyber:active {
-      transform: translateY(3px);
-      box-shadow: 0 1px 0 #4c1d95, 0 0 12px rgba(0, 240, 255, 0.2);
-    }
-    .hint-box {
-      margin-top: 18px;
-      padding: 12px 14px;
-      background: rgba(0, 240, 255, 0.05);
-      border: 1px dashed rgba(0, 240, 255, 0.2);
-      border-radius: var(--radius-sm);
-      font-size: 0.78rem;
-      color: var(--text-dim);
-      line-height: 1.5;
-      text-align: left;
+    .btn-entry:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #4c1d95;
     }
     .error-box {
-      display: none;
-      margin-top: 14px;
-      padding: 10px 14px;
-      border-radius: var(--radius-sm);
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.4);
-      color: #ef4444;
-      font-size: 0.84rem;
+      margin-top: 10px;
+      font-size: 0.8rem;
       font-weight: 700;
+      color: #ef4444;
+      display: none;
       text-align: center;
     }
 
-    /* MODAL CHẶN THIẾT BỊ & IN-APP BROWSER */
+    /* 3. CARD GRID (2 TIỆN ÍCH SONG SONG) */
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius-sm);
+      padding: 14px 12px;
+      text-decoration: none;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+    .card:active {
+      transform: scale(0.98);
+      border-color: var(--p1);
+    }
+    .card-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      flex-shrink: 0;
+    }
+    .cyber-cyan {
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid rgba(0, 240, 255, 0.28);
+      color: var(--p1);
+    }
+    .cyber-violet {
+      background: rgba(139, 92, 246, 0.14);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      color: #c4b5fd;
+    }
+    .card-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .card-sub {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .card-arrow {
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: var(--p1);
+      align-self: flex-start;
+    }
+
+    /* 4. FOOTER */
+    .footer-copy {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.5;
+      margin-top: 8px;
+    }
+
+    /* 5. IN-APP BROWSER & NON-IOS MODAL */
     .modal-lock {
       display: none;
       position: fixed;
       inset: 0;
-      z-index: 999999;
-      background: rgba(7, 9, 14, 0.97);
+      z-index: 99999;
+      background: rgba(7, 9, 14, 0.95);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      padding: 24px;
       align-items: center;
       justify-content: center;
+      padding: 20px;
     }
     .modal-box {
+      background: #0f172a;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 20px;
       max-width: 390px;
       width: 100%;
-      background: #0f172a;
-      border: 1.5px solid var(--p1);
-      border-radius: 20px;
-      padding: 30px 22px;
       text-align: center;
-      box-shadow: 0 0 35px rgba(0, 240, 255, 0.28);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 240, 255, 0.12);
     }
     .modal-icon {
-      font-size: 46px;
-      margin-bottom: 12px;
+      font-size: 2.8rem;
+      margin-bottom: 10px;
     }
     .modal-title {
       font-family: 'Space Grotesk', sans-serif;
-      font-weight: 900;
       font-size: 1.25rem;
+      font-weight: 900;
       color: var(--p1);
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
-    .modal-desc {
+    .modal-msg-box {
       font-size: 0.86rem;
-      color: #cbd5e1;
-      line-height: 1.6;
-      margin-bottom: 24px;
+      color: var(--text-dim);
+      line-height: 1.55;
+      margin-bottom: 14px;
       text-align: left;
     }
-    .modal-desc b {
-      color: #f8fafc;
+    .modal-guide-box {
+      background: rgba(0, 240, 255, 0.05);
+      border: 1px solid rgba(0, 240, 255, 0.15);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 0.8rem;
+      color: var(--text);
+      text-align: left;
+      line-height: 1.55;
+      margin-bottom: 18px;
     }
-    .modal-desc .step-line {
-      margin-top: 8px;
-      padding-left: 6px;
+    .guide-lead {
+      font-weight: 800;
+      color: var(--p1);
+      margin-bottom: 6px;
+    }
+    .btn-modal-action {
+      width: 100%;
+      min-height: 46px;
+      background: linear-gradient(135deg, var(--p1), var(--p2));
+      border: none;
+      border-radius: 10px;
+      color: #030712;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 900;
+      cursor: pointer;
     }
   </style>
 </head>
-<body>
-  <div class="app-frame">
-    <div class="brand-title">Locket_Vxang 💫</div>
-    <div class="brand-subtitle">Hệ thống kích hoạt & duy trì Locket Gold Vĩnh Viễn chuẩn iOS</div>
+<body class="cyber-theme">
+  <!-- Hiệu ứng nền Cyber Grid & Orbs -->
+  <div class="bg-grid"></div>
+  <div class="bg-glow-orbs"><span>✦</span><span>⚡</span><span>💠</span><span>💫</span></div>
 
-    <div class="card-glass">
-      <label class="input-label" for="codeInput">Nhập mã truy cập được cấp:</label>
-      <input 
-        type="text" 
-        id="codeInput" 
-        class="input-cyber" 
-        placeholder="XW-XXXXXX" 
-        maxlength="9" 
-        autocomplete="off" 
-        autocorrect="off" 
-        autocapitalize="characters" 
-        spellcheck="false"
-      />
-      <button class="btn-cyber" id="btnEnter" onclick="handleEnter()">
-        <span>Xác Nhận Mã Truy Cập</span>
-        <span>→</span>
-      </button>
-
-      <div id="errMsg" class="error-box"></div>
-
-      <div class="hint-box">
-        💡 <b>Lưu ý:</b> Mã truy cập có dạng <b>XW-xxxxxx</b> do shop cung cấp. Vui lòng mở trang web này bằng trình duyệt <b>Safari</b> trên iPhone.
+  <div class="wrap">
+    <!-- 1. HERO SECTION -->
+    <div class="hero">
+      <div class="avatar-wrap">
+        <img class="hero-avatar" src="images/avatar.png" alt="Vxang" onerror="this.style.background='linear-gradient(135deg,#00f0ff,#8b5cf6)'"/>
+        <div class="badge"><img src="images/locket.png" alt="Locket" onerror="this.style.background='#0f172a'"/></div>
       </div>
+      <div class="brand">Locket_Vxang ✦ Cyber VIP</div>
+      <div class="tagline">✦ Locket Gold Vĩnh Viễn · Chuẩn iOS Safari · Siêu Ổn Định ✦</div>
     </div>
+
+    <!-- 2. QUICK ENTRY SECTION (Ô NHẬP VÀ NÚT CÙNG 1 DÒNG) -->
+    <div class="quick-entry">
+      <div class="entry-label">⚡ NHẬP MÃ TRUY CẬP NHANH</div>
+      <div class="entry-row">
+        <input class="entry-input" id="codeInput" placeholder="VD: XW-A3K7P2" maxlength="20"
+          autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"
+          oninput="this.value=this.value.toUpperCase()"
+          onkeydown="if(event.key==='Enter')goGuide()"/>
+        <button class="btn-entry" id="btnSubmit" onclick="goGuide()">→ VÀO GUIDE</button>
+      </div>
+      <div id="errMsg" class="error-box"></div>
+    </div>
+
+    <!-- 3. CARD GRID (2 THẺ TIỆN ÍCH SONG SONG NHAU) -->
+    <div class="card-grid">
+      <a class="card" href="https://t.me/locket_vxang" target="_blank">
+        <div class="card-row">
+          <div class="card-icon cyber-cyan">🌐</div>
+          <div>
+            <div class="card-title">Dịch vụ khác</div>
+            <div class="card-sub">Khám phá thêm</div>
+          </div>
+        </div>
+        <span class="card-arrow">→ Xem ngay</span>
+      </a>
+
+      <a class="card" href="https://zalo.me/0822307662" target="_blank">
+        <div class="card-row">
+          <div class="card-icon cyber-violet">💬</div>
+          <div>
+            <div class="card-title">Nhắn Hỗ Trợ</div>
+            <div class="card-sub">Zalo · Phản hồi ngay</div>
+          </div>
+        </div>
+        <span class="card-arrow">→ Zalo Admin</span>
+      </a>
+    </div>
+
+    <!-- 4. FOOTER -->
+    <footer class="footer-copy">© 2026 Locket_Vxang · Cyber Security &amp; Permanent Gold ⚡</footer>
   </div>
 
-  <!-- MODAL CHẶN PC / ANDROID HOẶC IN-APP WEBVIEW -->
-  <div class="modal-lock" id="blockModal">
+  <!-- 5. IN-APP BROWSER & NON-IOS BLOCKING MODAL -->
+  <div id="inappBlockModal" class="modal-lock">
     <div class="modal-box">
-      <div class="modal-icon" id="blockIcon">🧭</div>
-      <div class="modal-title" id="blockTitle">Bắt Buộc Mở Bằng Safari</div>
-      <div class="modal-desc" id="blockDesc">
-        Dịch vụ yêu cầu mở bằng <b>Safari trên iPhone</b> để cài đặt cấu hình DNS và chứng chỉ.
+      <div class="modal-icon">🧭</div>
+      <div class="modal-title" id="inappTitle">Bắt Buộc Mở Bằng Safari</div>
+      <div class="modal-msg-box" id="inappMsg">
+        ⛔ <b>Trình duyệt ứng dụng này không thể tải cấu hình Locket Gold</b>. Bạn bắt buộc phải chuyển sang ứng dụng <b>Safari</b> của iPhone!
       </div>
-      <button class="btn-cyber" id="btnCopyLink" onclick="copyLink()">
-        📋 Sao Chép Liên Kết Để Mở Safari
+      <div class="modal-guide-box" id="inappGuide">
+        <div class="guide-lead">👉 Cách mở trên Safari:</div>
+        <div><b>Cách 1:</b> Bấm dấu <b>(•••)</b> ở góc màn hình ➔ Chọn <b>"Mở bằng trình duyệt" (Safari)</b>.</div>
+        <div style="margin-top:6px;"><b>Cách 2:</b> Bấm nút sao chép bên dưới ➔ Mở ứng dụng <b>Safari</b> trên iPhone và dán link vào.</div>
+      </div>
+      <button id="btnCopyInapp" class="btn-modal-action" onclick="copyCurrentUrl(this)">
+        📋 Sao chép liên kết để mở Safari
       </button>
     </div>
   </div>
@@ -264,15 +464,13 @@
     function checkEnvironment() {
       if (localStorage.getItem('xw_dev_mode') === '1') return true;
 
-      const modal = document.getElementById('blockModal');
-      const icon = document.getElementById('blockIcon');
-      const title = document.getElementById('blockTitle');
-      const desc = document.getElementById('blockDesc');
+      const modal = document.getElementById('inappBlockModal');
+      const title = document.getElementById('inappTitle');
+      const msg = document.getElementById('inappMsg');
 
       if (!isIOS()) {
-        icon.textContent = '📱';
         title.textContent = 'Yêu Cầu Mở Trên iPhone';
-        desc.innerHTML = `
+        msg.innerHTML = `
           ⛔ Dịch vụ <b>Locket_Vxang</b> chỉ hỗ trợ cài đặt trên điện thoại <b>iPhone / iPad</b>.<br/><br/>
           Vui lòng sao chép liên kết này, gửi qua Zalo/Tin nhắn cho chính bạn và <b>dùng iPhone mở bằng Safari</b> nhé!
         `;
@@ -281,13 +479,9 @@
       }
 
       if (isInAppBrowser()) {
-        icon.textContent = '🧭';
         title.textContent = 'Bắt Buộc Mở Bằng Safari';
-        desc.innerHTML = `
-          ⛔ Trình duyệt ứng dụng này chặn tải file cấu hình DNS và chứng chỉ.<br/><br/>
-          <b>Cách chuyển sang Safari:</b>
-          <div class="step-line">• <b>Cách 1:</b> Bấm dấu ba chấm <b>(•••)</b> ở góc màn hình → Chọn <b>"Mở bằng trình duyệt"</b> (Safari).</div>
-          <div class="step-line">• <b>Cách 2:</b> Bấm nút sao chép bên dưới, mở ứng dụng <b>Safari</b> trên màn hình chính và dán vào.</div>
+        msg.innerHTML = `
+          ⛔ Trình duyệt ứng dụng này không thể tải cấu hình Locket Gold. Bạn bắt buộc phải chuyển sang ứng dụng <b>Safari</b> của iPhone!
         `;
         modal.style.display = 'flex';
         return false;
@@ -296,10 +490,12 @@
       return true;
     }
 
-    function copyLink() {
+    function copyCurrentUrl(btn) {
       const url = window.location.href;
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url).then(() => {
+          if (btn) btn.textContent = '✓ Đã sao chép liên kết!';
+          setTimeout(() => { if (btn) btn.textContent = '📋 Sao chép liên kết để mở Safari'; }, 2000);
           alert('✓ Đã sao chép liên kết! Bạn hãy mở ứng dụng Safari trên màn hình chính iPhone và dán vào nhé.');
         }).catch(() => {
           prompt('Sao chép liên kết dưới đây để dán vào Safari:', url);
@@ -315,7 +511,7 @@
       err.style.display = 'block';
     }
 
-    function handleEnter() {
+    function goGuide() {
       if (!checkEnvironment()) return;
       const input = document.getElementById('codeInput');
       let val = (input.value || '').trim().toUpperCase();
@@ -341,13 +537,6 @@
         const input = document.getElementById('codeInput');
         input.value = codeParam.trim().toUpperCase();
       }
-
-      const input = document.getElementById('codeInput');
-      input.addEventListener('keyup', (e) => {
-        if (e.key === 'Enter') handleEnter();
-      });
-
-      // Đánh thức serverless trong nền để giảm cold start
       fetch('/api/guide/validate?action=warmup').catch(() => {});
     });
   </script>
