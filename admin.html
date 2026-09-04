@@ -111,10 +111,92 @@ input[type=password],input[type=text],input[type=email],input[type=url],input[ty
   font-size:16px;font-weight:600;outline:none;box-shadow:inset 1px 1px 0 rgba(0,0,0,0.05);
   transition:border-color .15s,box-shadow .15s;
 }
+/* Remove browser default spinner buttons on number inputs */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
 textarea{resize:vertical;min-height:72px;line-height:1.6;}
-select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%231A1A1A' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+select{
+  cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;
+  background-color:#FFFFFF;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231A1A1A' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;padding-right:38px;
+  font-family:'Space Grotesk',sans-serif;font-size:.88rem;font-weight:800;box-shadow:var(--shadow-sm);
+  color:var(--ink);transition:all .15s;
+}
+select:hover{box-shadow:var(--shadow);border-color:var(--ink);background-color:var(--bg-surface);}
+select:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--gold);}
+select option{background:#FDF6E3;color:#1A1A1A;font-family:'Space Grotesk',sans-serif;font-weight:700;padding:10px;}
 input,textarea,select{touch-action:manipulation;}
-input:focus,textarea:focus,select:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--gold);}
+input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--gold);}
+
+/* Neo-Brutalist Choice Cards / Segmented Buttons */
+.pkg-choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px;}
+@media (max-width: 480px){.pkg-choice-grid{grid-template-columns:1fr;}}
+.pkg-card-btn{
+  display:flex;align-items:center;gap:10px;padding:12px 14px;background:#FFFFFF;
+  border:2px solid var(--ink);border-radius:var(--radius-sm);cursor:pointer;text-align:left;
+  transition:all 0.12s ease;box-shadow:var(--shadow-sm);position:relative;user-select:none;width:100%;
+}
+.pkg-card-btn:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:var(--bg-surface);}
+.pkg-card-btn:active{transform:translate(2px,2px);box-shadow:none;}
+.pkg-card-btn.active{
+  background:var(--gold) !important;border-color:var(--ink) !important;
+  box-shadow:3px 3px 0 var(--ink) !important;transform:translate(-1px,-1px);
+}
+.pkg-card-icon{font-size:1.35rem;flex-shrink:0;line-height:1;}
+.pkg-card-info{flex:1;min-width:0;}
+.pkg-card-title{font-family:'Space Grotesk',sans-serif;font-size:0.88rem;font-weight:900;color:var(--ink);line-height:1.2;}
+.pkg-card-sub{font-size:0.72rem;font-weight:700;color:var(--muted);margin-top:2px;line-height:1.2;}
+.pkg-card-btn.active .pkg-card-sub{color:var(--ink);opacity:0.85;}
+.pkg-card-check{
+  display:none;font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:0.85rem;color:var(--ink);
+  width:20px;height:20px;border-radius:50%;background:#FFFFFF;border:1.5px solid var(--ink);
+  align-items:center;justify-content:center;flex-shrink:0;
+}
+.pkg-card-btn.active .pkg-card-check{display:flex;}
+
+/* Neo-Brutalist Stepper */
+.neo-stepper-wrap{display:flex;flex-direction:column;gap:8px;margin-top:2px;}
+.neo-stepper{
+  display:flex;align-items:center;border:2px solid var(--ink);border-radius:var(--radius-sm);
+  background:#FFFFFF;box-shadow:var(--shadow-sm);overflow:hidden;height:44px;
+}
+.neo-step-btn{
+  width:44px;height:100%;border:none;background:var(--bg-surface);color:var(--ink);
+  font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:900;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:background 0.1s;user-select:none;flex-shrink:0;
+}
+.neo-step-btn:hover{background:var(--gold);}
+.neo-step-btn:active{background:#e6b820;}
+.neo-step-btn:first-child{border-right:2px solid var(--ink);}
+.neo-step-btn:last-of-type{border-left:2px solid var(--ink);}
+.neo-step-val{
+  flex:1;height:100%;border:none !important;text-align:center;
+  font-family:'Space Grotesk',sans-serif !important;font-size:1.15rem !important;font-weight:900 !important;
+  color:var(--ink) !important;background:transparent !important;padding:0 !important;box-shadow:none !important;
+}
+.neo-step-presets{display:flex;gap:6px;flex-wrap:wrap;}
+.preset-pill{
+  padding:4px 10px;border:1.5px solid var(--ink);border-radius:20px;background:#FFFFFF;color:var(--ink);
+  font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:800;cursor:pointer;
+  transition:all 0.12s;box-shadow:1px 1px 0 var(--ink);
+}
+.preset-pill:hover{background:var(--gold-bg);transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--ink);}
+.preset-pill.active{background:var(--gold);box-shadow:1px 1px 0 var(--ink);}
+
+/* Neo-Brutalist Info Tile */
+.neo-info-tile{
+  padding:11px 14px;background:var(--gold-bg);border:2px solid var(--ink);border-radius:var(--radius-sm);
+  font-family:'Space Grotesk',sans-serif;font-size:0.88rem;font-weight:800;color:var(--ink);
+  box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:8px;
+}
 .btn-primary{
   width:100%;padding:13px;border:2px solid var(--ink);border-radius:var(--radius-sm);
   background:var(--gold);color:var(--ink);
@@ -699,10 +781,25 @@ window.addEventListener('DOMContentLoaded', () => {
         <div class="field"><label>Ghi chú</label><textarea id="cNotes" placeholder="Ghi chú thêm (tùy chọn)"></textarea></div>
         <div class="field">
           <label>Gói dịch vụ *</label>
-          <select id="cPackage" onchange="onCreatePkgChange()">
-            <option value="30k">⭐ Gói 30k (5s Vĩnh viễn) — 30.000đ</option>
-            <option value="40k">🌟 Gói 40k (15s Vĩnh viễn) — 40.000đ</option>
-          </select>
+          <div class="pkg-choice-grid">
+            <button type="button" class="pkg-card-btn active" id="btnCreatePkg30k" onclick="selectCreatePkg('30k')">
+              <div class="pkg-card-icon">⭐</div>
+              <div class="pkg-card-info">
+                <div class="pkg-card-title">Gói 30k</div>
+                <div class="pkg-card-sub">5s Vĩnh viễn · 30.000đ</div>
+              </div>
+              <div class="pkg-card-check">✓</div>
+            </button>
+            <button type="button" class="pkg-card-btn" id="btnCreatePkg40k" onclick="selectCreatePkg('40k')">
+              <div class="pkg-card-icon">🌟</div>
+              <div class="pkg-card-info">
+                <div class="pkg-card-title">Gói 40k</div>
+                <div class="pkg-card-sub">15s Vĩnh viễn · 40.000đ</div>
+              </div>
+              <div class="pkg-card-check">✓</div>
+            </button>
+          </div>
+          <input type="hidden" id="cPackage" value="30k"/>
           <input type="hidden" id="cDuration" value="perm"/>
         </div>
 
@@ -812,14 +909,27 @@ window.addEventListener('DOMContentLoaded', () => {
           <label>Mật khẩu tài khoản NextDNS</label>
           <input type="text" id="dnsGenPassword" placeholder="mật khẩu" autocomplete="off"/>
         </div>
-        <div class="form-grid">
-          <div class="field">
-            <label>Cấu hình DNS (Tự động nhận diện từ mã KH)</label>
-            <select id="dnsGenPkg">
-              <option value="5s">🟢 Gói 5s</option>
-              <option value="15s">🔵 Gói 15s (Dùng cho cả 15s &amp; 180 vĩnh viễn)</option>
-            </select>
+        <div class="field">
+          <label>Cấu hình DNS (Tự động nhận diện từ mã KH)</label>
+          <div class="pkg-choice-grid">
+            <button type="button" class="pkg-card-btn active" id="btnDnsGen5s" onclick="selectDnsGenPkg('5s')">
+              <div class="pkg-card-icon">🟢</div>
+              <div class="pkg-card-info">
+                <div class="pkg-card-title">DNS 5s</div>
+                <div class="pkg-card-sub">Dành cho Gói 30k</div>
+              </div>
+              <div class="pkg-card-check">✓</div>
+            </button>
+            <button type="button" class="pkg-card-btn" id="btnDnsGen15s" onclick="selectDnsGenPkg('15s')">
+              <div class="pkg-card-icon">🔵</div>
+              <div class="pkg-card-info">
+                <div class="pkg-card-title">DNS 15s</div>
+                <div class="pkg-card-sub">Dành cho Gói 40k</div>
+              </div>
+              <div class="pkg-card-check">✓</div>
+            </button>
           </div>
+          <input type="hidden" id="dnsGenPkg" value="5s"/>
         </div>
         <button class="btn-action btn-gen" onclick="genDnsLink(this)">🔗 Tạo link DNS riêng</button>
       </div>
@@ -855,14 +965,40 @@ window.addEventListener('DOMContentLoaded', () => {
         <div class="form-grid">
           <div class="field">
             <label>Nhóm gói *</label>
-            <select id="dnsPoolPkg">
-              <option value="5s">🟢 Gói 5s</option>
-              <option value="15s">🔵 Gói 15s + 180</option>
-            </select>
+            <div class="pkg-choice-grid">
+              <button type="button" class="pkg-card-btn active" id="btnPoolPkg5s" onclick="selectPoolPkg('5s')">
+                <div class="pkg-card-icon">🟢</div>
+                <div class="pkg-card-info">
+                  <div class="pkg-card-title">Gói 5s (30k)</div>
+                  <div class="pkg-card-sub">Pool DNS 5s</div>
+                </div>
+                <div class="pkg-card-check">✓</div>
+              </button>
+              <button type="button" class="pkg-card-btn" id="btnPoolPkg15s" onclick="selectPoolPkg('15s')">
+                <div class="pkg-card-icon">🔵</div>
+                <div class="pkg-card-info">
+                  <div class="pkg-card-title">Gói 15s (40k)</div>
+                  <div class="pkg-card-sub">Pool DNS 15s</div>
+                </div>
+                <div class="pkg-card-check">✓</div>
+              </button>
+            </div>
+            <input type="hidden" id="dnsPoolPkg" value="5s"/>
           </div>
           <div class="field">
-            <label>Số mã/link (tối đa)</label>
-            <input type="number" id="dnsPoolMaxUses" min="1" max="50" value="5" style="width:100%;padding:10px;border:1.5px solid var(--line);border-radius:10px;font-family:'Be Vietnam Pro',sans-serif;font-size:.88rem"/>
+            <label>Số mã/link tối đa</label>
+            <div class="neo-stepper-wrap">
+              <div class="neo-stepper">
+                <button type="button" class="neo-step-btn" onclick="stepPoolMaxUses(-1)">−</button>
+                <input type="number" id="dnsPoolMaxUses" min="1" max="50" value="5" class="neo-step-val" readonly/>
+                <button type="button" class="neo-step-btn" onclick="stepPoolMaxUses(1)">+</button>
+              </div>
+              <div class="neo-step-presets">
+                <button type="button" class="preset-pill" id="pillMax3" onclick="setPoolMaxUses(3)">3 mã</button>
+                <button type="button" class="preset-pill active" id="pillMax5" onclick="setPoolMaxUses(5)">5 mã (Chuẩn)</button>
+                <button type="button" class="preset-pill" id="pillMax10" onclick="setPoolMaxUses(10)">10 mã</button>
+              </div>
+            </div>
           </div>
         </div>
         <button class="btn-action btn-gen" onclick="addDnsPoolLinksBulk(this)">➕ Thêm vào pool</button>
@@ -1055,14 +1191,11 @@ window.addEventListener('DOMContentLoaded', () => {
       <div class="info-grid" id="dInfoGrid"></div>
       <div class="codes-title">Mã truy cập</div>
       <div id="dCodes"></div>
-      <div class="field-sm" style="margin-top:8px"><label>Gói cho mã mới</label>
-        <!-- Options được rebuild động bởi openCustDetail() dựa trên gói hiện tại của khách.
-             Yêu cầu #2: chỉ hiện đúng gói của khách để tránh chọn nhầm gói rẻ hơn (ví dụ
-             khách 15s-60k bị hạ xuống 5s-50k). Admin muốn đổi gói thì dùng nút "✏️ Chỉnh sửa". -->
-        <select id="genPkg" onchange="onGenPkgChange()">
-          <!-- placeholder, JS sẽ điền -->
-        </select>
-        <div id="genPkgHint" style="font-size:.7rem;color:var(--muted);font-weight:600;margin-top:4px"></div>
+      <div class="field-sm" style="margin-top:8px">
+        <label>Gói cấp mã</label>
+        <div id="genPkgDisplay" class="neo-info-tile">⭐ Gói 30k (5s Vĩnh viễn)</div>
+        <input type="hidden" id="genPkg" value="30k"/>
+        <div id="genPkgHint" style="font-size:.72rem;color:var(--muted);font-weight:600;margin-top:4px">Muốn đổi gói, dùng nút "✏️ Chỉnh sửa thông tin khách" ở dưới.</div>
       </div>
       <button class="btn-gen-code" onclick="genCodeForCurrent()">➕ Cấp mã mới (30 phút)</button>
       <div class="new-code-box" id="newCodeBox">
@@ -1085,19 +1218,50 @@ window.addEventListener('DOMContentLoaded', () => {
       <div class="field-sm"><label>Username Locket</label><input type="text" id="eUn" placeholder="VD: vxang1" autocapitalize="off" autocorrect="off" spellcheck="false"/></div>
       <div class="field-sm">
         <label>Gói dịch vụ</label>
-        <select id="ePkg" onchange="updateEditPrice()">
-          <option value="30k">⭐ Gói 30k (5s Vĩnh viễn) — 30.000đ</option>
-          <option value="40k">🌟 Gói 40k (15s Vĩnh viễn) — 40.000đ</option>
-        </select>
+        <div class="pkg-choice-grid">
+          <button type="button" class="pkg-card-btn" id="btnEditPkg30k" onclick="selectEditPkg('30k')">
+            <div class="pkg-card-icon">⭐</div>
+            <div class="pkg-card-info">
+              <div class="pkg-card-title">Gói 30k</div>
+              <div class="pkg-card-sub">5s Vĩnh viễn · 30.000đ</div>
+            </div>
+            <div class="pkg-card-check">✓</div>
+          </button>
+          <button type="button" class="pkg-card-btn" id="btnEditPkg40k" onclick="selectEditPkg('40k')">
+            <div class="pkg-card-icon">🌟</div>
+            <div class="pkg-card-info">
+              <div class="pkg-card-title">Gói 40k</div>
+              <div class="pkg-card-sub">15s Vĩnh viễn · 40.000đ</div>
+            </div>
+            <div class="pkg-card-check">✓</div>
+          </button>
+        </div>
+        <input type="hidden" id="ePkg" value="30k"/>
         <input type="hidden" id="eDur" value="perm"/>
       </div>
       <div id="ePriceDisplay" style="padding:10px;background:var(--gold-bg);border:2px solid var(--ink);border-radius:var(--radius-sm);font-size:.84rem;font-weight:800;color:var(--ink);text-align:center;margin:0">💰 Giá: 30.000đ (Gói 30k - 5s Vĩnh viễn)</div>
       <div class="field-sm"><label>SĐT / Link liên hệ *</label><input type="text" id="eContact" placeholder="Dán SĐT (09xxx) hoặc Link Zalo, FB..."/></div>
-      <div class="field-sm"><label>Trạng thái</label>
-        <select id="eSs">
-          <option value="pending_gold">⏳ Chưa lên Gold</option>
-          <option value="active">✅ Đã lên Gold</option>
-        </select>
+      <div class="field-sm">
+        <label>Trạng thái</label>
+        <div class="pkg-choice-grid">
+          <button type="button" class="pkg-card-btn" id="btnEditSsPending" onclick="selectEditStatus('pending_gold')">
+            <div class="pkg-card-icon">⏳</div>
+            <div class="pkg-card-info">
+              <div class="pkg-card-title">Chưa lên Gold</div>
+              <div class="pkg-card-sub">Đang cài đặt</div>
+            </div>
+            <div class="pkg-card-check">✓</div>
+          </button>
+          <button type="button" class="pkg-card-btn" id="btnEditSsActive" onclick="selectEditStatus('active')">
+            <div class="pkg-card-icon">✅</div>
+            <div class="pkg-card-info">
+              <div class="pkg-card-title">Đã lên Gold</div>
+              <div class="pkg-card-sub">Đã hoàn tất</div>
+            </div>
+            <div class="pkg-card-check">✓</div>
+          </button>
+        </div>
+        <input type="hidden" id="eSs" value="pending_gold"/>
       </div>
       <div class="field-sm"><label>Ghi chú</label><textarea id="eNo" placeholder="Ghi chú thêm..."></textarea></div>
       <label id="eSfWrap" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:var(--gold-bg);cursor:pointer;font-weight:900;font-size:.88rem">
@@ -1280,13 +1444,88 @@ function pkgLabel(pkg){return pkg?(PKG_LABELS[pkg]||('Gói '+pkg)):'';}
 const PKG_OPTION_LABELS={'30k':'⭐ Gói 30k (5s Vĩnh viễn) — 30.000đ','40k':'🌟 Gói 40k (15s Vĩnh viễn) — 40.000đ'};
 function fillGenPkgOptions(pkg){
   const sel=document.getElementById('genPkg');
+  const disp=document.getElementById('genPkgDisplay');
   const hint=document.getElementById('genPkgHint');
   if(!sel)return;
   const p=pkg&&PKG_OPTION_LABELS[pkg]?pkg:'30k';
-  sel.innerHTML=`<option value="${p}">${PKG_OPTION_LABELS[p]||('⚡ Gói '+p)}</option>`;
   sel.value=p;
-  if(hint)hint.textContent='Muốn đổi gói, dùng nút "✏️ Chỉnh sửa thông tin khách" ở dưới.';
+  if(disp) disp.textContent=PKG_OPTION_LABELS[p]||('⚡ Gói '+p);
+  if(hint) hint.textContent='Muốn đổi gói, dùng nút "✏️ Chỉnh sửa thông tin khách" ở dưới.';
 }
+
+window.selectCreatePkg=function(pkg){
+  const input=document.getElementById('cPackage');
+  if(input) input.value=pkg;
+  const btn30=document.getElementById('btnCreatePkg30k');
+  const btn40=document.getElementById('btnCreatePkg40k');
+  if(btn30) btn30.classList.toggle('active', pkg==='30k');
+  if(btn40) btn40.classList.toggle('active', pkg==='40k');
+  updateCreatePrice();
+};
+
+window.selectDnsGenPkg=function(pkg){
+  const input=document.getElementById('dnsGenPkg');
+  if(input) input.value=pkg;
+  const btn5=document.getElementById('btnDnsGen5s');
+  const btn15=document.getElementById('btnDnsGen15s');
+  if(btn5) btn5.classList.toggle('active', pkg==='5s');
+  if(btn15) btn15.classList.toggle('active', pkg==='15s');
+};
+
+window.selectPoolPkg=function(pkg){
+  const input=document.getElementById('dnsPoolPkg');
+  if(input) input.value=pkg;
+  const btn5=document.getElementById('btnPoolPkg5s');
+  const btn15=document.getElementById('btnPoolPkg15s');
+  if(btn5) btn5.classList.toggle('active', pkg==='5s');
+  if(btn15) btn15.classList.toggle('active', pkg==='15s');
+};
+
+window.stepPoolMaxUses=function(delta){
+  const input=document.getElementById('dnsPoolMaxUses');
+  if(!input) return;
+  let val=(parseInt(input.value||'5',10)||5)+delta;
+  val=Math.max(1,Math.min(50,val));
+  input.value=val;
+  updatePoolMaxPresets(val);
+};
+
+window.setPoolMaxUses=function(val){
+  const input=document.getElementById('dnsPoolMaxUses');
+  if(!input) return;
+  val=Math.max(1,Math.min(50,val));
+  input.value=val;
+  updatePoolMaxPresets(val);
+};
+
+function updatePoolMaxPresets(val){
+  const p3=document.getElementById('pillMax3');
+  const p5=document.getElementById('pillMax5');
+  const p10=document.getElementById('pillMax10');
+  if(p3) p3.classList.toggle('active', val===3);
+  if(p5) p5.classList.toggle('active', val===5);
+  if(p10) p10.classList.toggle('active', val===10);
+}
+
+window.selectEditPkg=function(pkg){
+  const input=document.getElementById('ePkg');
+  if(input) input.value=pkg;
+  const btn30=document.getElementById('btnEditPkg30k');
+  const btn40=document.getElementById('btnEditPkg40k');
+  if(btn30) btn30.classList.toggle('active', pkg==='30k');
+  if(btn40) btn40.classList.toggle('active', pkg==='40k');
+  updateEditPrice();
+};
+
+window.selectEditStatus=function(st){
+  const input=document.getElementById('eSs');
+  if(input) input.value=st;
+  const btnPend=document.getElementById('btnEditSsPending');
+  const btnAct=document.getElementById('btnEditSsActive');
+  if(btnPend) btnPend.classList.toggle('active', st==='pending_gold');
+  if(btnAct) btnAct.classList.toggle('active', st==='active');
+};
+
 // Hệ thống áp dụng 100% Vĩnh viễn cho mọi gói
 window.onCreatePkgChange=function(){
   updateCreatePrice();
@@ -1427,7 +1666,7 @@ function resetCreateForm(){
   setVal('cNotes', '');
   setVal('cPackage', '30k');
   setVal('cDuration', 'perm');
-  onCreatePkgChange();
+  selectCreatePkg('30k');
 }
 window.copyResult=function(id,btn){
   const val=document.getElementById(id).textContent;
@@ -1526,25 +1765,19 @@ window.closeDnsMsgModal=function(){
 window.onDnsGenCustCodeInput=function(){
   const code = (document.getElementById('dnsGenCustCode')?.value || '').trim().toUpperCase();
   const hintEl = document.getElementById('dnsGenCustHint');
-  const pkgSel = document.getElementById('dnsGenPkg');
   if (!code) {
     if (hintEl) { hintEl.style.display = 'none'; hintEl.textContent = ''; }
     return;
   }
   const cust = allCustomers.find(c => c.customer_code === code);
   if (cust) {
-    const pkgLabel = cust.package === '180' ? '15s vĩnh viễn (180)' : cust.package === '150' ? '5s vĩnh viễn (150)' : cust.package === '15s' ? '15s' : '5s';
+    const is15s = (cust.package === '40k' || cust.package === '180' || cust.package === '15s');
+    const pkgLabel = is15s ? 'Gói 40k (15s)' : 'Gói 30k (5s)';
     if (hintEl) {
       hintEl.textContent = `👤 ${cust.name || 'Khách'} · Gói hiện tại: ${pkgLabel}`;
       hintEl.style.display = 'block';
     }
-    if (pkgSel) {
-      if (cust.package === '180' || cust.package === '15s') {
-        pkgSel.value = '15s';
-      } else {
-        pkgSel.value = '5s';
-      }
-    }
+    selectDnsGenPkg(is15s ? '15s' : '5s');
   } else if (hintEl) {
     hintEl.style.display = 'none';
   }
@@ -1587,7 +1820,7 @@ window.genDnsLink=async function(btn){
     document.getElementById('dnsGenUrl').value='';
     document.getElementById('dnsGenEmail').value='';
     document.getElementById('dnsGenPassword').value='';
-    document.getElementById('dnsGenPkg').value='5s';
+    selectDnsGenPkg('5s');
     const hintEl = document.getElementById('dnsGenCustHint');
     if (hintEl) { hintEl.style.display = 'none'; hintEl.textContent = ''; }
 
@@ -2471,14 +2704,13 @@ window.openEditCust=function(){
   document.getElementById('eUn').value=cust.locket_username||'';
   const eContactEl = document.getElementById('eContact');
   if (eContactEl) eContactEl.value = cust.phone || cust.social_link || '';
-  document.getElementById('eSs').value=cust.service_status||'pending_gold';
   document.getElementById('eNo').value=cust.notes||'';
   const ePkg = (cust.package === '40k' || cust.package === '15s' || cust.package === '180') ? '40k' : '30k';
-  document.getElementById('ePkg').value = ePkg;
+  selectEditPkg(ePkg);
+  selectEditStatus(cust.service_status||'pending_gold');
   document.getElementById('eDur').value = 'perm';
   document.getElementById('eSf').checked=!!cust.special_flow;
 
-  updateEditPrice();
   document.getElementById('editModal').classList.add('open');
 };
 window.updateEditPrice=function(){
