@@ -257,11 +257,11 @@ function escTgHtml(s) {
 // Trả { id, name, type, customerCode, locketUsername, duration } — luôn trả object, mọi lỗi
 // bị nuốt (thiếu tên vẫn phải gửi được thông báo, không được chặn luồng khách hàng).
 async function lookupCustomerByCode(code) {
-  const empty = { id: null, name: null, type: 'baohanh', customerCode: null, locketUsername: null, duration: null, specialFlow: false };
+  const empty = { id: null, name: null, type: 'moi', customerCode: null, locketUsername: null, duration: 'perm', package: '30k', specialFlow: false };
   try {
     // Tối ưu hóa: Dùng JOIN (customers) để lấy dữ liệu trong 1 request duy nhất
     const rows = await sb('GET', 'access_codes', {
-      q: `code=eq.${encodeURIComponent(code)}&select=customer_id,customers(id,name,type,customer_code,locket_username,duration,special_flow)`,
+      q: `code=eq.${encodeURIComponent(code)}&select=customer_id,customers(id,name,type,customer_code,package,locket_username,duration,special_flow)`,
     });
     const cData = rows?.[0]?.customers;
     const customerId = rows?.[0]?.customer_id;
@@ -273,10 +273,11 @@ async function lookupCustomerByCode(code) {
     return {
       id: cust?.id || customerId,
       name: cust?.name || null,
-      type: cust?.type || 'baohanh',
+      type: cust?.type || 'moi',
+      package: cust?.package || '30k',
       customerCode: cust?.customer_code || null,
       locketUsername: cust?.locket_username || null,
-      duration: cust?.duration || null,
+      duration: cust?.duration || 'perm',
       specialFlow: !!cust?.special_flow,
     };
   } catch (e) { 

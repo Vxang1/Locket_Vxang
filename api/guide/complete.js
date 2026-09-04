@@ -38,38 +38,31 @@ module.exports = async (req, res) => {
     });
 
 
-    // Thông báo hoàn thành kèm nút bấm Inline Kích Hoạt Locket Gold 1-chạm
+    // Thông báo hoàn thành kèm nút bấm Inline tra cứu
     const cust = await lookupCustomerByCode(payload.code);
     const who = cust.name ? escTgHtml(cust.name) : 'Khách';
-    const what = cust.type === 'moi' ? 'đã hoàn thành các bước cài đặt' : 'đã hoàn tất bảo hành';
-    const pkg = normalizePackage(payload.package || '5s');
+    const what = 'đã hoàn thành các bước cài đặt';
+    const pkg = normalizePackage(payload.package || cust?.package || '30k');
 
-    // Đối với gói 150 & 180 (vĩnh viễn / IPA): Khách làm xong các bước là ĐÃ LÊN GOLD NGAY trên máy
-    // Tự động cập nhật CRM: service_status = 'active'
-    if (isPermPackage(pkg) && cust?.id) {
-      const patchBody = { service_status: 'active' };
-      if (!cust.warranty_started_at) {
-        patchBody.warranty_started_at = new Date().toISOString();
-      }
+    // Cập nhật CRM: service_status = 'active'
+    if (cust?.id) {
       try {
         await sb('PATCH', 'customers', {
           q: `id=eq.${encodeURIComponent(cust.id)}`,
-          body: patchBody
+          body: { service_status: 'active' }
         });
       } catch (crmErr) {
-        console.warn('Lỗi sync CRM cho gói vĩnh viễn khi complete:', crmErr.message);
+        console.warn('Lỗi sync CRM khi complete:', crmErr.message);
       }
     }
 
-    const extra = {};
-    if (!isPermPackage(pkg) && cust.locketUsername) {
-      const cbData = `lookup_code:${payload.code}`;
-      extra.reply_markup = {
+    const extra = {
+      reply_markup: {
         inline_keyboard: [
-          [{ text: '🔍 TRA CỨU KHÁCH NÀY', callback_data: cbData }]
+          [{ text: '🔍 TRA CỨU KHÁCH NÀY', callback_data: `lookup_code:${payload.code}` }]
         ]
-      };
-    }
+      }
+    };
 
     await notifyTelegram(
       `✅ <b>${who}</b> ${what}\n` +

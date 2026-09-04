@@ -66,8 +66,8 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Link DNS không đúng định dạng — dán URL đầy đủ hoặc mã ngắn hợp lệ' });
       }
 
-      // Gói: '5s', '15s', '150', '180'
-      const p = normalizePackage(pkg || '5s');
+      // Gói: '30k', '40k'
+      const p = normalizePackage(pkg || '30k');
 
       // BẮT BUỘC mã KH phải tồn tại thật trong customers (theo yêu cầu chốt trước).
       const custs = await sb('GET', 'customers', { q: `customer_code=eq.${encodeURIComponent(customer_code)}&select=id,name` });
@@ -211,8 +211,8 @@ module.exports = async (req, res) => {
         : dns_url ? [String(dns_url).trim()] : [];
       if (!rawList.length) return res.status(400).json({ error: 'Thiếu link DNS' });
 
-      // Chỉ có 2 nhóm pool: '5s' và '15s' (gói 180 dùng chung nhóm '15s' — xem dnsPoolKey).
-      const p = String(pkg || '5s').trim() === '15s' ? '15s' : '5s';
+      // Chỉ có 2 nhóm pool: '5s' và '15s' (gói 40k dùng chung nhóm '15s' — xem dnsPoolKey).
+      const p = (String(pkg || '').trim() === '40k' || String(pkg || '').trim() === '15s') ? '15s' : '5s';
       const maxU = Math.max(1, Math.min(50, parseInt(max_uses, 10) || 5));
 
       const activeTemplate = await getDnsTemplate();
@@ -346,20 +346,18 @@ module.exports = async (req, res) => {
       }
 
       if (special_flow === true) {
-          const finalPkg = pkg !== undefined ? normalizePackage(pkg) : current.package;
-          if (finalPkg === '150' || finalPkg === '180') {
-            const { getAppstoreConfig } = require('../_lib/utils');
-            const cfg = await getAppstoreConfig();
-            if (!cfg.email || !cfg.password) {
-              return res.status(400).json({ error: 'Không thể bật Flow Đặc Biệt: Nguồn tài khoản Appstore thủ công đang trống. Vui lòng cập nhật tài khoản và mật khẩu ở tab Appstore trước!' });
-            }
-          }
+        const finalPkg = pkg !== undefined ? normalizePackage(pkg) : current.package;
+        const { getAppstoreConfig } = require('../_lib/utils');
+        const cfg = await getAppstoreConfig();
+        if (!cfg.email || !cfg.password) {
+          return res.status(400).json({ error: 'Không thể bật Flow Đặc Biệt: Nguồn tài khoản Appstore thủ công đang trống. Vui lòng cập nhật tài khoản và mật khẩu ở tab Appstore trước!' });
         }
+      }
         
-        const finalPkg2 = pkg !== undefined ? normalizePackage(pkg) : current.package;
-          const finalSf2 = special_flow !== undefined ? special_flow : current.special_flow;
-          const oldConfig = (current.package === '150' && current.special_flow) ? null : ((current.package === '15s' || current.package === '180') ? '15s' : '5s');
-          const newConfig = (finalPkg2 === '150' && finalSf2) ? null : ((finalPkg2 === '15s' || finalPkg2 === '180') ? '15s' : '5s');
+      const finalPkg2 = pkg !== undefined ? normalizePackage(pkg) : current.package;
+      const finalSf2 = special_flow !== undefined ? special_flow : current.special_flow;
+      const oldConfig = (current.package === '30k' && current.special_flow) ? null : ((current.package === '40k' || current.package === '15s' || current.package === '180') ? '15s' : '5s');
+      const newConfig = (finalPkg2 === '30k' && finalSf2) ? null : ((finalPkg2 === '40k' || finalPkg2 === '15s' || finalPkg2 === '180') ? '15s' : '5s');
           
           if (current && oldConfig !== newConfig) {
           const { releaseCustomerFromDnsPool } = require('../_lib/utils');
@@ -415,7 +413,7 @@ module.exports = async (req, res) => {
                   nextdns_url: resolvedUrl,
                   nextdns_email: String(nextdns_email || '').trim(),
                   nextdns_password: String(nextdns_password || '').trim(),
-                  package: cust.package || '180',
+                  package: cust.package || '40k',
                 },
                 prefer: 'return=minimal',
               });

@@ -85,7 +85,7 @@ module.exports = async (req, res) => {
       const newStep  = body.currentStep;
       if (prevStep !== null && prevStep !== undefined && prevStep !== newStep) {
         try {
-          const pkg = payload.package || '5s';
+          const pkg = payload.package || '30k';
           const cust = await lookupCustomerByCode(payload.code);
           const stepsRows = await sb('GET', 'guide_steps', {
             q: `or=(package.eq.${encodeURIComponent(pkg)},package.is.null)&order=order_num.asc`,

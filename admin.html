@@ -21,18 +21,15 @@
 <link rel="dns-prefetch" href="https://ogchtngdbywmayeluebh.supabase.co"/>
 <link rel="dns-prefetch" href="https://vxang-access-e9d5e-default-rtdb.firebaseio.com"/>
 <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800;900&family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet"/>
 <style>
 :root{
-  --bg:#f5f4ff;--card:#ffffff;--border:#e6e0ff;
-  --p1:#7c3aed;--p2:#a855f7;--accent:#06b6d4;
-  --text:#1e1b3a;--muted:#8878b0;--warning:#f59e0b;
-  --green:#10b981;--red:#ef4444;--radius:14px;
-  /* Chiều cao tối thiểu cho mọi vùng bấm trên mobile. Gom vào 1 biến để không
-     phải sửa rải rác: các nút nhỏ (chip filter, icon-button) đều dùng min-height
-     này ở breakpoint mobile thay vì tự tăng padding. */
+  --bg:#07090e;--bg-surface:#0f172a;--card:rgba(15,23,42,0.92);--border:rgba(0,240,255,0.18);
+  --border-glow:0 0 16px rgba(0,240,255,0.25);
+  --p1:#00f0ff;--p2:#8b5cf6;--accent:#10b981;
+  --text:#f8fafc;--muted:#94a3b8;--warning:#f59e0b;
+  --green:#10b981;--red:#ef4444;--radius:16px;
   --tap:44px;
-  /* Safe-area iPhone — fallback 0px cho máy/trình duyệt không có notch. */
   --sa-bottom:env(safe-area-inset-bottom,0px);
   --sa-top:env(safe-area-inset-top,0px);
 }
@@ -40,12 +37,12 @@
 html{scroll-behavior:smooth;}
 body{overscroll-behavior:none;background:var(--bg);color:var(--text);font-family:'Be Vietnam Pro',sans-serif;
   font-size:14px;line-height:1.65;font-weight:500;-webkit-font-smoothing:antialiased;overflow-x:hidden;
-  /* dvh thay vh: trên iOS Safari 100vh tính theo viewport khi thanh địa chỉ ẩn, nên
-     luôn cao hơn vùng thật → sinh khoảng trống và cuộn thừa. Có fallback vh cho
-     webview cũ không hiểu dvh. */
   min-height:100vh;min-height:100dvh;}
 .bg-dots{position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:radial-gradient(circle,rgba(168,85,247,.08) 1px,transparent 1px);background-size:26px 26px;}
+  background-image:
+    linear-gradient(to right, rgba(0, 240, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
+  background-size:32px 32px;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
 
@@ -54,10 +51,11 @@ body{overscroll-behavior:none;background:var(--bg);color:var(--text);font-family
 .login-box{
   background:var(--card);border:1.5px solid var(--border);border-radius:18px;
   padding:40px 36px;width:100%;max-width:380px;
-  box-shadow:0 4px 32px rgba(124,58,237,.1);
+  box-shadow:0 0 32px rgba(0,240,255,0.15);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   animation:fadeUp .4s ease;
 }
-.login-brand{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.5rem;
+.login-brand{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.6rem;
   background:linear-gradient(135deg,var(--p1),var(--p2));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
 .login-sub{font-size:.8rem;color:var(--muted);margin-bottom:24px;font-weight:500;}
@@ -65,68 +63,66 @@ body{overscroll-behavior:none;background:var(--bg);color:var(--text);font-family
 .field label{display:block;font-size:.72rem;font-weight:700;color:var(--muted);
   text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
 input[type=password],input[type=text],input[type=email],input[type=url],textarea,select{
-  width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;
-  padding:11px 14px;color:var(--p1);font-family:'Be Vietnam Pro',sans-serif;
+  width:100%;background:rgba(7,9,14,0.7);border:1.5px solid var(--border);border-radius:10px;
+  padding:11px 14px;color:var(--text);font-family:'Be Vietnam Pro',sans-serif;
   font-size:16px;font-weight:600;outline:none;transition:border-color .2s,box-shadow .2s;
 }
 textarea{resize:vertical;min-height:72px;line-height:1.6;}
 select{cursor:pointer;appearance:none;}
 input,textarea,select{touch-action:manipulation;}
-input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(168,85,247,.1);}
+input:focus,textarea:focus,select:focus{border-color:var(--p1);box-shadow:0 0 0 3px rgba(0,240,255,0.18);}
 .btn-primary{
   width:100%;padding:13px;border:none;border-radius:11px;
-  background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;
-  font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:900;letter-spacing:.02em;
-  cursor:pointer;transition:all .18s;box-shadow:0 4px 0 #5b20c0;
+  background:linear-gradient(135deg,var(--p1),var(--p2));color:#07090e;
+  font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:900;letter-spacing:.02em;
+  cursor:pointer;transition:all .18s;box-shadow:0 0 20px rgba(0,240,255,0.25);
 }
-.btn-primary:hover{opacity:.92;}
-.btn-primary:active{transform:translateY(3px);box-shadow:0 1px 0 #5b20c0;}
+.btn-primary:hover{opacity:.92;box-shadow:0 0 28px rgba(0,240,255,0.4);}
+.btn-primary:active{transform:translateY(2px);}
 .login-err{font-size:.8rem;color:var(--red);margin-top:10px;display:none;font-weight:600;}
 
 /* ─── ADMIN UI ───────────────────────────── */
 #adminUI{display:none;position:relative;z-index:1;min-height:100vh;min-height:100dvh;}
 .topbar{
-  background:rgba(255,255,255,.94);backdrop-filter:blur(12px);
+  background:rgba(7,9,14,0.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
   border-bottom:1.5px solid var(--border);
   display:flex;align-items:center;justify-content:space-between;
-  /* padding-top cộng thêm safe-area: trên iPhone có tai thỏ/Dynamic Island +
-     apple-mobile-web-app-status-bar-style=black-translucent, trang chiếm luôn
-     vùng status bar nên nếu không chừa chỗ thì tai thỏ đè lên chữ "Locket Gold Admin".
-     Trên máy không có tai thỏ env() = 0 nên desktop giữ nguyên 14px. */
   padding:calc(14px + env(safe-area-inset-top,0px)) 32px 14px;
   gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:20;
 }
-.brand{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.05rem;
+.brand{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.15rem;
   background:linear-gradient(135deg,var(--p1),var(--p2));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .topbar-links{display:flex;gap:6px;}
 .tl-btn{
-  padding:7px 14px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg);
-  color:var(--p1);font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:900;
+  padding:7px 14px;border:1.5px solid var(--border);border-radius:8px;background:rgba(15,23,42,0.8);
+  color:var(--p1);font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:900;
   cursor:pointer;text-decoration:none;transition:all .2s;
 }
-.tl-btn:hover{border-color:var(--p2);background:rgba(168,85,247,.06);}
+.tl-btn:hover{border-color:var(--p1);background:rgba(0,240,255,0.1);box-shadow:0 0 12px rgba(0,240,255,0.2);}
 .btn-logout{
   padding:7px 14px;border:1.5px solid var(--border);border-radius:8px;background:transparent;
-  color:var(--muted);font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:900;
+  color:var(--muted);font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:900;
   cursor:pointer;transition:all .2s;
 }
 .btn-logout:hover{border-color:var(--red);color:var(--red);}
-  .btn-dev.active-dev { background: #059669 !important; color: #fff !important; border-color: #047857 !important; }
-  .btn-dev{
-    padding:7px 14px;border:1.5px solid var(--border);border-radius:8px;background:transparent;
-    color:var(--muted);font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:900;
-    cursor:pointer;transition:all .2s;
-  }
-  .btn-dev:hover{border-color:var(--p1);color:var(--p1);background:rgba(124,58,237,.06);}
-  .btn-dev.active{border-color:var(--p1);background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;box-shadow:0 4px 12px rgba(124,58,237,.25);}
+.btn-dev.active-dev { background: #059669 !important; color: #fff !important; border-color: #047857 !important; }
+.btn-dev{
+  padding:7px 14px;border:1.5px solid var(--border);border-radius:8px;background:transparent;
+  color:var(--muted);font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:900;
+  cursor:pointer;transition:all .2s;
+}
+.btn-dev:hover{border-color:var(--p1);color:var(--p1);background:rgba(0,240,255,0.08);}
+.btn-dev.active{border-color:var(--p1);background:linear-gradient(135deg,var(--p1),var(--p2));color:#07090e;box-shadow:0 0 14px rgba(0,240,255,0.3);}
 
-.tab-bar{display:flex;gap:2px;padding:16px 32px 0;border-bottom:1.5px solid var(--border);
-  background:var(--card);overflow-x:auto;}
-.tab{padding:9px 18px;border-radius:8px 8px 0 0;font-family:'Nunito',sans-serif;
-  font-size:.82rem;font-weight:900;letter-spacing:.02em;cursor:pointer;transition:all .2s;
+.tab-bar{display:flex;gap:4px;padding:16px 32px 0;border-bottom:1.5px solid var(--border);
+  background:rgba(15,23,42,0.95);overflow-x:auto;}
+.tab{padding:9px 18px;border-radius:8px 8px 0 0;font-family:'Space Grotesk',sans-serif;
+  font-size:.84rem;font-weight:800;letter-spacing:.02em;cursor:pointer;transition:all .2s;
   border:none;background:transparent;color:var(--muted);white-space:nowrap;}
-.tab.active{background:var(--bg);color:var(--p1);border:1.5px solid var(--border);border-bottom:1.5px solid var(--bg);}
+.tab.active{background:var(--bg);color:var(--p1);border:1.5px solid var(--border);border-bottom:1.5px solid var(--bg);
+  box-shadow:0 -4px 14px rgba(0,240,255,0.12);}
+.tab:hover:not(.active){color:var(--p1);}
 .tab:hover:not(.active){color:var(--p1);}
 
 .page{max-width:1280px;margin:0 auto;padding:24px 24px 72px;}
@@ -251,27 +247,26 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
 .btn-add-step:hover{background:rgba(124,58,237,.06);border-color:var(--p2);}
 
 /* MODAL */
-.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(30,27,58,.5);
-  backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(7,9,14,0.85);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:20px;}
 .modal-overlay.open{display:flex;}
 .modal{background:var(--card);border:1.5px solid var(--border);border-radius:18px;
-  width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(124,58,237,.2);}
+  width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:0 0 40px rgba(0,240,255,0.18);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
 .modal-head{padding:22px 24px 0;display:flex;justify-content:space-between;align-items:center;}
-.modal-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.05rem;color:var(--p1);}
-/* Vùng bấm 40x40: trước đây chỉ là ký tự ✕ 15x15px — quá nhỏ để bấm bằng ngón tay,
-   mà đây là cách đóng modal duy nhất ở 5 modal. Dùng flex canh giữa để ký tự vẫn
-   nằm đúng tâm dù ô to hơn, và margin âm để không đẩy tiêu đề lệch khỏi vị trí cũ. */
+.modal-title{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.15rem;color:var(--p1);}
+/* Vùng bấm 40x40 */
 .modal-close{background:transparent;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;transition:color .2s;
   width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin:-8px -10px -8px 0;border-radius:10px;}
-.modal-close:active{background:rgba(239,68,68,.08);}
+.modal-close:active{background:rgba(239,68,68,.12);}
 .modal-close:hover{color:var(--red);}
 .modal-body{padding:18px 24px 0;display:flex;flex-direction:column;gap:12px;}
 .modal-footer{padding:16px 24px 22px;display:flex;gap:8px;}
 .btn-save{flex:1;padding:12px;border:none;border-radius:10px;
-  background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;
-  font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:900;cursor:pointer;transition:all .18s;box-shadow:0 3px 0 #5b20c0;}
-.btn-save:hover{opacity:.92;}
-.btn-save:active{transform:translateY(2px);box-shadow:0 1px 0 #5b20c0;}
+  background:linear-gradient(135deg,var(--p1),var(--p2));color:#07090e;
+  font-family:'Space Grotesk',sans-serif;font-size:.92rem;font-weight:900;cursor:pointer;transition:all .18s;box-shadow:0 0 16px rgba(0,240,255,0.25);}
+.btn-save:hover{opacity:.92;box-shadow:0 0 24px rgba(0,240,255,0.4);}
+.btn-save:active{transform:translateY(2px);}
 .btn-cancel{padding:12px 18px;border:1.5px solid var(--border);border-radius:10px;background:transparent;
   color:var(--muted);font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:900;cursor:pointer;transition:all .2s;}
 .btn-cancel:hover{border-color:var(--red);color:var(--red);}

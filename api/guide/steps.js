@@ -7,7 +7,7 @@ module.exports = async (req, res) => {
   if (!payload) return;
 
   try {
-    const pkg = payload.package || '5s';
+    const pkg = payload.package || '30k';
 
     // Tối ưu: Thực thi 3 truy vấn độc lập song song bằng Promise.all
     const [sessions, stepsRes, codes] = await Promise.all([
@@ -24,7 +24,7 @@ module.exports = async (req, res) => {
 
     if (!sessions?.length) return res.status(403).json({ error: 'Phiên đã bị kết thúc' });
 
-    let steps = stepsRes || [];
+    let steps = (stepsRes || []).filter(s => s.step_type !== 'username' && s.type !== 'username');
     const codeRow = codes?.[0];
     const customerId = codeRow?.customer_id;
     let locket_username = null;
@@ -36,11 +36,7 @@ module.exports = async (req, res) => {
       locket_username = custs?.[0]?.locket_username || null;
     }
 
-    const shouldSkipUsername = !!(payload.skipUsernameStep || codeRow?.skip_username_step || locket_username);
-
-    if (shouldSkipUsername) {
-      steps = steps.filter(s => s.step_type !== 'username' && s.type !== 'username');
-    }
+    const shouldSkipUsername = true;
 
     res.json({
       steps,

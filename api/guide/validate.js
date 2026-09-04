@@ -507,34 +507,10 @@ module.exports = async (req, res) => {
     });
 
     const exp = Math.floor(new Date(expiresAt).getTime() / 1000);
-    const pkg = normalizePackage(codeRow.package);
-    // Quyết định "có bước username hay không" — CHỐT MỘT LẦN DUY NHẤT cho cả đời mã,
-    // lưu vào access_codes.skip_username_step, KHÔNG suy lại từ customers.locket_username.
-    let skipUsernameStep;
-    let specialFlow = false;
-    if (codeRow.skip_username_step === true || codeRow.skip_username_step === false) {
-      skipUsernameStep = codeRow.skip_username_step;
-    } else {
-      const custForFlag = await getCustomerInfo();
-      skipUsernameStep = !!custForFlag.locketUsername;
-      specialFlow = !!custForFlag.specialFlow;
-      try {
-        const locked = await sb('PATCH', 'access_codes', {
-          q: `id=eq.${codeRow.id}&skip_username_step=is.null`,
-          body: { skip_username_step: skipUsernameStep },
-          prefer: 'return=representation',
-        });
-        if (!locked?.length) {
-          const reread = await sb('GET', 'access_codes', { q: `id=eq.${codeRow.id}&select=skip_username_step` });
-          const locked2 = reread?.[0]?.skip_username_step;
-          if (locked2 === true || locked2 === false) skipUsernameStep = locked2;
-        }
-      } catch { /* cột chưa tồn tại (chưa chạy migration) — giữ hành vi cũ, không chặn khách */ }
-    }
-    if (!specialFlow) {
-      const custForSpecial = await getCustomerInfo();
-      specialFlow = !!custForSpecial.specialFlow;
-    }
+    const custInfo = await getCustomerInfo();
+    const pkg = normalizePackage(custInfo?.package || codeRow.package || '30k');
+    const skipUsernameStep = true;
+    const specialFlow = !!custInfo?.specialFlow;
     const guideToken = signJWT({ role: 'guide', code: upperCode, sessionToken, package: pkg, skipUsernameStep, specialFlow, exp });
 
     res.json({ token: guideToken, expires_at: expiresAt, package: pkg });

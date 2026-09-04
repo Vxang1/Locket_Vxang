@@ -57,7 +57,7 @@ module.exports = async (req, res) => {
     const codes = sessions.map(s => `"${s.access_code}"`).join(',');
     const [acodesRes, guideStepsRes] = await Promise.all([
       sb('GET', 'access_codes', {
-        q: `code=in.(${codes})&select=code,expires_at,customer_id,package`,
+        q: `code=in.(${codes})&select=code,expires_at,customer_id`,
       }),
       getCachedGuideSteps(),
     ]);
@@ -68,7 +68,7 @@ module.exports = async (req, res) => {
     let custs = [];
     if (custIds.length) {
       custs = await sb('GET', 'customers', {
-        q: `id=in.(${custIds.map(c => `"${c}"`).join(',')})&select=id,name,phone,customer_code,locket_username,special_flow`,
+        q: `id=in.(${custIds.map(c => `"${c}"`).join(',')})&select=id,name,phone,customer_code,package,locket_username,special_flow`,
       }) || [];
     }
 
@@ -81,7 +81,7 @@ module.exports = async (req, res) => {
     const enriched = sessions.map(s => {
       const ac   = acodes.find(a => a.code === s.access_code);
       const cust = ac ? custs.find(c => c.id === ac.customer_id) : null;
-      const pkg  = ac?.package || '5s';
+      const pkg  = cust?.package || '30k';
       return {
         id:             s.id,
         access_code:    s.access_code,

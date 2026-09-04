@@ -10,12 +10,13 @@
 <link rel="dns-prefetch" href="https://res.cloudinary.com"/>
 <link rel="dns-prefetch" href="https://ogchtngdbywmayeluebh.supabase.co"/>
 <link rel="dns-prefetch" href="https://apple.dns.nextdns.io"/>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800;900&family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet"/>
 <style>
 :root{
-  --bg:#f5f4ff;--card:#ffffff;--border:#e6e0ff;
-  --p1:#7c3aed;--p2:#a855f7;--accent:#06b6d4;
-  --text:#1e1b3a;--muted:#8878b0;--warning:#f59e0b;
+  --bg:#07090e;--bg-surface:#0f172a;--card:rgba(15,23,42,0.92);--border:rgba(0,240,255,0.18);
+  --border-glow:0 0 16px rgba(0,240,255,0.25);
+  --p1:#00f0ff;--p2:#8b5cf6;--accent:#10b981;
+  --text:#f8fafc;--muted:#94a3b8;--warning:#f59e0b;
   --red:#ef4444;--green:#10b981;--radius:18px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -23,7 +24,10 @@ html{scroll-behavior:smooth;}
 body{overscroll-behavior:none;background:var(--bg);color:var(--text);font-family:'Be Vietnam Pro',sans-serif;
   font-size:15px;line-height:1.7;font-weight:500;-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100vh;}
 .bg-dots{position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:radial-gradient(circle,rgba(168,85,247,.10) 1px,transparent 1px);background-size:26px 26px;}
+  background-image:
+    linear-gradient(to right, rgba(0, 240, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
+  background-size:32px 32px;}
 .bg-decos{position:fixed;inset:0;z-index:0;pointer-events:none;font-size:1.8rem;opacity:.06;}
 .bg-decos span:nth-child(1){position:absolute;top:8%;left:5%;animation:floatDeco 7s ease-in-out infinite 0s;}
 .bg-decos span:nth-child(2){position:absolute;top:12%;right:6%;animation:floatDeco 7s ease-in-out infinite 2s;}
@@ -43,40 +47,41 @@ body{overscroll-behavior:none;background:var(--bg);color:var(--text);font-family
 .entry-box{
   background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);
   padding:36px 28px;width:100%;max-width:420px;
-  box-shadow:0 4px 32px rgba(124,58,237,.1);
+  box-shadow:0 0 36px rgba(0,240,255,0.18);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   animation:popIn .55s cubic-bezier(.34,1.56,.64,1) both;
   position:relative;z-index:1;
 }
 .back-link{display:inline-flex;align-items:center;gap:5px;color:var(--muted);
   font-size:.8rem;font-weight:600;text-decoration:none;margin-bottom:20px;transition:color .2s;}
 .back-link:hover{color:var(--p1);}
-.entry-brand{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.7rem;
+.entry-brand{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.75rem;
   background:linear-gradient(135deg,var(--p1),var(--p2));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
 .entry-sub{font-size:.82rem;color:var(--muted);margin-bottom:24px;line-height:1.55;}
 .field-label{display:block;font-family:'Be Vietnam Pro',sans-serif;font-weight:700;
   font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;}
 .field-input{
-  width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;
-  padding:13px 16px;color:var(--p1);font-family:'Be Vietnam Pro',sans-serif;
-  font-size:1rem;font-weight:700;outline:none;letter-spacing:.07em;
+  width:100%;background:rgba(7,9,14,0.7);border:1.5px solid var(--border);border-radius:12px;
+  padding:13px 16px;color:var(--text);font-family:'JetBrains Mono',monospace;
+  font-size:1.05rem;font-weight:700;outline:none;letter-spacing:.07em;
   text-transform:uppercase;transition:border-color .2s,box-shadow .2s;margin-bottom:12px;
 }
 .field-input::placeholder{color:var(--muted);text-transform:none;font-size:.85rem;font-weight:500;letter-spacing:0;}
-.field-input:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(168,85,247,.1);}
+.field-input:focus{border-color:var(--p1);box-shadow:0 0 0 3px rgba(0,240,255,0.2);}
 .err-msg{
-  background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:10px;
+  background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:10px;
   padding:10px 14px;font-size:.82rem;color:var(--red);line-height:1.55;display:none;margin-bottom:12px;
 }
 .btn-primary{
   width:100%;padding:15px;border:none;border-radius:14px;
-  background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;
-  font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:900;letter-spacing:.03em;
+  background:linear-gradient(135deg,var(--p1),var(--p2));color:#07090e;
+  font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:900;letter-spacing:.03em;
   cursor:pointer;transition:all .18s;
-  box-shadow:0 5px 0 #5b20c0,0 2px 12px rgba(124,58,237,.3);
+  box-shadow:0 0 24px rgba(0,240,255,0.25);
 }
-.btn-primary:hover{opacity:.92;}
-.btn-primary:active{transform:translateY(4px);box-shadow:0 1px 0 #5b20c0;}
+.btn-primary:hover{opacity:.92;box-shadow:0 0 32px rgba(0,240,255,0.4);}
+.btn-primary:active{transform:translateY(2px);}
 .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
 
 /* ─── LOADING ─────────────────────────────────── */
@@ -711,49 +716,23 @@ function onUsernameInput() {
   updateNavBar();
 }
 
-const DEFAULT_STEPS_5S = [
-  { id:'d0',order_num:1,type:'username',title:'Nhập Username Locket của bạn' },
-  {
-    id:'d1',order_num:2,type:'choice',
-    title:'Cài đặt DNS giữ Gold',
-    video_url:'https://res.cloudinary.com/dqkilohx1/video/upload/v1785147263/IMG_0553_eeelmw.mp4',
-  },
-];
-const DEFAULT_STEPS_15S = [
-  { id:'d0',order_num:1,type:'username',title:'Nhập Username Locket của bạn' },
-  {
-    id:'d1',order_num:2,type:'vpn',title:'Cài đặt VPN (Mỹ)',
-    video_url:'https://res.cloudinary.com/dqkilohx1/video/upload/v1785059358/IMG_0529_pui47l.mp4',
-  },
-  {
-    id:'d2',order_num:3,type:'choice',
-    title:'Cài đặt DNS giữ Gold',
-    video_url:'https://res.cloudinary.com/dqkilohx1/video/upload/v1785147263/IMG_0553_eeelmw.mp4',
-  },
-];
-// Gói vĩnh viễn (150/180) — PHẢI khớp từng phần tử với DEFAULT_STEP_FLOW['150']/['180']
-// và DEFAULT_STEP_FLOW_SPECIAL['150']/['180'] trong api/_lib/utils.js (4 bản chép tay
-// độc lập: 2 mặc định + 2 đặc biệt, xem comment ở đó). Bỏ IPA khỏi mặc định (chỉ khách
-// đặc biệt mới có), video cứng nằm trong hằng VIDEO_SR/VIDEO_IPA/VIDEO_GOLD ở dưới.
-const DEFAULT_STEPS_150 = [
+const DEFAULT_STEPS_30K = [
   { id:'d0',order_num:1,type:'appstore',title:'Cài Shadowrocket' },
   { id:'d1',order_num:2,type:'choice',title:'Cài đặt DNS giữ Gold' },
   { id:'d2',order_num:3,type:'gold',title:'Lên Locket Gold' },
 ];
-const DEFAULT_STEPS_180 = [
+const DEFAULT_STEPS_40K = [
   { id:'d0',order_num:1,type:'appstore',title:'Cài Shadowrocket' },
   { id:'d1',order_num:2,type:'choice',title:'Cài đặt DNS giữ Gold' },
   { id:'d2',order_num:3,type:'vpn',title:'Cài đặt VPN (Mỹ)' },
   { id:'d3',order_num:4,type:'gold',title:'Lên Locket Gold' },
 ];
-// Flow đặc biệt (customers.special_flow=true) — GIỮ bước IPA + cảnh báo nghiêm trọng
-// "không được xóa Locket". 150: Shadow→IPA→Gold (3 bước). 180: Shadow→IPA→VPN→DNS→Gold (5 bước, VPN ĐỨNG TRƯỚC DNS).
-const DEFAULT_STEPS_150_SPECIAL = [
+const DEFAULT_STEPS_30K_SPECIAL = [
   { id:'d0',order_num:1,type:'appstore',title:'Cài Shadowrocket' },
   { id:'d1',order_num:2,type:'ipa',title:'Cài Locket hạ cấp' },
   { id:'d2',order_num:3,type:'gold',title:'Lên Locket Gold' },
 ];
-const DEFAULT_STEPS_180_SPECIAL = [
+const DEFAULT_STEPS_40K_SPECIAL = [
   { id:'d0',order_num:1,type:'appstore',title:'Cài Shadowrocket' },
   { id:'d1',order_num:2,type:'ipa',title:'Cài Locket hạ cấp' },
   { id:'d2',order_num:3,type:'vpn',title:'Cài đặt VPN (Mỹ)' },
@@ -761,14 +740,11 @@ const DEFAULT_STEPS_180_SPECIAL = [
   { id:'d4',order_num:5,type:'gold',title:'Lên Locket Gold' },
 ];
 function defaultStepsForPkg(p, special) {
+  const norm = (p === '40k' || p === '15s' || p === '180') ? '40k' : '30k';
   if (special) {
-    if (p === '150') return DEFAULT_STEPS_150_SPECIAL;
-    if (p === '180') return DEFAULT_STEPS_180_SPECIAL;
+    return norm === '40k' ? DEFAULT_STEPS_40K_SPECIAL : DEFAULT_STEPS_30K_SPECIAL;
   }
-  if (p === '150') return DEFAULT_STEPS_150;
-  if (p === '180') return DEFAULT_STEPS_180;
-  if (p === '15s') return DEFAULT_STEPS_15S;
-  return DEFAULT_STEPS_5S;
+  return norm === '40k' ? DEFAULT_STEPS_40K : DEFAULT_STEPS_30K;
 }
 
 async function api(path, opts = {}) {
