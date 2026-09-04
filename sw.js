@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vxang-admin-v10';
+const CACHE_NAME = 'vxang-admin-v11';
 const ASSETS = [
   '/admin',
   '/admin.html',

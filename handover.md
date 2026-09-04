@@ -139,10 +139,32 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
      - `schema.sql`: Bổ sung khối migration DDL `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` cho cả `access_codes`, `customers`, `sessions`.
      - `sw.js`: Tăng phiên bản cache Service Worker lên `vxang-admin-v10`.
 
+11. **🎨 ĐỒNG BỘ TOÀN DIỆN GIAO DIỆN DARK CYBERPUNK TECH CHO GUIDE VÀ ADMIN (2026-09-04 22:58):**
+   - **Hiện tượng:**
+     - Màn hình Hoàn tất (`#completeScreen`) trong `guide.html`: Card Hero trên cùng còn nền xanh lá cũ đề cập "Bảo hành theo gói" (trái với thiết kế vĩnh viễn không bảo hành); Card số 3 (Nhóm Zalo hỗ trợ) mang nền trắng sáng `#f0f7ff` khiến chữ trắng/xanh nhạt bị chìm hoàn toàn và gây chói mắt.
+     - Nút "Tiếp theo" (`btnNext` / `.btn-complete`) trong `guide.html` cùng thanh điều hướng (`.nav-bar`) và topbar (`.topbar`) còn dính nền trắng tím pastel nhạt (`rgba(245,244,255, .96)`) và đổ bóng 3D xanh lá kiểu cũ.
+     - Trạng thái khi bấm xong card trong màn hình hoàn tất (`cTick`) còn gán nền trắng xanh sáng `#f0fdf4` và nút `#d1fae5`.
+     - Trong `admin.html`: Còn tồn tại 37 chỗ tham chiếu font chữ chưa import `font-family: 'Nunito', sans-serif;` khiến trình duyệt fallback về font cơ bản; các nút hành động (Copy tin nhắn Zalo/DNS, Lưu chỉnh sửa khách, Tải lại mã, Quản lý DNS pool) còn mang nút bóng 3D `#5b20c0` và `#047857`. Box nội dung mã mới `.new-code-msg` bị nền trắng `#fff`.
+   - **Xử lý triệt để:**
+     - **Tái cấu trúc giao diện Guide (`guide.html`):**
+       - Đổi toàn bộ `.topbar` và `.nav-bar` sang mặt phẳng Dark Glassmorphism cao cấp (`rgba(7,9,14,0.92)` và `rgba(15,23,42,0.96)` viền cyan/slate phản quang).
+       - Đổi nút "Tiếp theo" (`.btn-complete`, `.btn-nav`) sang phong cách Cyberpunk Tech: gradient neon cyan-purple (`linear-gradient(135deg, var(--p1), var(--p2))`), chữ tối `#07090e`, font `Space Grotesk`, hiệu ứng phát sáng `navPulseCyber`.
+       - Thiết kế lại Hero Card màn hình hoàn tất sang gradient Dark Cyberpunk Navy/Cyan (`linear-gradient(150deg,#0a1526 0%,#0f172a 60%,#1e1b4b 100%)`) với thông điệp chuẩn "KÍCH HOẠT THÀNH CÔNG!".
+       - Sửa `#cCard3` (Nhóm Zalo) sang nền tối `var(--card)` viền cyan phản quang, chữ hiển thị rõ nét.
+       - Sửa hiệu ứng hoàn tất `cTick` sang nền tối xanh dịu `rgba(16,185,129,.08)` và nút cyber green `rgba(16,185,129,.15)` viền neon.
+       - Chuẩn hóa các overlay thông báo (`#cDoneOverlay`, `#welcomeOverlay`, `#confirmOverlay`) và nút sao chép link in-app sang chuẩn Dark Cyberpunk.
+       - Thay thế 100% font `Nunito` sang `Space Grotesk` và `JetBrains Mono`.
+     - **Tái cấu trúc giao diện Admin (`admin.html`):**
+       - Thay thế toàn bộ 37 vị trí font `Nunito` sang `Space Grotesk` (tiêu đề, stat-val, nút gen mã, nút filter, nút copy, modal sửa khách, chi tiết link DNS).
+       - Loại bỏ 100% các bóng 3D cũ (`#5b20c0`, `#047857`, `0 3px 0`, `0 4px 0`) trên toàn bộ hệ thống nút bấm: đổi nút Sao chép Zalo/DNS, Lưu thay đổi khách, Refresh mã, Quản trị DNS sang gradient Neon Cyberpunk viền phát quang (`box-shadow: 0 0 16px rgba(0,240,255,0.25)`).
+       - Sửa box nội dung mã mới `.new-code-msg` từ nền trắng `#fff` sang nền tối `rgba(7,9,14,0.7)`.
+       - Chuẩn hóa nút Dev Mode `.btn-dev.active-dev` sang phong cách cyber green neon dịu mắt.
+     - **Tăng phiên bản Cache:** Nâng cấp Service Worker trong `sw.js` lên `vxang-admin-v11`.
+
 ---
 
 ## 🎯 NEXT STEPS
-1. Nhập mã truy cập trên `guide.html` để kiểm tra: mã kích hoạt mượt mà, không còn lỗi Supabase PGRST204, chuyển hướng vào các bước cài đặt bình thường.
-2. Kiểm tra giao diện Quản trị CRM tab Mã truy cập và Modal chi tiết khách: hiển thị đúng trạng thái Đang dùng / Hoàn tất / Chưa kích hoạt.
-3. Test tra cứu mã trên Telegram Bot: thông tin kích hoạt hiển thị chuẩn xác.
+1. Mở `guide.html` và kiểm tra toàn bộ luồng: nút Tiếp theo, thanh Topbar, Bottom Nav, và Màn hình Hoàn tất đã đồng bộ dark cyberpunk tech 100%.
+2. Mở `admin.html` và kiểm tra các modal (Sửa thông tin khách, Chi tiết link DNS, Sao chép tin Zalo/DNS, Tạo mã mới): font chữ và nút bấm hiển thị sắc nét, đồng nhất.
+
 
