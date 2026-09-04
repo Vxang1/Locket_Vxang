@@ -47,11 +47,11 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const now40s = new Date(Date.now() - 40000).toISOString();
+    const now60s = new Date(Date.now() - 60000).toISOString();
     let sessions = [];
     try {
       sessions = await sb('GET', 'sessions', {
-        q: `is_kicked=eq.false&last_ping=gt.${encodeURIComponent(now40s)}&order=started_at.desc`,
+        q: `is_kicked=neq.true&last_ping=gt.${encodeURIComponent(now60s)}&order=last_ping.desc`,
       }) || [];
     } catch (dbErr) {
       console.warn('[sessions] GET sessions warning:', dbErr.message);
@@ -103,7 +103,7 @@ module.exports = async (req, res) => {
       return {
         id:             s.id,
         access_code:    s.access_code,
-        started_at:     s.started_at,
+        started_at:     s.started_at || s.last_ping || new Date().toISOString(),
         last_ping:      s.last_ping,
         expires_at:     ac?.expires_at || null,
         package:        pkg,

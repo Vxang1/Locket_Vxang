@@ -22,8 +22,25 @@ module.exports = async (req, res) => {
         q: `code=eq.${encodeURIComponent(payload.code)}`,
       }),
     ]);
-    const session = sessions?.[0];
-    if (!session || session.is_kicked) return res.json({ kicked: true });
+    let session = sessions?.[0];
+    if (!session) {
+      try {
+        const [newSess] = await sb('POST', 'sessions', {
+          body: {
+            access_code: payload.code,
+            session_token: payload.sessionToken,
+            current_step: typeof body.currentStep === 'number' ? body.currentStep : 0,
+            last_ping: new Date().toISOString(),
+            is_kicked: false
+          },
+          prefer: 'return=representation'
+        });
+        session = newSess || { access_code: payload.code, session_token: payload.sessionToken, is_kicked: false };
+      } catch {
+        session = { access_code: payload.code, session_token: payload.sessionToken, is_kicked: false };
+      }
+    }
+    if (session.is_kicked) return res.json({ kicked: true });
 
     const codeRow = codes?.[0];
     if (!codeRow || !codeRow.is_active) return res.json({ expired: true });

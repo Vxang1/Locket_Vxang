@@ -365,9 +365,27 @@ module.exports = async (req, res) => {
       return res.json({ dev_mode: cfg?.active === true });
     }
     if (req.method === 'GET' && req.query?.action === 'warmup') {
-    res.setHeader('Cache-Control', 'no-store');
-    return res.json({ ok: true, warm: true });
-  }
+      res.setHeader('Cache-Control', 'no-store');
+      try {
+        const cfg = await getAppstoreConfig();
+        const s1 = cfg.scraper_url ? await scrapeHtmlSource(cfg.scraper_url) : null;
+        const s2 = cfg.scraper_url_backup ? await scrapeHtmlSource(cfg.scraper_url_backup) : null;
+        return res.json({
+          ok: true,
+          warm: true,
+          cfg: {
+            scraper_url: cfg.scraper_url,
+            scraper_url_active: cfg.scraper_url_active,
+            scraper_url_backup: cfg.scraper_url_backup,
+            scraper_url_backup_active: cfg.scraper_url_backup_active,
+          },
+          s1,
+          s2
+        });
+      } catch (err) {
+        return res.json({ ok: false, error: err.message });
+      }
+    }
   if (req.method === 'GET' && req.query?.action === 'dns_check') {
     res.setHeader('Cache-Control', 'no-store');
     return handleDnsCheck(req, res);
