@@ -765,7 +765,6 @@ window.addEventListener('DOMContentLoaded', () => {
       <div class="codes-filter-bar">
         <button class="cf-btn active" id="cf-all"      onclick="setCodesFilter('all')">Tất cả <span id="cf-cnt-all"></span></button>
         <button class="cf-btn"        id="cf-done"     onclick="setCodesFilter('done')">✅ Hoàn thành <span id="cf-cnt-done"></span></button>
-        <button class="cf-btn"        id="cf-active"   onclick="setCodesFilter('active')">🟢 Đang dùng <span id="cf-cnt-active"></span></button>
         <button class="cf-btn"        id="cf-dead"     onclick="setCodesFilter('dead')">⚠️ Hết hạn chưa xong <span id="cf-cnt-dead"></span></button>
         <button class="cf-btn"        id="cf-pending"  onclick="setCodesFilter('pending')">⏳ Chưa kích hoạt <span id="cf-cnt-pending"></span></button>
         <button class="cf-btn"        id="cf-inactive" onclick="setCodesFilter('inactive')">❌ Vô hiệu <span id="cf-cnt-inactive"></span></button>
@@ -2939,7 +2938,7 @@ function renderCodes(){
     counts.all++;
     counts[getCodeStatus(c)]++;
   });
-  ['all','done','active','dead','pending','inactive','fraud'].forEach(k=>{
+  ['all','done','dead','pending','inactive','fraud'].forEach(k=>{
     const el=document.getElementById('cf-cnt-'+k);
     if(el) el.textContent=counts[k]?`(${counts[k]})`:'';
   });
