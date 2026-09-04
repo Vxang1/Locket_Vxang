@@ -60,36 +60,35 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const nowWindow = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    const nowMs = Date.now();
+    const liveWindow = new Date(nowMs - 25 * 1000).toISOString(); // Khách ping mỗi 4s -> tối đa 25s được tính là online
+    const purgeWindow = new Date(nowMs - 60 * 1000).toISOString(); // Quá 60s không có heartbeat -> dọn sạch
+
+    // Tự động dọn rác các phiên cũ không còn ping (chạy ngầm)
+    sb('DELETE', 'sessions', { q: `last_ping=lt.${encodeURIComponent(purgeWindow)}` }).catch(() => {});
+
     let sessions = [];
     try {
       sessions = await sb('GET', 'sessions', {
-        q: `last_ping=gt.${encodeURIComponent(nowWindow)}&order=last_ping.desc&limit=50`,
+        q: `last_ping=gte.${encodeURIComponent(liveWindow)}&order=last_ping.desc&limit=50`,
       }) || [];
     } catch (dbErr) {
       console.warn('[sessions] GET sessions with last_ping warning:', dbErr.message);
-      try {
-        sessions = await sb('GET', 'sessions', {
-          q: `order=id.desc&limit=30`,
-        }) || [];
-      } catch (err2) {
-        console.warn('[sessions] GET sessions fallback warning:', err2.message);
-        return res.json([]);
-      }
+      sessions = [];
     }
 
-    // Lọc bỏ phiên bị kick trong JS (tránh lỗi PostgreSQL NULL <> true loại bỏ dòng dữ liệu)
+    // Lọc bỏ phiên bị kick
     sessions = (sessions || []).filter(s => s && s.is_kicked !== true);
     if (!sessions || !sessions.length) return res.json([]);
 
-    // Enrich with customer info + guide steps song song
+    // Enrich with access_codes (chọn cả expires_at, is_active, completed_at)
     const codes = sessions.map(s => `"${s.access_code}"`).join(',');
     let acodes = [];
     let guideSteps = [];
     try {
       const [acodesRes, guideStepsRes] = await Promise.all([
         sb('GET', 'access_codes', {
-          q: `code=in.(${codes})&select=code,expires_at,customer_id`,
+          q: `code=in.(${codes})&select=code,expires_at,is_active,completed_at,customer_id`,
         }).catch(() => []),
         getCachedGuideSteps().catch(() => []),
       ]);
@@ -100,7 +99,28 @@ module.exports = async (req, res) => {
       guideSteps = [];
     }
 
-    const custIds = [...new Set(acodes.map(a => a.customer_id).filter(Boolean))];
+    // LỌC CHẶT CHẼ: Loại bỏ phiên đã hết hạn, đã hoàn thành, hoặc mã đã vô hiệu hoá
+    const activeLiveSessions = sessions.filter(s => {
+      const ac = acodes.find(a => a.code === s.access_code);
+      if (!ac) return false;
+      if (ac.is_active === false) return false;
+      if (ac.completed_at) return false;
+      if (ac.expires_at && new Date(ac.expires_at).getTime() <= nowMs) {
+        sb('DELETE', 'sessions', { q: `access_code=eq.${encodeURIComponent(s.access_code)}` }).catch(() => {});
+        return false;
+      }
+      const lp = s.last_ping ? new Date(s.last_ping).getTime() : 0;
+      if (nowMs - lp > 25 * 1000) return false;
+      return true;
+    });
+
+    if (!activeLiveSessions.length) return res.json([]);
+
+    const custIds = [...new Set(activeLiveSessions.map(s => {
+      const ac = acodes.find(a => a.code === s.access_code);
+      return ac?.customer_id;
+    }).filter(Boolean))];
+
     let custs = [];
     if (custIds.length) {
       try {
@@ -118,7 +138,7 @@ module.exports = async (req, res) => {
       return flowCache[key] ??= buildStepFlow(pkg, guideSteps, specialFlow);
     };
 
-    const enriched = sessions.map(s => {
+    const enriched = activeLiveSessions.map(s => {
       const ac   = acodes.find(a => a.code === s.access_code);
       const cust = ac ? custs.find(c => c.id === ac.customer_id) : null;
       const pkg  = cust?.package || '30k';
@@ -129,7 +149,7 @@ module.exports = async (req, res) => {
         last_ping:      s.last_ping,
         expires_at:     ac?.expires_at || null,
         package:        pkg,
-        customer_name:  cust?.name || 'Khach chua ro',
+        customer_name:  cust?.name || 'Khách chưa rõ',
         customer_phone: cust?.phone || '-',
         customer_code:  cust?.customer_code || '-',
         locket_username: cust?.locket_username || null,

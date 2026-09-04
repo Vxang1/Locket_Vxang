@@ -2139,8 +2139,25 @@ function fmtMins(ms){
 window.loadSessions=async function(){
   const grid=document.getElementById('sessionsGrid');
   try{
-    const sessions=await api('GET','/api/admin/sessions');
-    if(!sessions.length){grid.innerHTML='<div class="empty-sessions">🟢 Không có phiên nào đang active</div>';document.getElementById('statSessions').textContent=0;stepSeenAt.clear();return;}
+    const rawSessions=await api('GET','/api/admin/sessions');
+    const now=Date.now();
+    // Khách đã hết hạn hoặc rời web quá 25 giây thì tuyệt đối không được coi là live
+    const sessions=(rawSessions||[]).filter(s=>{
+      const exp=s.expires_at?new Date(s.expires_at).getTime():null;
+      if(exp&&exp<=now) return false;
+      const lp=s.last_ping?new Date(s.last_ping).getTime():0;
+      if(now-lp>=25000) return false;
+      return true;
+    });
+
+    if(!sessions.length){
+      grid.innerHTML='<div class="empty-sessions">🟢 Không có phiên nào đang active</div>';
+      document.getElementById('statSessions').textContent=0;
+      stepSeenAt.clear();
+      const lr=document.getElementById('sessionsLastRefresh');
+      if(lr) lr.textContent='· Cập nhật '+new Date().toLocaleTimeString('vi-VN');
+      return;
+    }
     // Dọn mốc của phiên đã kết thúc (khách xong / hết hạn / bị kick) để Map không phình
     // khi admin để tab mở cả ngày.
     const liveIds=new Set(sessions.map(s=>s.id));
@@ -2161,7 +2178,7 @@ window.loadSessions=async function(){
       const isLive=lastPingSec<12;
       const statusTag=isLive
         ?'<span class="sc-status-tag live">🟢 Đang online</span>'
-        :`<span class="sc-status-tag idle">⏸️ Rời web ${lastPingSec}s trước</span>`;
+        :`<span class="sc-status-tag idle">⏸️ Tạm dừng ${lastPingSec}s</span>`;
 
       // Step progress
       const cs=s.current_step;const ts=s.total_steps;const ch=s.step_choice;
@@ -2217,31 +2234,46 @@ function fmtTime(ms){if(ms<=0)return'Hết giờ';const h=Math.floor(ms/3600000)
 
 // Tick mỗi giây cập nhật timer & live ping status trực tiếp trên DOM
 setInterval(()=>{
+  const now=Date.now();
+  let removedAny=false;
   document.querySelectorAll('.session-card').forEach(card=>{
     const expMs=parseInt(card.dataset.expires);
-    if(expMs){
-      const rem=expMs-Date.now();
-      const timerEl=card.querySelector('.sc-timer');
-      if(timerEl){
-        timerEl.textContent='⏱ Còn: '+fmtTime(rem);
-        timerEl.className='sc-timer'+(rem<1800000?' crit':rem<3600000?' warn':'');
-      }
+    const rem=expMs?(expMs-now):null;
+    const lpMs=parseInt(card.dataset.lastPing)||now;
+    const sec=Math.max(0,Math.floor((now-lpMs)/1000));
+
+    // ĐÃ RỜI WEB QUÁ 25s HOẶC ĐÃ HẾT GIỜ -> TỰ ĐỘNG BIẾN MẤT KHỎI PHIÊN LIVE
+    if((rem!==null&&rem<=0)||sec>=25){
+      card.remove();
+      removedAny=true;
+      return;
     }
-    const lpMs=parseInt(card.dataset.lastPing);
-    if(lpMs){
-      const sec=Math.max(0,Math.floor((Date.now()-lpMs)/1000));
-      const tag=card.querySelector('.sc-status-tag');
-      if(tag){
-        if(sec<12){
-          tag.className='sc-status-tag live';
-          tag.textContent='🟢 Đang online';
-        }else{
-          tag.className='sc-status-tag idle';
-          tag.textContent=`⏸️ Rời web ${sec}s trước`;
-        }
+
+    const timerEl=card.querySelector('.sc-timer');
+    if(timerEl&&rem!==null){
+      timerEl.textContent='⏱ Còn: '+fmtTime(rem);
+      timerEl.className='sc-timer'+(rem<1800000?' crit':rem<3600000?' warn':'');
+    }
+
+    const tag=card.querySelector('.sc-status-tag');
+    if(tag){
+      if(sec<12){
+        tag.className='sc-status-tag live';
+        tag.textContent='🟢 Đang online';
+      }else{
+        tag.className='sc-status-tag idle';
+        tag.textContent=`⏸️ Tạm dừng ${sec}s`;
       }
     }
   });
+
+  const remaining=document.querySelectorAll('.session-card').length;
+  const statEl=document.getElementById('statSessions');
+  if(statEl) statEl.textContent=remaining;
+  if(removedAny&&remaining===0){
+    const grid=document.getElementById('sessionsGrid');
+    if(grid) grid.innerHTML='<div class="empty-sessions">🟢 Không có phiên nào đang active</div>';
+  }
 },1000);
 async function loadGuideSteps(){
   try{guideSteps=await api('GET','/api/admin/guide-steps');renderGuideList();}

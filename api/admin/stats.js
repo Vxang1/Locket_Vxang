@@ -32,13 +32,13 @@ module.exports = async (req, res) => {
   // ── Normal admin request ──────────────────────────────────────
   if (!await requireAdmin(req, res)) return;
   try {
-    const now40s = new Date(Date.now() - 40000).toISOString();
+    const now25s = new Date(Date.now() - 25000).toISOString();
     const { getAppConfig } = require('../_lib/utils');
     const [customers, codes, completed, sessions, devModeCfg] = await Promise.all([
       sb('GET', 'customers',    { q: 'select=id' }).catch(() => []),
       sb('GET', 'access_codes', { q: 'select=id' }).catch(() => []),
       sb('GET', 'access_codes', { q: 'completed_at=not.is.null&select=id' }).catch(() => []),
-      sb('GET', 'sessions',     { q: `is_kicked=eq.false&last_ping=gt.${encodeURIComponent(now40s)}&select=id` }).catch(() => []),
+      sb('GET', 'sessions',     { q: `is_kicked=eq.false&last_ping=gt.${encodeURIComponent(now25s)}&select=id` }).catch(() => []),
       getAppConfig('dev_mode').catch(() => null),
     ]);
     res.json({
