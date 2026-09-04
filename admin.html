@@ -214,6 +214,8 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
 .admin-header{
   position:sticky;top:0;z-index:40;background:var(--bg);width:100%;max-width:100vw;
   box-shadow:0 2px 0 var(--ink);
+  -webkit-transform:translateZ(0);transform:translateZ(0);
+  will-change:transform;
 }
 .topbar{
   background:var(--bg);border-bottom:2px solid var(--ink);
@@ -234,9 +236,12 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
 .btn-logout:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:#FFEBEE;color:var(--red);border-color:var(--ink);}
 .btn-dev.active-dev,.btn-dev.active{background:var(--gold) !important;color:var(--ink) !important;border-color:var(--ink) !important;}
 
-.tab-bar{display:flex;gap:4px;padding:8px 28px 0;border-bottom:none;
-  background:var(--bg-surface);overflow-x:auto;-webkit-overflow-scrolling:touch;
-  overscroll-behavior-x:contain;scrollbar-width:none;width:100%;box-sizing:border-box;position:relative;}
+.tab-bar{
+  display:flex;gap:4px;padding:8px 28px 0;border-bottom:none;
+  background:var(--bg-surface);overflow-x:auto;overflow-y:hidden;height:46px;align-items:flex-end;
+  -webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;overscroll-behavior-y:none;
+  scrollbar-width:none;width:100%;box-sizing:border-box;position:relative;
+}
 .tab-bar::-webkit-scrollbar{display:none;}
 .tab{
   display:inline-flex;align-items:center;justify-content:center;
@@ -611,7 +616,7 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
   .topbar{padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;gap:8px;}
   .topbar-actions,.topbar-links{gap:6px;}
   .tl-btn,.btn-logout,.btn-dev{padding:7px 11px;font-size:.78rem;}
-  .tab-bar{padding:8px 12px 0;gap:2px;}
+  .tab-bar{padding:8px 12px 0;gap:2px;height:46px;overflow-y:hidden;align-items:flex-end;}
   .tab{padding:8px 12px;font-size:.78rem;height:38px;box-sizing:border-box;margin:0;}
   .tab.active{height:38px;box-sizing:border-box;margin:0;}
   .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
@@ -630,7 +635,7 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
   .topbar-actions{gap:5px;flex-shrink:0;}
   .topbar-links{width:100%;justify-content:flex-end;flex-wrap:nowrap;}
   .tl-btn,.btn-logout,.btn-dev{padding:6px 9px;font-size:.74rem;white-space:nowrap;flex-shrink:0;}
-  .tab-bar{padding:6px 8px 0;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .tab-bar{padding:6px 8px 0;gap:2px;height:42px;overflow-x:auto;overflow-y:hidden;align-items:flex-end;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
   .tab-bar::-webkit-scrollbar{display:none;}
   .tab{padding:7px 10px;font-size:.74rem;white-space:nowrap;flex-shrink:0;height:36px;box-sizing:border-box;margin:0;}
   .tab.active{height:36px;box-sizing:border-box;margin:0;}
@@ -671,7 +676,7 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
 }
 @media(max-height:680px){
   .topbar{padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top,0px));}
-  .tab-bar{padding:6px 10px 0;}
+  .tab-bar{padding:6px 10px 0;height:44px;overflow-y:hidden;align-items:flex-end;}
   .modal,.edit-modal{max-height:96dvh;}
   #zaloMsgText{height:150px;}
 }
@@ -2326,7 +2331,29 @@ window.switchTab=function(name){
   }
   if(name==='appstore') loadAppstoreAdmin();
   if(name==='emergency') loadEmergencyAdmin();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+};
+
+// Biến cuộn chuột dọc thành cuộn ngang trên thanh tab desktop, triệt tiêu rung lắc dọc
+(function initTabBarWheel() {
+  const attach = () => {
+    const tabBar = document.querySelector('.tab-bar');
+    if (tabBar && !tabBar._wheelBound) {
+      tabBar._wheelBound = true;
+      tabBar.addEventListener('wheel', (e) => {
+        if (e.deltaY !== 0) {
+          e.preventDefault();
+          tabBar.scrollLeft += e.deltaY;
+        }
+      }, { passive: false });
+    }
   };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attach);
+  } else {
+    attach();
+  }
+})();
 
 // ── APPSTORE TAB: tài khoản chung dùng cho gói 150/180 ────────────
 // MIGRATE sang Firebase RTDB (2026-08-15): realtime thay vì Supabase app_config.
