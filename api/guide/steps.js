@@ -9,17 +9,46 @@ module.exports = async (req, res) => {
   try {
     const pkg = payload.package || '30k';
 
-    // Tối ưu: Lấy phiên và guide_steps song song
-    const [sessions, stepsRes] = await Promise.all([
+    // Kiểm tra phiên bị kick và mã truy cập còn hiệu lực
+    const [sessions, codeRows, stepsRes] = await Promise.all([
       sb('GET', 'sessions', {
-        q: `session_token=eq.${encodeURIComponent(payload.sessionToken)}&is_kicked=eq.false`,
+        q: `session_token=eq.${encodeURIComponent(payload.sessionToken)}&select=id,is_kicked`,
+      }),
+      sb('GET', 'access_codes', {
+        q: `code=eq.${encodeURIComponent(payload.code)}&select=is_active,expires_at`,
       }),
       sb('GET', 'guide_steps', {
         q: `or=(package.eq.${pkg},package.is.null)&order=order_num.asc`,
       }),
     ]);
 
-    if (!sessions?.length) return res.status(403).json({ error: 'Phiên đã bị kết thúc' });
+    if (sessions?.length && sessions[0].is_kicked) {
+      return res.status(403).json({ error: 'Phiên đã bị kết thúc bởi quản trị viên' });
+    }
+
+    const codeRow = codeRows?.[0];
+    if (codeRow) {
+      if (codeRow.is_active === false) {
+        return res.status(403).json({ error: 'Mã truy cập đã bị vô hiệu hoá' });
+      }
+      if (codeRow.expires_at && new Date(codeRow.expires_at).getTime() <= Date.now()) {
+        return res.status(403).json({ error: 'Mã truy cập đã hết hạn' });
+      }
+    }
+
+    // Nếu session chưa có trong DB (khách quay lại sau khi chuyển app), tự động khôi phục
+    if (!sessions?.length) {
+      sb('POST', 'sessions', {
+        body: {
+          access_code: payload.code,
+          session_token: payload.sessionToken,
+          current_step: 0,
+          last_ping: new Date().toISOString(),
+          is_kicked: false,
+          is_original: payload.isOriginal !== false,
+        }
+      }).catch(() => {});
+    }
 
     const steps = (stepsRes || []).filter(s => s.step_type !== 'username' && s.type !== 'username');
 

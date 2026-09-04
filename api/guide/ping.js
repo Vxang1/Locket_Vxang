@@ -13,11 +13,15 @@ module.exports = async (req, res) => {
   let body = {};
   try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); } catch {}
 
-  // 🚪 Hỗ trợ action 'leave' (Trụ Cột 3 & 4): Khi khách đóng tab / rời trang, beacon giải phóng ngay lập tức
+  // 🚪 Hỗ trợ action 'leave' (Trụ Cột 3 & 4): Khi khách đóng tab / rời trang, beacon giải phóng nhịp tim tức thì (0ms)
   if (body.action === 'leave') {
+    const pastIso = new Date(Date.now() - 30 * 1000).toISOString();
     await Promise.all([
       fbPut(`heartbeats/${payload.code}/${payload.sessionToken}`, null).catch(() => {}),
-      sb('DELETE', 'sessions', { q: `session_token=eq.${encodeURIComponent(payload.sessionToken)}` }).catch(() => {})
+      sb('PATCH', 'sessions', {
+        q: `session_token=eq.${encodeURIComponent(payload.sessionToken)}`,
+        body: { last_ping: pastIso }
+      }).catch(() => {})
     ]);
     return res.json({ ok: true });
   }
