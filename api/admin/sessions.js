@@ -48,28 +48,46 @@ module.exports = async (req, res) => {
 
   try {
     const now40s = new Date(Date.now() - 40000).toISOString();
-    const sessions = await sb('GET', 'sessions', {
-      q: `is_kicked=eq.false&last_ping=gt.${encodeURIComponent(now40s)}&order=started_at.desc`,
-    }) || [];
-    if (!sessions.length) return res.json([]);
+    let sessions = [];
+    try {
+      sessions = await sb('GET', 'sessions', {
+        q: `is_kicked=eq.false&last_ping=gt.${encodeURIComponent(now40s)}&order=started_at.desc`,
+      }) || [];
+    } catch (dbErr) {
+      console.warn('[sessions] GET sessions warning:', dbErr.message);
+      return res.json([]);
+    }
+
+    if (!sessions || !sessions.length) return res.json([]);
 
     // Enrich with customer info + guide steps song song
     const codes = sessions.map(s => `"${s.access_code}"`).join(',');
-    const [acodesRes, guideStepsRes] = await Promise.all([
-      sb('GET', 'access_codes', {
-        q: `code=in.(${codes})&select=code,expires_at,customer_id`,
-      }),
-      getCachedGuideSteps(),
-    ]);
-    const acodes = acodesRes || [];
-    const guideSteps = guideStepsRes || [];
+    let acodes = [];
+    let guideSteps = [];
+    try {
+      const [acodesRes, guideStepsRes] = await Promise.all([
+        sb('GET', 'access_codes', {
+          q: `code=in.(${codes})&select=code,expires_at,customer_id`,
+        }).catch(() => []),
+        getCachedGuideSteps().catch(() => []),
+      ]);
+      acodes = acodesRes || [];
+      guideSteps = guideStepsRes || [];
+    } catch {
+      acodes = [];
+      guideSteps = [];
+    }
 
     const custIds = [...new Set(acodes.map(a => a.customer_id).filter(Boolean))];
     let custs = [];
     if (custIds.length) {
-      custs = await sb('GET', 'customers', {
-        q: `id=in.(${custIds.map(c => `"${c}"`).join(',')})&select=id,name,phone,customer_code,package,locket_username,special_flow`,
-      }) || [];
+      try {
+        custs = await sb('GET', 'customers', {
+          q: `id=in.(${custIds.map(c => `"${c}"`).join(',')})&select=id,name,phone,customer_code,package,locket_username,special_flow`,
+        }).catch(() => []) || [];
+      } catch {
+        custs = [];
+      }
     }
 
     const flowCache = {};
@@ -92,18 +110,16 @@ module.exports = async (req, res) => {
         customer_name:  cust?.name || 'Khach chua ro',
         customer_phone: cust?.phone || '-',
         customer_code:  cust?.customer_code || '-',
-        // Username Locket để admin đối chiếu ngay trên thẻ phiên live (khách đọc sai
-        // username là lỗi hay gặp nhất). null khi khách chưa nhập tới bước đó.
         locket_username: cust?.locket_username || null,
         current_step:   s.current_step ?? null,
         total_steps:    s.total_steps ?? null,
         step_choice:    s.step_choice ?? null,
-        // Nhãn từng bước của ĐÚNG phiên này, đã đối chiếu với total_steps mà phiên báo
-        // lên. null = không khớp được (admin vừa sửa guide_steps giữa lúc khách đang
-        // làm) → admin.html hiện "Bước n" thay vì tên có thể sai.
         step_labels:    alignStepFlow(flowFor(pkg, cust?.special_flow), s.total_steps ?? null),
       };
     });
-    res.json(enriched);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+    return res.json(enriched);
+  } catch (e) {
+    console.error('[sessions] unexpected error:', e);
+    return res.json([]);
+  }
 };

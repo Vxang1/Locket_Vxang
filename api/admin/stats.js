@@ -35,11 +35,11 @@ module.exports = async (req, res) => {
     const now40s = new Date(Date.now() - 40000).toISOString();
     const { getAppConfig } = require('../_lib/utils');
     const [customers, codes, completed, sessions, devModeCfg] = await Promise.all([
-      sb('GET', 'customers',    { q: 'select=id' }),
-      sb('GET', 'access_codes', { q: 'select=id' }),
-      sb('GET', 'access_codes', { q: 'completed_at=not.is.null&select=id' }),
-      sb('GET', 'sessions',     { q: `is_kicked=eq.false&last_ping=gt.${encodeURIComponent(now40s)}&select=id` }),
-      getAppConfig('dev_mode'),
+      sb('GET', 'customers',    { q: 'select=id' }).catch(() => []),
+      sb('GET', 'access_codes', { q: 'select=id' }).catch(() => []),
+      sb('GET', 'access_codes', { q: 'completed_at=not.is.null&select=id' }).catch(() => []),
+      sb('GET', 'sessions',     { q: `is_kicked=eq.false&last_ping=gt.${encodeURIComponent(now40s)}&select=id` }).catch(() => []),
+      getAppConfig('dev_mode').catch(() => null),
     ]);
     res.json({
       customers: customers?.length ?? 0,
@@ -48,5 +48,8 @@ module.exports = async (req, res) => {
       sessions:  sessions?.length  ?? 0,
       dev_mode: devModeCfg?.active === true,
     });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    console.error('[stats error]', e);
+    res.json({ customers: 0, codes: 0, completed: 0, sessions: 0, dev_mode: false });
+  }
 };
