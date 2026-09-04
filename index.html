@@ -544,10 +544,10 @@
     let globalDevModeOn = false;
 
     function isDevModeActive() {
+      if (new URLSearchParams(window.location.search).get('dev') === '1') return true;
       if (globalDevModeOn === true) return true;
       if (localStorage.getItem('xw_dev_mode') === '1') return true;
       if (sessionStorage.getItem('xw_dev_mode') === '1') return true;
-      if (new URLSearchParams(window.location.search).get('dev') === '1') return true;
       return false;
     }
 
@@ -567,59 +567,73 @@
       }
     }
 
+    function startDevModeSync() {
+      if (devModeChecked) return;
+      devModeChecked = true;
+
+      const pollDev = () => {
+        fetch('https://xwuan-access-e9d5e-default-rtdb.firebaseio.com/appstore/dev_mode.json?_t=' + Date.now(), { cache: 'no-store' })
+          .then(r => r.ok ? r.json() : null)
+          .then(val => {
+            if (val === true || val === false) {
+              syncDevMode(val);
+              return;
+            }
+            throw new Error('Fallback to validate endpoint');
+          })
+          .catch(() => {
+            fetch('/api/guide/validate?action=dev_mode', { cache: 'no-store' })
+              .then(r => r.json())
+              .then(data => {
+                if (data && typeof data.dev_mode === 'boolean') syncDevMode(data.dev_mode);
+              })
+              .catch(() => {});
+          });
+      };
+
+      pollDev();
+      setInterval(pollDev, 2000);
+
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'xw_dev_mode' || e.key === 'xw_dev_mode_sync') {
+          const active = localStorage.getItem('xw_dev_mode') === '1';
+          syncDevMode(active);
+        }
+      });
+    }
+
     function checkEnvironment() {
-      if (isDevModeActive()) {
-        const modal = document.getElementById('inappBlockModal');
-        if (modal) modal.style.display = 'none';
-        return true;
-      }
-
-      if (!devModeChecked) {
-        devModeChecked = true;
-        const pollDev = () => {
-          fetch('/api/guide/validate?action=dev_mode', { cache: 'no-store' })
-            .then(r => r.json())
-            .then(data => {
-              if (data && typeof data.dev_mode === 'boolean') syncDevMode(data.dev_mode);
-            })
-            .catch(() => {
-              fetch('https://xwuan-access-e9d5e-default-rtdb.firebaseio.com/appstore/dev_mode.json', { cache: 'no-store' })
-                .then(r => r.ok ? r.json() : null)
-                .then(val => {
-                  if (val === true || val === false) syncDevMode(val);
-                })
-                .catch(() => {});
-            });
-        };
-        setInterval(pollDev, 2000);
-        pollDev();
-      }
-
-      if (isDevModeActive()) return true;
+      startDevModeSync();
 
       const modal = document.getElementById('inappBlockModal');
       const title = document.getElementById('inappTitle');
       const msg = document.getElementById('inappMsg');
 
+      if (isDevModeActive()) {
+        if (modal) modal.style.display = 'none';
+        return true;
+      }
+
       if (!isIOS()) {
-        title.textContent = 'Yêu Cầu Mở Trên iPhone';
-        msg.innerHTML = `
+        if (title) title.textContent = 'Yêu Cầu Mở Trên iPhone';
+        if (msg) msg.innerHTML = `
           ⛔ Dịch vụ <b>Locket_Vxang</b> chỉ hỗ trợ cài đặt trên điện thoại <b>iPhone / iPad</b>.<br/><br/>
           Vui lòng sao chép liên kết này, gửi qua Zalo/Tin nhắn cho chính bạn và <b>dùng iPhone mở bằng Safari</b> nhé!
         `;
-        modal.style.display = 'flex';
+        if (modal) modal.style.display = 'flex';
         return false;
       }
 
       if (isInAppBrowser()) {
-        title.textContent = 'Bắt Buộc Mở Bằng Safari';
-        msg.innerHTML = `
+        if (title) title.textContent = 'Bắt Buộc Mở Bằng Safari';
+        if (msg) msg.innerHTML = `
           ⛔ Trình duyệt ứng dụng này không thể tải cấu hình Locket Gold. Bạn bắt buộc phải chuyển sang ứng dụng <b>Safari</b> của iPhone!
         `;
-        modal.style.display = 'flex';
+        if (modal) modal.style.display = 'flex';
         return false;
       }
 
+      if (modal) modal.style.display = 'none';
       return true;
     }
 

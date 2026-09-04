@@ -805,10 +805,10 @@ let devModeChecked = false;
 let globalDevModeOn = false;
 
 function isDevModeActive() {
+  if (new URLSearchParams(window.location.search).get('dev') === '1') return true;
   if (globalDevModeOn === true) return true;
   if (localStorage.getItem('xw_dev_mode') === '1') return true;
   if (sessionStorage.getItem('xw_dev_mode') === '1') return true;
-  if (new URLSearchParams(window.location.search).get('dev') === '1') return true;
   return false;
 }
 
@@ -840,6 +840,41 @@ window.syncDevMode = function(isOn) {
   }
 };
 
+function startDevModeSync() {
+  if (devModeChecked) return;
+  devModeChecked = true;
+
+  const pollDev = () => {
+    fetch('https://xwuan-access-e9d5e-default-rtdb.firebaseio.com/appstore/dev_mode.json?_t=' + Date.now(), { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(val => {
+        if (val === true || val === false) {
+          window.syncDevMode(val);
+          return;
+        }
+        throw new Error('Fallback to validate endpoint');
+      })
+      .catch(() => {
+        fetch('/api/guide/validate?action=dev_mode', { cache: 'no-store' })
+          .then(r => r.json())
+          .then(data => {
+            if (data && typeof data.dev_mode === 'boolean') window.syncDevMode(data.dev_mode);
+          })
+          .catch(() => {});
+      });
+  };
+
+  pollDev();
+  setInterval(pollDev, 2000);
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'xw_dev_mode' || e.key === 'xw_dev_mode_sync') {
+      const active = localStorage.getItem('xw_dev_mode') === '1';
+      window.syncDevMode(active);
+    }
+  });
+}
+
 function showInappBlock() {
   const modal = document.getElementById('inappBlockModal');
   if (!modal) return;
@@ -869,6 +904,8 @@ function showInappBlock() {
 }
 
 function checkInApp() {
+  startDevModeSync();
+
   if (isDevModeActive()) {
     const modal = document.getElementById('inappBlockModal');
     if (modal) modal.style.display = 'none';
@@ -887,31 +924,6 @@ function checkInApp() {
   const ios = isIOS();
   
   if (inApp || !ios) {
-    if (!devModeChecked) {
-      devModeChecked = true;
-
-      const pollDev = () => {
-        fetch('/api/guide/validate?action=dev_mode', { cache: 'no-store' })
-          .then(r => r.json())
-          .then(data => {
-            if (data && typeof data.dev_mode === 'boolean') window.syncDevMode(data.dev_mode);
-          })
-          .catch(() => {
-            fetch('https://xwuan-access-e9d5e-default-rtdb.firebaseio.com/appstore/dev_mode.json', { cache: 'no-store' })
-              .then(r => r.ok ? r.json() : null)
-              .then(val => {
-                if (val === true || val === false) window.syncDevMode(val);
-              })
-              .catch(() => {});
-          });
-      };
-
-      setInterval(pollDev, 2000);
-      pollDev();
-    }
-
-    if (isDevModeActive()) return false;
-
     showInappBlock();
     return true;
   }

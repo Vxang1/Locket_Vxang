@@ -358,11 +358,17 @@ module.exports = async (req, res) => {
   // bot Telegram xử lý 1 mã KH, đều gọi endpoint này trước để lambda đã nóng sẵn.
   // Cố tình KHÔNG chạm DB và KHÔNG cần auth: không trả về dữ liệu gì, chỉ 1 {ok:true}.
   if (req.method === 'GET' && req.query?.action === 'dev_mode') {
-      res.setHeader('Cache-Control', 'no-store');
-      const { getAppConfig } = require('../_lib/utils');
-      const cfg = await getAppConfig('dev_mode');
-      return res.json({ dev_mode: cfg?.active === true });
-    }
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    const { getAppConfig, fbGet } = require('../_lib/utils');
+    const [cfg, fbDev] = await Promise.all([
+      getAppConfig('dev_mode').catch(() => null),
+      fbGet('appstore/dev_mode').catch(() => null),
+    ]);
+    const isDev = fbDev === true || (fbDev !== false && cfg?.active === true);
+    return res.json({ dev_mode: isDev });
+  }
     if (req.method === 'GET' && req.query?.action === 'warmup') {
       res.setHeader('Cache-Control', 'no-store');
       return res.json({ ok: true, warm: true });

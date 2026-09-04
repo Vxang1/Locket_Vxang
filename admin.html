@@ -1404,8 +1404,14 @@ function warmupDnsFn(){
 function initAdmin(){
   onValue(fbRef(_db, 'appstore/dev_mode'), snap => {
     const isOn = snap.val() === true;
-    if (isOn) localStorage.setItem('xw_dev_mode', '1');
-    else localStorage.removeItem('xw_dev_mode');
+    if (isOn) {
+      localStorage.setItem('xw_dev_mode', '1');
+      sessionStorage.setItem('xw_dev_mode', '1');
+    } else {
+      localStorage.removeItem('xw_dev_mode');
+      sessionStorage.removeItem('xw_dev_mode');
+    }
+    localStorage.setItem('xw_dev_mode_sync', String(Date.now()));
     if (window.syncDevModeBtn) window.syncDevModeBtn();
   });
   warmupDnsFn();
@@ -3019,6 +3025,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         localStorage.removeItem('xw_dev_mode');
         sessionStorage.removeItem('xw_dev_mode');
       }
+      localStorage.setItem('xw_dev_mode_sync', String(Date.now()));
       syncDevModeBtn();
       showToast('Đã ' + (newState ? 'BẬT' : 'TẮT') + ' Dev Mode toàn hệ thống', newState ? 'green' : 'red');
     } catch (e) {

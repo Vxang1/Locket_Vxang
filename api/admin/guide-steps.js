@@ -13,11 +13,13 @@ module.exports = async (req, res) => {
 
     if (req.method === 'POST') {
       if (req.query?.action === 'toggle_dev_mode') {
-        const { active } = req.body || {};
+        const active = req.body?.active === true;
         const { setAppConfig, fbPut } = require('../_lib/utils');
-        await setAppConfig('dev_mode', { active });
-        await fbPut('appstore/dev_mode', active);
-        return res.json({ ok: true });
+        await Promise.all([
+          setAppConfig('dev_mode', { active }),
+          fbPut('appstore/dev_mode', active),
+        ]);
+        return res.json({ ok: true, dev_mode: active });
       }
       // Nếu có ?action=reorder → logic cũ của reorder-step.js
       if (req.query?.action === 'reorder') {

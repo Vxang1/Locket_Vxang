@@ -33,20 +33,22 @@ module.exports = async (req, res) => {
   if (!await requireAdmin(req, res)) return;
   try {
     const now25s = new Date(Date.now() - 25000).toISOString();
-    const { getAppConfig } = require('../_lib/utils');
-    const [customers, codes, completed, sessions, devModeCfg] = await Promise.all([
+    const { getAppConfig, fbGet } = require('../_lib/utils');
+    const [customers, codes, completed, sessions, devModeCfg, fbDev] = await Promise.all([
       sb('GET', 'customers',    { q: 'select=id' }).catch(() => []),
       sb('GET', 'access_codes', { q: 'select=id' }).catch(() => []),
       sb('GET', 'access_codes', { q: 'completed_at=not.is.null&select=id' }).catch(() => []),
       sb('GET', 'sessions',     { q: `is_kicked=eq.false&last_ping=gt.${encodeURIComponent(now25s)}&select=id` }).catch(() => []),
       getAppConfig('dev_mode').catch(() => null),
+      fbGet('appstore/dev_mode').catch(() => null),
     ]);
+    const isDev = fbDev === true || (fbDev !== false && devModeCfg?.active === true);
     res.json({
       customers: customers?.length ?? 0,
       codes:     codes?.length     ?? 0,
       completed: completed?.length ?? 0,
       sessions:  sessions?.length  ?? 0,
-      dev_mode: devModeCfg?.active === true,
+      dev_mode: isDev,
     });
   } catch (e) {
     console.error('[stats error]', e);
