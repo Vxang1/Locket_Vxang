@@ -461,8 +461,62 @@
       return /zalo|zalomessenger|fbav|fban|fb_iab|messenger|instagram|tiktok|snapchat|line\/|micromessenger|telegram|crios|fxios|edgios/i.test(ua);
     }
 
-    function checkEnvironment() {
+    let devModeChecked = false;
+    let globalDevModeOn = false;
+
+    function isDevModeActive() {
+      if (globalDevModeOn === true) return true;
       if (localStorage.getItem('xw_dev_mode') === '1') return true;
+      if (sessionStorage.getItem('xw_dev_mode') === '1') return true;
+      if (new URLSearchParams(window.location.search).get('dev') === '1') return true;
+      return false;
+    }
+
+    function syncDevMode(isOn) {
+      const modal = document.getElementById('inappBlockModal');
+      if (isOn === true) {
+        globalDevModeOn = true;
+        localStorage.setItem('xw_dev_mode', '1');
+        sessionStorage.setItem('xw_dev_mode', '1');
+        if (modal) modal.style.display = 'none';
+      } else if (isOn === false) {
+        if (new URLSearchParams(window.location.search).get('dev') === '1') return;
+        globalDevModeOn = false;
+        localStorage.removeItem('xw_dev_mode');
+        sessionStorage.removeItem('xw_dev_mode');
+        checkEnvironment();
+      }
+    }
+
+    function checkEnvironment() {
+      if (isDevModeActive()) {
+        const modal = document.getElementById('inappBlockModal');
+        if (modal) modal.style.display = 'none';
+        return true;
+      }
+
+      if (!devModeChecked) {
+        devModeChecked = true;
+        const pollDev = () => {
+          fetch('https://xwuan-access-e9d5e-default-rtdb.firebaseio.com/appstore/dev_mode.json', { cache: 'no-store' })
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(val => {
+              if (val === true || val === false) syncDevMode(val);
+            })
+            .catch(() => {
+              fetch('/api/guide/validate?action=dev_mode')
+                .then(r => r.json())
+                .then(data => {
+                  if (data && typeof data.dev_mode === 'boolean') syncDevMode(data.dev_mode);
+                })
+                .catch(() => {});
+            });
+        };
+        setInterval(pollDev, 2000);
+        pollDev();
+      }
+
+      if (isDevModeActive()) return true;
 
       const modal = document.getElementById('inappBlockModal');
       const title = document.getElementById('inappTitle');

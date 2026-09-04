@@ -106,9 +106,25 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
    - **ping.js:** Khôi phục logic dọn session rác quá 3 giờ.
    - **sw.js:** Tăng cache lên `vxang-admin-v5`.
 
+9. **🛠️ TỐI ƯU DEV MODE & CHUYỂN TOÀN BỘ MODAL CHẶN THIẾT BỊ SANG DARK TECH CYBERPUNK (2026-09-04 22:15):**
+   - **Hiện tượng:**
+     - Người dùng đã bật Dev Mode trong Admin nhưng khi mở `guide.html` hoặc `dns.html` trên PC vẫn bị modal chặn ép mở trên iPhone.
+     - Giao diện modal chặn thiết bị `#inappBlockModal` mang màu trắng chói mắt (`#ffffff`), lạc lõng và gây khó chịu trên nền giao diện dark tech cyberpunk.
+   - **Nguyên nhân cốt lõi:**
+     - Trong `guide.html` và `dns.html`, URL Firebase RTDB bị nhầm thành domain không tồn tại `vxang-access-e9d5e...` (thay vì `xwuan-access-e9d5e...`). Khi fetch trả về lỗi/null, callback tự động xóa sạch `localStorage.removeItem('xw_dev_mode')` ngay khi trang vừa tải.
+     - Hàm `checkInApp()` đòi hỏi `xwAdminToken` trong session/localStorage thì mới nhận diện Dev Mode, khiến việc test trên tab ẩn danh hoặc trình duyệt khác bị chặn.
+     - CSS của `#inappBlockModal` trong `guide.html` và `dns.html` còn giữ nguyên inline style nền trắng và chữ tím pastel cũ.
+   - **Xử lý triệt để:**
+     - **Tái thiết kế toàn diện `#inappBlockModal`** (`guide.html`, `dns.html`): Chuyển sang phong cách Dark Cyberpunk đồng bộ (`background: #0f172a`, viền cyan phản quang `rgba(0, 240, 255, 0.3)`, đổ bóng neon `box-shadow: 0 0 35px rgba(0, 240, 255, 0.18)`, font chữ `Space Grotesk`, box cảnh báo tối `rgba(239, 68, 68, 0.12)`, nút bấm gradient cyan/tím).
+     - **Chuẩn hóa Bypass Dev Mode:** Cho phép bỏ qua chặn ngay lập tức nếu `xw_dev_mode = 1` (trong localStorage/sessionStorage) hoặc có query string `?dev=1`, không yêu cầu `xwAdminToken`.
+     - **Đồng bộ Realtime Dev Mode:** Đổi URL Firebase về đúng `xwuan-access-e9d5e-default-rtdb.firebaseio.com/appstore/dev_mode.json`, bổ sung fallback query về API `/api/guide/validate?action=dev_mode`, và kết nối Firebase listener thời gian thực.
+     - **Đồng bộ hóa `index.html`:** Nâng cấp `checkEnvironment()` trên trang chủ để tự động nhận diện và cập nhật trạng thái Dev Mode song song.
+     - Tăng phiên bản Service Worker lên `vxang-admin-v9`.
+
 ---
 
 ## 🎯 NEXT STEPS
-1. `Ctrl + F5` trang Admin, test tạo khách → cấp mã → xóa khách.
-2. Test trang DNS riêng trên iPhone Safari.
-3. Test flow khách hàng guide.html end-to-end.
+1. Mở Admin bật nút "🛠️ Dev Mode: BẬT" và kiểm tra truy cập `guide.html` / `dns.html` / `index.html` trên PC không còn bị chặn.
+2. Kiểm tra giao diện modal cảnh báo khi tắt Dev Mode trên PC: hiển thị chuẩn dark theme, không còn màu trắng chói mắt.
+3. Test tạo khách và chạy luồng hướng dẫn trên iPhone Safari.
+

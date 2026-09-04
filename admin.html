@@ -17,9 +17,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="preconnect" href="https://ogchtngdbywmayeluebh.supabase.co" crossorigin/>
-<link rel="preconnect" href="https://vxang-access-e9d5e-default-rtdb.firebaseio.com" crossorigin/>
+<link rel="preconnect" href="https://xwuan-access-e9d5e-default-rtdb.firebaseio.com" crossorigin/>
 <link rel="dns-prefetch" href="https://ogchtngdbywmayeluebh.supabase.co"/>
-<link rel="dns-prefetch" href="https://vxang-access-e9d5e-default-rtdb.firebaseio.com"/>
+<link rel="dns-prefetch" href="https://xwuan-access-e9d5e-default-rtdb.firebaseio.com"/>
 <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800;900&family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet"/>
 <style>
@@ -1246,7 +1246,7 @@ window.addEventListener('DOMContentLoaded', () => {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref as fbRef, onValue, update as fbUpdate } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-const FC={apiKey:"AIzaSyB3FSIkvSXob6F7MXrfOpw_hN6wHKIbu38",authDomain:"vxang-access-e9d5e.firebaseapp.com",databaseURL:"https://vxang-access-e9d5e-default-rtdb.firebaseio.com",projectId:"vxang-access-e9d5e",storageBucket:"vxang-access-e9d5e.firebasestorage.app",messagingSenderId:"941977010861",appId:"1:941977010861:web:8edc6af5dddccf4097fc24"};
+const FC={apiKey:"AIzaSyB3FSIkvSXob6F7MXrfOpw_hN6wHKIbu38",authDomain:"xwuan-access-e9d5e.firebaseapp.com",databaseURL:"https://xwuan-access-e9d5e-default-rtdb.firebaseio.com",projectId:"xwuan-access-e9d5e",storageBucket:"xwuan-access-e9d5e.firebasestorage.app",messagingSenderId:"941977010861",appId:"1:941977010861:web:8edc6af5dddccf4097fc24"};
 const fbApp=initializeApp(FC,'vxang-app');
 const _db=getDatabase(fbApp);
 
@@ -3168,34 +3168,38 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Khi bật: set localStorage xw_dev_mode=1 → các trang guide/index/dns bypass iOS check.
   // Khi tắt: xóa cờ → khách truy cập vào guide/index sẽ bị chặn bình thường.
   window.toggleDevMode = async function() {
-      const btn = document.getElementById('btnDevMode');
-      if (!btn) return;
-      const isActive = btn.classList.contains('active-dev') || localStorage.getItem('xw_dev_mode') === '1';
-      const newState = !isActive;
-      try {
-        const r = await api('POST', '/api/admin/guide-steps?action=toggle_dev_mode', { active: newState });
-        // Real-time Firebase Sync for instant lock/unlock
-        try { await firebase.database().ref('appstore/dev_mode').set(newState); } catch(e) {}
-        if (r && r.ok) {
-           if (newState) localStorage.setItem('xw_dev_mode', '1');
-           else localStorage.removeItem('xw_dev_mode');
-           syncDevModeBtn();
-           showToast('Đã ' + (newState ? 'BẬT' : 'TẮT') + ' Dev Mode toàn hệ thống');
-        }
-      } catch (e) {
-        showToast('Lỗi: ' + e.message, true);
+    const btn = document.getElementById('btnDevMode');
+    if (!btn) return;
+    const isActive = btn.classList.contains('active') || localStorage.getItem('xw_dev_mode') === '1';
+    const newState = !isActive;
+    try {
+      const r = await api('POST', '/api/admin/guide-steps?action=toggle_dev_mode', { active: newState });
+      try { await fbUpdate(fbRef(_db, 'appstore'), { dev_mode: newState }); } catch(e) {}
+      if (newState) {
+        localStorage.setItem('xw_dev_mode', '1');
+        sessionStorage.setItem('xw_dev_mode', '1');
+      } else {
+        localStorage.removeItem('xw_dev_mode');
+        sessionStorage.removeItem('xw_dev_mode');
       }
+      syncDevModeBtn();
+      showToast('Đã ' + (newState ? 'BẬT' : 'TẮT') + ' Dev Mode toàn hệ thống', newState ? 'green' : 'red');
+    } catch (e) {
+      showToast('Lỗi: ' + e.message, 'red');
     }
+  };
   window.syncDevModeBtn = function() {
     const btn = document.getElementById('btnDevMode');
     if (!btn) return;
-    const on = localStorage.getItem('xw_dev_mode') === '1';
+    const on = localStorage.getItem('xw_dev_mode') === '1' || sessionStorage.getItem('xw_dev_mode') === '1';
     if (on) {
-      btn.classList.add('active');
+      btn.classList.add('active', 'active-dev');
+      btn.textContent = '🛠️ Dev Mode: BẬT';
     } else {
-      btn.classList.remove('active');
+      btn.classList.remove('active', 'active-dev');
+      btn.textContent = '🛠️ Dev Mode: TẮT';
     }
-  }
+  };
   // Gọi khi admin đăng nhập xong (sau khi UI hiện ra)
   document.addEventListener('DOMContentLoaded', window.syncDevModeBtn);
 
