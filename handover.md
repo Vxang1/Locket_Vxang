@@ -121,10 +121,28 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
      - **Đồng bộ hóa `index.html`:** Nâng cấp `checkEnvironment()` trên trang chủ để tự động nhận diện và cập nhật trạng thái Dev Mode song song.
      - Tăng phiên bản Service Worker lên `vxang-admin-v9`.
 
+10. **🛡️ KHẮC PHỤC LỖI SUPABASE 400 (PGRST204: Could not find the 'activated_at' column of 'access_codes') & CHUẨN HÓA SCHEMA TƯƠNG THÍCH (2026-09-04 22:38):**
+   - **Hiện tượng:** Khách hàng nhập mã truy cập (ví dụ `XW-UTWM4C`) trên `guide.html` bị văng lỗi:
+     `⚠️ Supabase 400: {"code":"PGRST204","details":null,"hint":null,"message":"Could not find the 'activated_at' column of 'access_codes' in the schema cache"}`
+   - **Nguyên nhân cốt lõi:**
+     - Trong `schema.sql` (bản chuẩn của `Locket_Vxang`), bảng `public.access_codes` sử dụng cột `first_used_at TIMESTAMPTZ` (chứ không phải `activated_at`). Ngoài ra các cột như `entry_count`, `fraud_triggered_at`, `skip_username_step`, `locket_choice`, `warranty_started_at` không tồn tại trong schema thực tế trên PostgREST cache.
+     - Khi `api/guide/validate.js` thực hiện `PATCH access_codes` với `{ activated_at: ... }`, Supabase PostgREST ngay lập tức từ chối request với mã lỗi 400 PGRST204 làm dừng toàn bộ luồng validate mã.
+   - **Xử lý triệt để:**
+     - `api/guide/validate.js`: Nâng cấp cơ chế PATCH dự phòng 3 tầng (Thử `first_used_at` -> Thử `activated_at` -> Fallback chỉ ghi `expires_at`). Bọc `entry_count` và `fraud_triggered_at` trong try/catch an toàn. Bọc việc tạo `sessions` trong try/catch fallback cơ bản nếu schema sessions thiếu cột IP/UA.
+     - `api/guide/complete.js`: Bọc `access_codes` PATCH trong try/catch (fallback bỏ `locket_choice` nếu thiếu cột). Bọc `customers` PATCH với fallback an toàn.
+     - `api/guide/steps.js`: Xóa `skip_username_step` khỏi select `access_codes`; xóa `type` khỏi select `customers`.
+     - `api/guide/ping.js`: Safeguard `sessions` PATCH fallback về chỉ cập nhật `last_ping` và `current_step`.
+     - `api/_lib/utils.js`: Viết lại `lookupCustomerByCode` để query độc lập `access_codes` và `customers`, không phụ thuộc PostgREST embedding join hoặc cột `type`.
+     - `api/admin/add-code.js`: Xóa `warranty_started_at` khỏi SELECT `customers`; bọc `custPatch` an toàn trong try/catch fallback.
+     - `admin.html`: Cập nhật `openCustDetail`, `getCodeStatus`, `renderCodes` để nhận diện cả `activated_at` lẫn `first_used_at` (`c.activated_at || c.first_used_at`).
+     - `api/_lib/telegram-bot.js`: Cập nhật `codeStatus` và tra cứu chi tiết mã để nhận diện `targetCodeObj.activated_at || targetCodeObj.first_used_at`.
+     - `schema.sql`: Bổ sung khối migration DDL `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` cho cả `access_codes`, `customers`, `sessions`.
+     - `sw.js`: Tăng phiên bản cache Service Worker lên `vxang-admin-v10`.
+
 ---
 
 ## 🎯 NEXT STEPS
-1. Mở Admin bật nút "🛠️ Dev Mode: BẬT" và kiểm tra truy cập `guide.html` / `dns.html` / `index.html` trên PC không còn bị chặn.
-2. Kiểm tra giao diện modal cảnh báo khi tắt Dev Mode trên PC: hiển thị chuẩn dark theme, không còn màu trắng chói mắt.
-3. Test tạo khách và chạy luồng hướng dẫn trên iPhone Safari.
+1. Nhập mã truy cập trên `guide.html` để kiểm tra: mã kích hoạt mượt mà, không còn lỗi Supabase PGRST204, chuyển hướng vào các bước cài đặt bình thường.
+2. Kiểm tra giao diện Quản trị CRM tab Mã truy cập và Modal chi tiết khách: hiển thị đúng trạng thái Đang dùng / Hoàn tất / Chưa kích hoạt.
+3. Test tra cứu mã trên Telegram Bot: thông tin kích hoạt hiển thị chuẩn xác.
 

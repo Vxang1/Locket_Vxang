@@ -69,10 +69,20 @@ module.exports = async (req, res) => {
     if (body.step3Choice) updateData.step_choice = body.step3Choice;
     if (typeof body.totalSteps === 'number') updateData.total_steps = body.totalSteps;
 
-    await sb('PATCH', 'sessions', {
-      q: `session_token=eq.${encodeURIComponent(payload.sessionToken)}`,
-      body: updateData,
-    });
+    try {
+      await sb('PATCH', 'sessions', {
+        q: `session_token=eq.${encodeURIComponent(payload.sessionToken)}`,
+        body: updateData,
+      });
+    } catch (sErr) {
+      await sb('PATCH', 'sessions', {
+        q: `session_token=eq.${encodeURIComponent(payload.sessionToken)}`,
+        body: {
+          last_ping: new Date().toISOString(),
+          ...(typeof body.currentStep === 'number' ? { current_step: body.currentStep } : {})
+        },
+      }).catch(() => {});
+    }
 
     // 👣 Thông báo Telegram khi khách CHUYỂN BƯỚC — ví dụ "khách đang làm bước 2 (cài Locket
     // IPA) cho gói 180k". Chỉ bắn khi currentStep thật sự đổi so với lần ping trước

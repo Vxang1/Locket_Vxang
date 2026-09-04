@@ -8,7 +8,7 @@ module.exports = async (req, res) => {
   if (!customer_id) return res.status(400).json({ error: 'Missing customer_id' });
   const isRenew = renew === true;
   try {
-    const custs = await sb('GET', 'customers', { q: `id=eq.${customer_id}&select=customer_code,package,duration,warranty_started_at,service_status,special_flow` }) || [];
+    const custs = await sb('GET', 'customers', { q: `id=eq.${customer_id}&select=customer_code,package,duration,service_status,special_flow` }) || [];
     const cust = custs[0];
     const currentPkg = cust?.package || null;
     const customerCode = cust?.customer_code || null;
@@ -64,18 +64,26 @@ module.exports = async (req, res) => {
     if (pkg && pkg !== currentPkg) custPatch.package = pkg;
     if (isRenew) {
       custPatch.package = pkg;
-      custPatch.duration = validDuration;
-      custPatch.warranty_started_at = null; // Đặt về null, chỉ bắt đầu tính khi khách lên Gold thành công (active)
-      custPatch.type = 'moi'; // Đổi sang loại Mua mới / Nâng cấp để CRM quản lý thu tiền
-      custPatch.service_status = 'pending_gold'; // Đặt về pending_gold để khách cài đặt, lên Gold xong hệ thống báo Chờ thu tiền
-      custPatch.deposit_note = reqDepositNote !== undefined ? reqDepositNote : (isPermPackage(pkg) ? 'Cọc 20k' : null);
+      custPatch.duration = validDuration || 'perm';
+      custPatch.activated_at = null;
+      custPatch.service_status = 'pending_gold';
+      custPatch.deposit_note = reqDepositNote !== undefined ? reqDepositNote : 'Cọc 20k';
     }
     if (Object.keys(custPatch).length) {
-      await sb('PATCH', 'customers', {
-        q: `id=eq.${customer_id}`,
-        body: custPatch,
-        prefer: 'return=minimal',
-      });
+      try {
+        await sb('PATCH', 'customers', {
+          q: `id=eq.${customer_id}`,
+          body: custPatch,
+          prefer: 'return=minimal',
+        });
+      } catch (patchErr) {
+        // Fallback tối thiểu
+        await sb('PATCH', 'customers', {
+          q: `id=eq.${customer_id}`,
+          body: { service_status: 'pending_gold' },
+          prefer: 'return=minimal',
+        }).catch(() => {});
+      }
     }
     res.json({ code, package: pkg, renewed: isRenew, duration: isRenew ? validDuration : undefined });
   } catch (e) { res.status(500).json({ error: e.message }); }

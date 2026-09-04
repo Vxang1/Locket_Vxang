@@ -426,10 +426,12 @@ module.exports = async (req, res) => {
         isOriginal = false;
         if (!codeRow.fraud_triggered_at) {
           const clientIp = req.headers['x-forwarded-for'] || req.connection?.remoteAddress || 'Không xác định';
-          await sb('PATCH', 'access_codes', {
-            q: `id=eq.${codeRow.id}`,
-            body: { fraud_triggered_at: new Date().toISOString() },
-          });
+          try {
+            await sb('PATCH', 'access_codes', {
+              q: `id=eq.${codeRow.id}`,
+              body: { fraud_triggered_at: new Date().toISOString() },
+            });
+          } catch {}
           const cust = await lookupCustomerByCode(upperCode);
           const who = cust.name ? escTgHtml(cust.name) : 'Khách';
           await notifyTelegram(
@@ -455,23 +457,59 @@ module.exports = async (req, res) => {
       });
     }
 
-    // 4. Tăng entry_count
-    const newCount = (codeRow.entry_count || 0) + 1;
-    const patchBody = { entry_count: newCount };
-
-    // 5. Kích hoạt lần đầu
+    // 4. Kích hoạt lần đầu & Cập nhật thời hạn vào access_codes an toàn
     let expiresAt = codeRow.expires_at;
-    const isFirstActivation = !codeRow.activated_at;
-    if (isFirstActivation) {
-      const activated_at = new Date().toISOString();
-      // Thời hạn theo GÓI: 45 phút cho gói vĩnh viễn, 30 phút cho gói còn lại.
-      // Mốc expires_at chốt đúng 1 lần ở đây nên phải biết gói ngay — codeRow.package
-      // đã có sẵn trong cùng query ở bước 1, không cần thêm request.
-      expiresAt = new Date(Date.now() + codeValidMs(codeRow.package)).toISOString();
-      patchBody.activated_at = activated_at;
-      patchBody.expires_at = expiresAt;
+    const isFirstActivation = !codeRow.first_used_at && !codeRow.activated_at;
+    const nowIso = new Date().toISOString();
+
+    if (isFirstActivation || !expiresAt) {
+      expiresAt = new Date(Date.now() + codeValidMs(codeRow.package || '30k')).toISOString();
+
+      let patched = false;
+      // Thử 1: Cập nhật first_used_at (chuẩn schema.sql / PROMPT.md)
+      try {
+        await sb('PATCH', 'access_codes', {
+          q: `id=eq.${codeRow.id}`,
+          body: { first_used_at: nowIso, expires_at: expiresAt, status: 'active' },
+        });
+        patched = true;
+      } catch (e1) {
+        console.warn('[validate] patch first_used_at failed, trying activated_at:', e1.message);
+      }
+
+      // Thử 2: Cập nhật activated_at (chuẩn locket-unified cũ nếu có)
+      if (!patched) {
+        try {
+          await sb('PATCH', 'access_codes', {
+            q: `id=eq.${codeRow.id}`,
+            body: { activated_at: nowIso, expires_at: expiresAt },
+          });
+          patched = true;
+        } catch (e2) {
+          console.warn('[validate] patch activated_at failed, fallback to expires_at only:', e2.message);
+        }
+      }
+
+      // Thử 3: Fallback chỉ cập nhật expires_at
+      if (!patched) {
+        try {
+          await sb('PATCH', 'access_codes', {
+            q: `id=eq.${codeRow.id}`,
+            body: { expires_at: expiresAt },
+          });
+        } catch (e3) {
+          console.error('[validate] all access_codes patch attempts failed:', e3.message);
+        }
+      }
     }
-    await sb('PATCH', 'access_codes', { q: `id=eq.${codeRow.id}`, body: patchBody });
+
+    // Tăng entry_count nếu cột tồn tại (không block flow nếu DB thiếu cột)
+    try {
+      await sb('PATCH', 'access_codes', {
+        q: `id=eq.${codeRow.id}`,
+        body: { entry_count: (codeRow.entry_count || 0) + 1 },
+      });
+    } catch {}
 
     // Helper lấy thông tin khách hàng (chỉ query 1 lần duy nhất trong request)
     let cachedCustomer = null;
@@ -492,19 +530,31 @@ module.exports = async (req, res) => {
       );
     }
 
-    // 6. Tạo session mới
+    // 6. Tạo session mới (thử full schema, fallback basic schema)
     const sessionToken = randomUUID();
-    await sb('POST', 'sessions', {
-      body: {
-        access_code: upperCode,
-        session_token: sessionToken,
-        device_id: deviceId || null,
-        device_ip: ip || null,
-        device_ua: ua || null,
-        is_original: isOriginal,
-      },
-      prefer: 'return=minimal',
-    });
+    try {
+      await sb('POST', 'sessions', {
+        body: {
+          access_code: upperCode,
+          session_token: sessionToken,
+          device_id: deviceId || null,
+          device_ip: ip || null,
+          device_ua: ua || null,
+          is_original: isOriginal,
+        },
+        prefer: 'return=minimal',
+      });
+    } catch (sessErr) {
+      await sb('POST', 'sessions', {
+        body: {
+          access_code: upperCode,
+          session_token: sessionToken,
+          device_id: deviceId || null,
+          current_step: 0,
+        },
+        prefer: 'return=minimal',
+      });
+    }
 
     const exp = Math.floor(new Date(expiresAt).getTime() / 1000);
     const custInfo = await getCustomerInfo();

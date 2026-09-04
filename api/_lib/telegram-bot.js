@@ -289,7 +289,7 @@ async function handleTelegramWebhook(req, res) {
       if (!c.is_active && c.fraud_triggered_at) return '🔒 khoá do share mã';
       if (!c.is_active) return '🚫 admin khoá';
       if (c.expires_at && new Date(c.expires_at) < new Date()) return '⏰ hết hạn';
-      if (!c.activated_at) return '⏳ chưa dùng';
+      if (!c.activated_at && !c.first_used_at) return '⏳ chưa dùng';
       return '🟢 đang còn hiệu lực';
     }
 
@@ -304,7 +304,7 @@ async function handleTelegramWebhook(req, res) {
 
     // Nếu admin tra cứu đích danh 1 mã truy cập -> hiện thẻ tiêu điểm mã lên đầu
     if (targetCodeObj) {
-      const actTime = formatVnDateTime(targetCodeObj.activated_at);
+      const actTime = formatVnDateTime(targetCodeObj.activated_at || targetCodeObj.first_used_at);
       const compTime = formatVnDateTime(targetCodeObj.completed_at);
       const expTime = formatVnDateTime(targetCodeObj.expires_at);
       const createTime = formatVnDateTime(targetCodeObj.created_at);

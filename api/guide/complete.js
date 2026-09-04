@@ -18,11 +18,20 @@ module.exports = async (req, res) => {
     // nút bị khoá thì 2 request complete chạy song song — nếu PATCH không điều kiện,
     // cả 2 đều "thành công" và Telegram bị báo trùng 2 lần. Cùng pattern với
     // expireCodeAndNotify ở utils.js.
-    const updated = await sb('PATCH', 'access_codes', {
-      q: `code=eq.${encodeURIComponent(payload.code)}&is_active=eq.true&completed_at=is.null`,
-      body: updateBody,
-      prefer: 'return=representation',
-    });
+    let updated;
+    try {
+      updated = await sb('PATCH', 'access_codes', {
+        q: `code=eq.${encodeURIComponent(payload.code)}&is_active=eq.true&completed_at=is.null`,
+        body: updateBody,
+        prefer: 'return=representation',
+      });
+    } catch (e1) {
+      updated = await sb('PATCH', 'access_codes', {
+        q: `code=eq.${encodeURIComponent(payload.code)}&is_active=eq.true&completed_at=is.null`,
+        body: { completed_at: new Date().toISOString(), is_active: false },
+        prefer: 'return=representation',
+      });
+    }
 
     if (!updated?.length) {
       // Request trùng/đua — dòng đã bị request khác PATCH trước rồi. Vẫn dọn session
@@ -49,10 +58,15 @@ module.exports = async (req, res) => {
       try {
         await sb('PATCH', 'customers', {
           q: `id=eq.${encodeURIComponent(cust.id)}`,
-          body: { service_status: 'active' }
+          body: { service_status: 'active', activated_at: new Date().toISOString() }
         });
       } catch (crmErr) {
-        console.warn('Lỗi sync CRM khi complete:', crmErr.message);
+        try {
+          await sb('PATCH', 'customers', {
+            q: `id=eq.${encodeURIComponent(cust.id)}`,
+            body: { service_status: 'active' }
+          });
+        } catch {}
       }
     }
 

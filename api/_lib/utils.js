@@ -259,29 +259,30 @@ function escTgHtml(s) {
 async function lookupCustomerByCode(code) {
   const empty = { id: null, name: null, type: 'moi', customerCode: null, locketUsername: null, duration: 'perm', package: '30k', specialFlow: false };
   try {
-    // Tối ưu hóa: Dùng JOIN (customers) để lấy dữ liệu trong 1 request duy nhất
     const rows = await sb('GET', 'access_codes', {
-      q: `code=eq.${encodeURIComponent(code)}&select=customer_id,customers(id,name,type,customer_code,package,locket_username,duration,special_flow)`,
+      q: `code=eq.${encodeURIComponent(code)}&select=customer_id`,
     });
-    const cData = rows?.[0]?.customers;
     const customerId = rows?.[0]?.customer_id;
-    if (!customerId && !cData) return empty;
+    if (!customerId) return empty;
 
-    // Supabase trả về cData là array (nếu 1-n) hoặc object (nếu 1-1). Với khóa ngoại fk_access_codes_customer, nó thường là object hoặc mảng 1 phần tử.
-    const cust = Array.isArray(cData) ? cData[0] : cData;
+    const custs = await sb('GET', 'customers', {
+      q: `id=eq.${customerId}&select=id,name,customer_code,package,locket_username,duration,special_flow`,
+    });
+    const cust = custs?.[0];
+    if (!cust) return { ...empty, id: customerId };
 
     return {
-      id: cust?.id || customerId,
-      name: cust?.name || null,
-      type: cust?.type || 'moi',
-      package: cust?.package || '30k',
-      customerCode: cust?.customer_code || null,
-      locketUsername: cust?.locket_username || null,
-      duration: cust?.duration || 'perm',
-      specialFlow: !!cust?.special_flow,
+      id: cust.id,
+      name: cust.name || null,
+      type: 'moi',
+      package: cust.package || '30k',
+      customerCode: cust.customer_code || null,
+      locketUsername: cust.locket_username || null,
+      duration: cust.duration || 'perm',
+      specialFlow: !!cust.special_flow,
     };
-  } catch (e) { 
-    return empty; 
+  } catch {
+    return empty;
   }
 }
 

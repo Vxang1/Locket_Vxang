@@ -135,3 +135,21 @@ ALTER TABLE public.sessions DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.dns_pool DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.private_dns_links DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.guide_steps DISABLE ROW LEVEL SECURITY;
+
+-- ==============================================================================
+-- 8. MIGRATION COMPATIBILITY (DÀNH CHO DATABASE CŨ HOẶC NÂNG CẤP)
+-- ==============================================================================
+ALTER TABLE public.access_codes ADD COLUMN IF NOT EXISTS activated_at TIMESTAMPTZ;
+ALTER TABLE public.access_codes ADD COLUMN IF NOT EXISTS first_used_at TIMESTAMPTZ;
+ALTER TABLE public.access_codes ADD COLUMN IF NOT EXISTS entry_count INT DEFAULT 0;
+ALTER TABLE public.access_codes ADD COLUMN IF NOT EXISTS original_device_id TEXT;
+ALTER TABLE public.access_codes ADD COLUMN IF NOT EXISTS fraud_triggered_at TIMESTAMPTZ;
+ALTER TABLE public.access_codes ADD COLUMN IF NOT EXISTS locket_choice TEXT;
+
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS activated_at TIMESTAMPTZ;
+ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS device_ip TEXT;
+ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS device_ua TEXT;
+ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS is_original BOOLEAN DEFAULT true;
+ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS step_choice TEXT;
+ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS total_steps INT DEFAULT 0;
+

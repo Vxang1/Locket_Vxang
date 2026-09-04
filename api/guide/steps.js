@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
         q: `or=(package.eq.${pkg},package.is.null)&order=order_num.asc`,
       }),
       sb('GET', 'access_codes', {
-        q: `code=eq.${encodeURIComponent(payload.code)}&select=customer_id,skip_username_step`,
+        q: `code=eq.${encodeURIComponent(payload.code)}&select=customer_id`,
       }),
     ]);
 
@@ -31,7 +31,7 @@ module.exports = async (req, res) => {
 
     if (customerId) {
       const custs = await sb('GET', 'customers', {
-        q: `id=eq.${customerId}&select=locket_username,type,customer_code`,
+        q: `id=eq.${customerId}&select=locket_username,customer_code`,
       });
       locket_username = custs?.[0]?.locket_username || null;
     }

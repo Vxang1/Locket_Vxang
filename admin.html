@@ -2769,11 +2769,12 @@ window.openCustDetail=async function(id){
       let cls='cs-pending',txt='Chưa kích hoạt';
       let timerHtml='',expireBtn='';
       const now=new Date(),exp=c.expires_at?new Date(c.expires_at):null;
+      const act=c.activated_at||c.first_used_at;
       if(c.completed_at){cls='cs-used';txt='✓ Đã hoàn thành';}
       else if(!c.is_active&&c.fraud_triggered_at){cls='cs-fraud';txt='🚨 Khóa do share mã';}
       else if(!c.is_active){cls='cs-expired';txt='Vô hiệu';}
       else if(exp&&exp<now){cls='cs-expired';txt='Hết hạn';}
-      else if(c.activated_at&&exp){
+      else if(act&&exp){
         cls='cs-active';txt='Đang dùng';
         const rem=exp-now;
         const h=Math.floor(rem/3600000),m=Math.floor((rem%3600000)/60000),s=Math.floor((rem%60000)/1000);
@@ -2782,8 +2783,8 @@ window.openCustDetail=async function(id){
         timerHtml=`<div class="code-timer ${tcls}" data-exp="${exp.toISOString()}">⏱ Còn: ${remStr}</div>`;
         expireBtn=`<button class="btn-expire" onclick="expireCode('${c.id}')">⏹ Expire</button>`;
       }
-      else if(c.activated_at){cls='cs-active';txt='Đang dùng';}
-      else if(c.is_active&&!c.activated_at){expireBtn=`<button class="btn-expire" onclick="expireCode('${c.id}')">⏹ Expire</button>`;}
+      else if(act){cls='cs-active';txt='Đang dùng';}
+      else if(c.is_active&&!act){expireBtn=`<button class="btn-expire" onclick="expireCode('${c.id}')">⏹ Expire</button>`;}
       const choiceBadge = c.locket_choice === 'dns'
         ? `<span style="background:rgba(6,182,212,.08);border:1.5px solid rgba(6,182,212,.3);border-radius:20px;padding:2px 9px;font-size:.68rem;font-weight:900;color:#0891b2">🌐 Mới nhất</span>`
         : c.locket_choice === 'v280'
@@ -2797,7 +2798,7 @@ window.openCustDetail=async function(id){
       const statusHtml = isPending
         ? `<span class="code-status ${cls}" onclick="showCodeMsgModal('${esc(custCode)}','${esc(c.code)}','📋 Mẫu gửi khách (Update / Bảo hành)',true)" style="cursor:pointer" title="Bấm để xem mẫu gửi khách">${txt}</span>`
         : `<span class="code-status ${cls}">${txt}</span>`;
-      return `<div class="code-row"><div style="flex:1">${codeMainHtml}<div class="code-meta">Tạo: ${new Date(c.created_at).toLocaleString('vi-VN')}${c.activated_at?'<br>Kích hoạt: '+new Date(c.activated_at).toLocaleString('vi-VN'):''}${exp&&c.activated_at?'<br>Hết hạn: '+exp.toLocaleString('vi-VN'):''}</div>${timerHtml}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">${statusHtml}${choiceBadge}${expireBtn}</div></div>`;
+      return `<div class="code-row"><div style="flex:1">${codeMainHtml}<div class="code-meta">Tạo: ${new Date(c.created_at).toLocaleString('vi-VN')}${act?'<br>Kích hoạt: '+new Date(act).toLocaleString('vi-VN'):''}${exp&&act?'<br>Hết hạn: '+exp.toLocaleString('vi-VN'):''}</div>${timerHtml}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">${statusHtml}${choiceBadge}${expireBtn}</div></div>`;
     }).join('');
   }catch{document.getElementById('dCodes').innerHTML='<div style="color:var(--red);font-size:.78rem;font-weight:600;">⚠ Lỗi tải mã</div>';}
   if(codeTimerInterval)clearInterval(codeTimerInterval);
@@ -3065,7 +3066,7 @@ function getCodeStatus(c){
   // "hết hạn" (quá 30 phút): chỉ luồng chống share mới ghi fraud_triggered_at.
   if(!c.is_active && c.fraud_triggered_at) return 'fraud';
   if(!c.is_active) return 'inactive';
-  if(!c.activated_at) return 'pending';
+  if(!c.activated_at && !c.first_used_at) return 'pending';
   if(c.expires_at && new Date(c.expires_at)<new Date()) return 'dead';
   return 'active';
 }
@@ -3118,7 +3119,8 @@ function renderCodes(){
     const sv=CODE_STATUS[st];
     const cust=c.customer;
     const createdDate=new Date(c.created_at).toLocaleDateString('vi-VN');
-    const activatedDate=c.activated_at?new Date(c.activated_at).toLocaleString('vi-VN'):'—';
+    const actDate = c.activated_at || c.first_used_at;
+    const activatedDate=actDate?new Date(actDate).toLocaleString('vi-VN'):'—';
     const completedDate=c.completed_at?new Date(c.completed_at).toLocaleString('vi-VN'):'—';
     const entryCount = c.entry_count || 0;
     const entryBadge = entryCount >= 4
@@ -3143,7 +3145,7 @@ function renderCodes(){
         <span>${cust?esc(cust.customer_code):''} ${cust?.phone?'· '+esc(cust.phone):''}</span>
         <span style="margin-top:2px">
           Tạo: ${createdDate}
-          ${c.activated_at?'· Kích hoạt: '+activatedDate:''}
+          ${actDate?'· Kích hoạt: '+activatedDate:''}
           ${c.completed_at?'· Hoàn thành: '+completedDate:''}
         </span>
       </div>
