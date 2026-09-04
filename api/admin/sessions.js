@@ -47,17 +47,26 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const now60s = new Date(Date.now() - 60000).toISOString();
+    const nowWindow = new Date(Date.now() - 15 * 60 * 1000).toISOString();
     let sessions = [];
     try {
       sessions = await sb('GET', 'sessions', {
-        q: `is_kicked=neq.true&last_ping=gt.${encodeURIComponent(now60s)}&order=last_ping.desc`,
+        q: `last_ping=gt.${encodeURIComponent(nowWindow)}&order=last_ping.desc&limit=50`,
       }) || [];
     } catch (dbErr) {
-      console.warn('[sessions] GET sessions warning:', dbErr.message);
-      return res.json([]);
+      console.warn('[sessions] GET sessions with last_ping warning:', dbErr.message);
+      try {
+        sessions = await sb('GET', 'sessions', {
+          q: `order=id.desc&limit=30`,
+        }) || [];
+      } catch (err2) {
+        console.warn('[sessions] GET sessions fallback warning:', err2.message);
+        return res.json([]);
+      }
     }
 
+    // Lọc bỏ phiên bị kick trong JS (tránh lỗi PostgreSQL NULL <> true loại bỏ dòng dữ liệu)
+    sessions = (sessions || []).filter(s => s && s.is_kicked !== true);
     if (!sessions || !sessions.length) return res.json([]);
 
     // Enrich with customer info + guide steps song song

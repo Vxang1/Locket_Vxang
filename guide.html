@@ -1272,12 +1272,11 @@ function renderAppstoreAccountBox(d, isSpecial) {
         <span class="notice-icon">⏳</span>
         <p style="font-size: 0.92rem; font-weight: 700;">Chờ Vxang cập nhật tài khoản...</p>
       </div>
-      ${!isSpecial ? `
       <div style="margin-top:14px;text-align:center;">
         <button id="btnRefreshAppstore" onclick="_refreshAppstore(this)" class="btn-refresh-acct">
           🔄 Nhận tài khoản mới
         </button>
-      </div>` : ''}
+      </div>
     `;
   }
 
@@ -1287,12 +1286,11 @@ function renderAppstoreAccountBox(d, isSpecial) {
         <span class="notice-icon">⚠️</span>
         <p>${esc(d.error || 'Chưa có tài khoản Appstore được cấu hình.')} <b>Liên hệ Vxang qua Zalo</b> để được hỗ trợ ngay.</p>
       </div>
-      ${!isSpecial ? `
       <div style="margin-top:14px;text-align:center;">
         <button id="btnRefreshAppstore" onclick="_refreshAppstore(this)" class="btn-refresh-acct">
           🔄 Nhận tài khoản mới
         </button>
-      </div>` : ''}
+      </div>
     `;
   }
 
@@ -1311,12 +1309,11 @@ function renderAppstoreAccountBox(d, isSpecial) {
         <span class="acct-copy-badge">⧉ Copy</span>
       </div>
     </div>
-    ${!isSpecial ? `
     <div style="margin-top:10px;text-align:right;">
       <button id="btnRefreshAppstore" onclick="_refreshAppstore(this)" class="btn-refresh-acct">
         🔄 Nhận tài khoản mới
       </button>
-    </div>` : ''}
+    </div>
   `;
 }
 

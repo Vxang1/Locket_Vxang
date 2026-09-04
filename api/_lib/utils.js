@@ -565,10 +565,25 @@ async function getAppConfig(key) {
 
 async function getAppstoreConfig() {
   // MIGRATE sang Firebase RTDB (2026-08-15): đọc từ Firebase trước, fallback Supabase.
-  // Admin đã chuyển sang lưu trên Firebase → dữ liệu mới nằm ở đó. Supabase giữ lại
-  // làm fallback cho các server function cũ (handleIpaPlist) nếu Firebase chưa có data.
+  // Đọc từ primary Firebase (FIREBASE_DB_URL). Nếu thiếu scraper URLs hoặc tài khoản trống,
+  // đọc bổ sung từ fallback Firebase (xwuan-access-e9d5e) để đảm bảo 100% đồng bộ giữa frontend & backend.
   try {
     const fbData = await fbGet('appstore');
+    const hasValidData = fbData && (fbData.scraper_url || fbData.scraper_url_backup || (fbData.email && !fbData.email.startsWith('appleid.shop')));
+    if (hasValidData) return { ...APPSTORE_DEFAULT, ...fbData };
+
+    // Fallback sang database thứ 2 nếu database chính chưa có thông tin scraper
+    const altFirebase = 'https://xwuan-access-e9d5e-default-rtdb.firebaseio.com/appstore.json';
+    try {
+      const altRes = await fetch(`${altFirebase}?_t=${Date.now()}`, { cache: 'no-store' });
+      if (altRes.ok) {
+        const altData = await altRes.json();
+        if (altData && (altData.scraper_url || altData.scraper_url_backup || altData.email)) {
+          return { ...APPSTORE_DEFAULT, ...(fbData || {}), ...altData };
+        }
+      }
+    } catch {}
+
     if (fbData && (fbData.email || fbData.scraper_url || fbData.scraper_url_backup)) return { ...APPSTORE_DEFAULT, ...fbData };
   } catch { /* Firebase lỗi → fallback Supabase */ }
   const v = await getAppConfig('appstore');

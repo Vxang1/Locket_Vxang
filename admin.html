@@ -2393,6 +2393,9 @@ window.saveAppstoreConfig=async function(){
   btn.disabled=true; const orig=btn.textContent; btn.textContent='Đang lưu...';
   try{
     await fbUpdate(fbRef(_db,'appstore'),body);
+    try {
+      await api('POST','/api/admin/customers?action=appstore_update',body);
+    } catch {}
     showToast('✓ Đã lưu cấu hình Appstore (áp dụng ngay)','green');
   }catch(e){ showToast('Lỗi lưu: '+e.message,'red'); }
   finally{ btn.disabled=false; btn.textContent=orig; }

@@ -111,8 +111,11 @@ async function handleAppstore(req, res) {
     const s1_active = cfg.scraper_url_active !== false;
     const s2_active = cfg.scraper_url_backup_active !== false;
 
-    // Chỉ dùng nguồn cào tự động cho Flow thường (nếu có cấu hình)
-    if (!special_flow) {
+    // Kiểm tra xem có tài khoản tĩnh hợp lệ do Admin nhập tay không
+    const hasStaticAccount = email && password && email.includes('@') && !email.startsWith('appleid.shop') && email.toLowerCase() !== 'x' && password.toLowerCase() !== 'x';
+
+    // Nếu không có tài khoản tĩnh hợp lệ, luôn tự động cào từ scraper cho cả flow thường và đặc biệt
+    if (!hasStaticAccount) {
       let scraped = null;
       if (scraper_url && s1_active) {
         scraped = await scrapeHtmlSource(scraper_url);
@@ -133,12 +136,8 @@ async function handleAppstore(req, res) {
         email = scraped.email;
         password = scraped.password;
       } else {
-        // Nguồn cào hiện không có tài khoản khả dụng. Chỉ dùng tài khoản dự phòng nếu admin đã cấu hình một tài khoản Apple ID thực sự hợp lệ.
-        const isRealFallback = email && password && email.includes('@') && !email.startsWith('appleid.shop') && email.toLowerCase() !== 'x' && password.toLowerCase() !== 'x';
-        if (!isRealFallback) {
-          email = '';
-          password = '';
-        }
+        email = '';
+        password = '';
       }
     }
 
@@ -366,26 +365,7 @@ module.exports = async (req, res) => {
     }
     if (req.method === 'GET' && req.query?.action === 'warmup') {
       res.setHeader('Cache-Control', 'no-store');
-      try {
-        const { fbGet, FIREBASE_DB_URL, getAppConfig } = require('../_lib/utils');
-        const fbData = await fbGet('appstore');
-        const dbConfig = await getAppConfig('appstore');
-        const cfg = await getAppstoreConfig();
-        const s1 = cfg.scraper_url ? await scrapeHtmlSource(cfg.scraper_url) : null;
-        const s2 = cfg.scraper_url_backup ? await scrapeHtmlSource(cfg.scraper_url_backup) : null;
-        return res.json({
-          ok: true,
-          warm: true,
-          env_firebase_url: process.env.FIREBASE_DB_URL || '(default)',
-          fbData,
-          dbConfig,
-          cfg,
-          s1,
-          s2
-        });
-      } catch (err) {
-        return res.json({ ok: false, error: err.message });
-      }
+      return res.json({ ok: true, warm: true });
     }
   if (req.method === 'GET' && req.query?.action === 'dns_check') {
     res.setHeader('Cache-Control', 'no-store');
@@ -602,6 +582,9 @@ module.exports = async (req, res) => {
           device_ip: ip || null,
           device_ua: ua || null,
           is_original: isOriginal,
+          is_kicked: false,
+          current_step: 0,
+          last_ping: nowIso,
         },
         prefer: 'return=minimal',
       });
@@ -611,7 +594,9 @@ module.exports = async (req, res) => {
           access_code: upperCode,
           session_token: sessionToken,
           device_id: deviceId || null,
+          is_kicked: false,
           current_step: 0,
+          last_ping: nowIso,
         },
         prefer: 'return=minimal',
       });

@@ -185,6 +185,23 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
     - **Service Worker:** Nâng cấp cache Service Worker trong `sw.js` lên phiên bản `vxang-admin-v12`.
     - **Cam kết kỹ thuật:** Giữ nguyên vẹn 100% logic JavaScript, DOM IDs, hệ thống Vercel Serverless Functions, PostgREST API và cơ chế bẫy chống gian lận heartbeat 4s.
 
+14. **⚡ KHẮC PHỤC TRIỆT ĐỂ LỖI KHÔNG HIỆN TÀI KHOẢN APPSTORE VÀ LỖI PHIÊN LIVE TRỐNG TRONG ADMIN (2026-09-05 02:25):**
+    - **Hiện tượng:**
+      1. Khách hàng vào `guide.html` bị treo ở thông báo "Chờ Vxang cập nhật tài khoản..." dù nguồn scraper đang có sẵn tài khoản. Bấm "Nhận tài khoản mới" không lấy được tài khoản.
+      2. Khách hàng đang thao tác trong `guide.html` nhưng bên tab "Phiên live" trong `admin.html` luôn báo "🟢 Không có phiên nào đang active".
+    - **Nguyên nhân cốt lõi:**
+      1. *Lỗi mất acc do phân nhánh luồng (`special_flow`):* Trong `api/guide/validate.js`, code trước đây có đoạn chặn `if (!special_flow)` khiến mọi khách hàng thuộc nhóm Đặc Biệt (hoặc khách không cấu hình tài khoản tĩnh) bị bỏ qua hoàn toàn bước cào tài khoản từ scraper tự động. Ngoài ra, việc lưu trữ phân tán giữa 2 database Firebase (`locket-vxang` trên Vercel env và `xwuan-access-e9d5e` trên Frontend) khiến scraper URLs không được đọc đồng bộ.
+      2. *Lỗi bẫy logic SQL PostgREST (`is_kicked` NULL drop):* Trong `api/admin/sessions.js`, câu query PostgREST sử dụng `is_kicked=neq.true`. Trong chuẩn SQL/PostgreSQL, biểu thức `NULL <> true` trả về `UNKNOWN` (falsy), dẫn tới việc PostgreSQL tự động LOẠI BỎ toàn bộ các session có giá trị `is_kicked` là `NULL`! Khi session được khởi tạo lần đầu trong `validate.js`, trường `is_kicked` chưa được gán giá trị rõ ràng nên mang giá trị `NULL`, làm cho các session này hoàn toàn tàng hình trước câu query của Admin. Đồng thời, cửa sổ kiểm tra `last_ping` chỉ giới hạn trong 60 giây khiến khách hàng vừa chuyển sang App Store tải app là thẻ phiên live bị biến mất ngay lập tức.
+    - **Giải pháp triệt để:**
+      1. *Xử lý hiển thị tài khoản App Store (`guide.html`, `validate.js`, `utils.js`):*
+         - `api/guide/validate.js`: Bỏ điều kiện chặn `special_flow`. Bất kể flow thường hay đặc biệt, nếu Admin chưa chỉ định một tài khoản tĩnh hợp lệ, hệ thống luôn tự động kích hoạt bộ cào Scraper 1 -> Scraper 2 -> Fallback phòng hộ để đảm bảo 100% khách hàng luôn nhận được Apple ID cài Shadowrocket.
+         - `api/_lib/utils.js`: Nâng cấp `getAppstoreConfig()` hỗ trợ fallback 2 tầng giữa `FIREBASE_DB_URL` và `xwuan-access-e9d5e-default-rtdb` để đảm bảo luôn đọc được scraper URLs mới nhất kể cả khi môi trường Vercel chưa cập nhật env.
+         - `admin.html`: Khi lưu cấu hình App Store, hệ thống tự động ghi vào Firebase client và gọi đồng bộ lên Vercel backend.
+         - `guide.html`: Cập nhật `renderAppstoreAccountBox` hiển thị nút "🔄 Nhận tài khoản mới" thông suốt, cập nhật mượt mà trực tiếp DOM (#appstoreAccountArea) không làm reload hay reset video của khách.
+      2. *Xử lý hiển thị Phiên Live thời gian thực (`sessions.js`, `validate.js`):*
+         - `api/guide/validate.js`: Khi tạo phiên mới trong bảng `sessions`, luôn truyền tường minh `is_kicked: false`, `current_step: 0` và `last_ping: nowIso`.
+         - `api/admin/sessions.js`: Bỏ điều kiện lọc `is_kicked=neq.true` trên query PostgREST; mở rộng cửa sổ `last_ping` lên 15 phút (khớp với thời gian khách rời web sang App Store tải app); lọc bỏ phiên bị kick bằng JavaScript (`s.is_kicked !== true`) an toàn tuyệt đối với cả `false`, `null` và `undefined`.
+
 ---
 
 ## 🎯 NEXT STEPS
