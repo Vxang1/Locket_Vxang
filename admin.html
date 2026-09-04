@@ -2,6 +2,17 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(regs => { for (let r of regs) r.unregister(); });
+  }
+  if ('caches' in window) {
+    caches.keys().then(names => { for (let n of names) caches.delete(n); });
+  }
+</script>
 <!-- viewport-fit=cover: bắt buộc phải có để env(safe-area-inset-*) trả giá trị thật.
      Thiếu nó thì mọi rule safe-area bên dưới thành 0 và trên iPhone có tai thỏ /
      home-bar, topbar bị status bar che (do apple-mobile-web-app-status-bar-style
@@ -90,9 +101,10 @@ body{overscroll-behavior:none;background:var(--bg);color:var(--ink);font-family:
 .login-brand{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.6rem;
   color:var(--ink);margin-bottom:4px;}
 .login-sub{font-size:.82rem;color:var(--muted);margin-bottom:24px;font-weight:600;}
-.field{margin-bottom:14px;}
-.field label{display:block;font-size:.74rem;font-weight:800;color:var(--ink);
-  text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+.field{margin-bottom:14px;display:flex;flex-direction:column;}
+.field label{display:flex;align-items:flex-end;font-size:.74rem;font-weight:800;color:var(--ink);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;min-height:18px;}
+.field input,.field select,.field textarea{margin-top:auto;}
 input[type=password],input[type=text],input[type=email],input[type=url],input[type=number],textarea,select{
   width:100%;background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);
   padding:11px 14px;color:var(--ink);font-family:'Be Vietnam Pro',sans-serif;
@@ -161,7 +173,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--ink);box-shadow:0 0 0
   padding:22px;margin-bottom:20px;box-shadow:var(--shadow);}
 .form-card-title{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.88rem;color:var(--ink);
   letter-spacing:.04em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:6px;}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:flex-end;}
 .btn-action{padding:11px 18px;border:2px solid var(--ink);border-radius:var(--radius-sm);font-family:'Space Grotesk',sans-serif;
   font-size:.84rem;font-weight:900;letter-spacing:.02em;cursor:pointer;transition:transform .12s,box-shadow .12s;
   display:inline-flex;align-items:center;gap:6px;box-shadow:var(--shadow-sm);background:#FFFFFF;color:var(--ink);}
@@ -682,26 +694,19 @@ window.addEventListener('DOMContentLoaded', () => {
         <div class="form-card-title">Thông tin khách hàng</div>
         <div class="form-grid">
           <div class="field"><label>Tên khách *</label><input type="text" id="cName" placeholder="VD: An, Bảo, Minh..."/></div>
-          <div class="field"><label>Số điện thoại hoặc Link profile (Zalo / FB / Telegram...)</label><input type="text" id="cContact" placeholder="Dán SĐT (09xxx) hoặc Link Zalo, Facebook..."/></div>
+          <div class="field"><label>SĐT / Link liên hệ *</label><input type="text" id="cContact" placeholder="Dán SĐT (09xxx) hoặc Link Zalo, FB..."/></div>
         </div>
         <div class="field"><label>Ghi chú</label><textarea id="cNotes" placeholder="Ghi chú thêm (tùy chọn)"></textarea></div>
-        <div class="form-grid">
-          <div class="field">
-            <label>Gói dịch vụ *</label>
-            <select id="cPackage" onchange="onCreatePkgChange()">
-              <option value="30k">Gói 30k (5s Vĩnh viễn)</option>
-              <option value="40k">Gói 40k (15s Vĩnh viễn)</option>
-            </select>
-          </div>
-          <div class="field" id="cDurationWrap">
-            <label>Thời hạn bảo hành *</label>
-            <select id="cDuration" onchange="updateCreatePrice()">
-              <option value="perm">Vĩnh viễn</option>
-            </select>
-          </div>
+        <div class="field">
+          <label>Gói dịch vụ *</label>
+          <select id="cPackage" onchange="onCreatePkgChange()">
+            <option value="30k">⭐ Gói 30k (5s Vĩnh viễn) — 30.000đ</option>
+            <option value="40k">🌟 Gói 40k (15s Vĩnh viễn) — 40.000đ</option>
+          </select>
+          <input type="hidden" id="cDuration" value="perm"/>
         </div>
 
-        <div id="cPriceDisplay" style="padding:12px;background:var(--gold-bg);border:2px solid var(--ink);border-radius:var(--radius-sm);margin-bottom:16px;font-size:.88rem;font-weight:800;color:var(--ink);text-align:center;box-shadow:var(--shadow-sm);">💰 Chọn gói và thời hạn để xem giá</div>
+        <div id="cPriceDisplay" style="padding:12px;background:var(--gold-bg);border:2px solid var(--ink);border-radius:var(--radius-sm);margin-bottom:16px;font-size:.88rem;font-weight:800;color:var(--ink);text-align:center;box-shadow:var(--shadow-sm);">💰 Giá thanh toán: 30.000đ (Gói 30k - 5s Vĩnh viễn)</div>
         <button class="btn-action btn-gen" id="btnCreate" onclick="createCustomer()">⚡ Tạo mã khách &amp; mã truy cập</button>
       </div>
     </div>
@@ -1059,33 +1064,7 @@ window.addEventListener('DOMContentLoaded', () => {
         </select>
         <div id="genPkgHint" style="font-size:.7rem;color:var(--muted);font-weight:600;margin-top:4px"></div>
       </div>
-      <!-- Mua lại gói (Làm rõ 2). MẶC ĐỊNH TẮT: sinh mã mới cho khách đổi máy / cài lại
-           / update DNS là việc BẢO HÀNH, phải giữ nguyên thời hạn cũ. Chỉ khi khách trả
-           tiền mua gói mới thì mới bật ô này để hệ thống tính lại mốc bảo hành từ hôm nay. -->
-      <div id="renewBox" style="margin-top:8px;border:2px solid var(--ink);border-radius:var(--radius-sm);padding:10px 12px;background:var(--gold-bg);box-shadow:var(--shadow-sm);">
-        <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;margin:0">
-          <input type="checkbox" id="genRenew" onchange="onRenewToggle()" style="margin-top:3px;flex-shrink:0"/>
-          <span style="font-size:.78rem;font-weight:800;color:var(--fg);line-height:1.5">💰 Khách MUA LẠI gói mới (tính lại bảo hành từ hôm nay)</span>
-        </label>
-        <div style="font-size:.7rem;color:var(--muted);font-weight:600;line-height:1.5;margin-top:6px;padding-left:24px">
-          Để trống nếu chỉ là đổi máy / cài lại / update DNS trong thời gian bảo hành — mốc bảo hành cũ giữ nguyên.
-        </div>
-        <!-- Nhắc khi bảo hành đã hết: gia hạn thì PHẢI tích ô trên, nhưng cài lại
-             miễn phí cho khách hết hạn thì KHÔNG tích — nên chỉ gợi ý, không tự bật. -->
-        <div id="genRenewHint" style="display:none;font-size:.72rem;font-weight:800;color:var(--red);line-height:1.5;margin-top:8px;padding:8px 10px;border-radius:var(--radius-sm);background:var(--coral-bg);border:1.5px solid var(--ink)"></div>
-        <div class="field-sm" id="genDurWrap" style="display:none;margin-top:8px"><label>Thời hạn gói mới</label>
-          <select id="genDur" onchange="updateRenewPrice()">
-            <option value="6m">6 tháng</option>
-            <option value="1y">1 năm</option>
-            <!-- Gói vĩnh viễn 150/180: option BẮT BUỘC phải tồn tại trong DOM, nếu không
-                 lệnh gán durSel.value='perm' bị <select> nuốt (value thành '') và server
-                 trả 400 "invalid duration". onGenPkgChange() tự chọn/ẩn option này. -->
-            <option value="perm">Vĩnh viễn</option>
-          </select>
-          <div id="genRenewPrice" style="font-size:.74rem;font-weight:800;color:var(--p1);margin-top:6px"></div>
-        </div>
-      </div>
-      <button class="btn-gen-code" onclick="genCodeForCurrent()">+ Sinh thêm mã truy cập</button>
+      <button class="btn-gen-code" onclick="genCodeForCurrent()">➕ Cấp mã mới (30 phút)</button>
       <div class="new-code-box" id="newCodeBox">
         <div class="new-code-label">📋 Nội dung gửi cho khách</div>
         <div class="new-code-msg" id="newCodeMsg"></div>
@@ -1104,21 +1083,16 @@ window.addEventListener('DOMContentLoaded', () => {
     <div class="modal-body" style="display:flex;flex-direction:column;gap:10px;padding:16px 24px 0">
       <div class="field-sm"><label>Tên khách *</label><input type="text" id="eN" placeholder="Tên khách hàng"/></div>
       <div class="field-sm"><label>Username Locket</label><input type="text" id="eUn" placeholder="VD: vxang1" autocapitalize="off" autocorrect="off" spellcheck="false"/></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="field-sm"><label>Gói dịch vụ</label>
-          <select id="ePkg">
-              <option value="30k">Gói 30k (5s Vĩnh viễn)</option>
-              <option value="40k">Gói 40k (15s Vĩnh viễn)</option>
-            </select>
-        </div>
-        <div class="field-sm"><label>Thời hạn</label>
-          <select id="eDur" onchange="updateEditPrice()">
-            <option value="perm">Vĩnh viễn</option>
-          </select>
-        </div>
+      <div class="field-sm">
+        <label>Gói dịch vụ</label>
+        <select id="ePkg" onchange="updateEditPrice()">
+          <option value="30k">⭐ Gói 30k (5s Vĩnh viễn) — 30.000đ</option>
+          <option value="40k">🌟 Gói 40k (15s Vĩnh viễn) — 40.000đ</option>
+        </select>
+        <input type="hidden" id="eDur" value="perm"/>
       </div>
-      <div id="ePriceDisplay" style="padding:10px;background:var(--gold-bg);border:2px solid var(--ink);border-radius:var(--radius-sm);font-size:.84rem;font-weight:800;color:var(--ink);text-align:center;margin:0">💰 Giá: —</div>
-      <div class="field-sm"><label>Số điện thoại hoặc Link profile (Zalo / FB / Telegram...)</label><input type="text" id="eContact" placeholder="Dán SĐT (09xxx) hoặc Link Zalo, Facebook..."/></div>
+      <div id="ePriceDisplay" style="padding:10px;background:var(--gold-bg);border:2px solid var(--ink);border-radius:var(--radius-sm);font-size:.84rem;font-weight:800;color:var(--ink);text-align:center;margin:0">💰 Giá: 30.000đ (Gói 30k - 5s Vĩnh viễn)</div>
+      <div class="field-sm"><label>SĐT / Link liên hệ *</label><input type="text" id="eContact" placeholder="Dán SĐT (09xxx) hoặc Link Zalo, FB..."/></div>
       <div class="field-sm"><label>Trạng thái</label>
         <select id="eSs">
           <option value="pending_gold">⏳ Chưa lên Gold</option>
@@ -1295,17 +1269,15 @@ async function loadDashboard(){
   try{const stats=await api('GET','/api/admin/stats');document.getElementById('statCustomers').textContent=stats.customers;document.getElementById('statCodes').textContent=stats.codes;document.getElementById('statSessions').textContent=stats.sessions;document.getElementById('statCompleted').textContent=stats.completed;}
   catch{showToast('⚠ Lỗi tải stats','red');}
 }
-// Bảng giá client — PHẢI KHỚP api/_lib/utils.js PRICING (kể cả field `months`;
-// thiếu months thì calculateWarrantyEnd/getWarrantyStatus phía client luôn trả về
-// 'pending' cho khách có thời hạn). Sửa giá ở utils.js thì sửa cả ở đây.
+// Bảng giá client — PHẢI KHỚP api/_lib/utils.js PRICING (100% Vĩnh viễn: 30k & 40k)
 const PRICING = {
-  '30k': { 'perm': { price: 30000, label: 'Vĩnh viễn - 30k', months: null } },
-  '40k': { 'perm': { price: 40000, label: 'Vĩnh viễn - 40k', months: null } },
+  '30k': { 'perm': { price: 30000, label: '5s Vĩnh viễn - 30k', months: null } },
+  '40k': { 'perm': { price: 40000, label: '15s Vĩnh viễn - 40k', months: null } },
 };
 function isPermPkg(pkg){return true;}
-const PKG_LABELS={'30k':'Gói 30k','40k':'Gói 40k'};
+const PKG_LABELS={'30k':'Gói 30k (5s Vĩnh viễn)','40k':'Gói 40k (15s Vĩnh viễn)'};
 function pkgLabel(pkg){return pkg?(PKG_LABELS[pkg]||('Gói '+pkg)):'';}
-const PKG_OPTION_LABELS={'30k':'🟢 Gói 30k','40k':'🔵 Gói 40k'};
+const PKG_OPTION_LABELS={'30k':'⭐ Gói 30k (5s Vĩnh viễn) — 30.000đ','40k':'🌟 Gói 40k (15s Vĩnh viễn) — 40.000đ'};
 function fillGenPkgOptions(pkg){
   const sel=document.getElementById('genPkg');
   const hint=document.getElementById('genPkgHint');
@@ -1315,26 +1287,20 @@ function fillGenPkgOptions(pkg){
   sel.value=p;
   if(hint)hint.textContent='Muốn đổi gói, dùng nút "✏️ Chỉnh sửa thông tin khách" ở dưới.';
 }
-// Gói vĩnh viễn (150/180) không có khái niệm thời hạn bảo hành 6m/1y — ẩn ô chọn
-// và tự khóa duration về 'perm' để createCustomer() gửi đúng giá trị server chấp nhận.
-// Đối với gói thường (5s/15s), ẩn option 'perm' để tránh chọn nhầm.
+// Hệ thống áp dụng 100% Vĩnh viễn cho mọi gói
 window.onCreatePkgChange=function(){
   updateCreatePrice();
 };
 
 window.updateCreatePrice=function(){
-  const pkg=document.getElementById('cPackage').value;
-  const dur=document.getElementById('cDuration').value;
+  const pkg=document.getElementById('cPackage')?.value || '30k';
   const priceDisplay = document.getElementById('cPriceDisplay');
   if(!priceDisplay) return;
 
-  const priceInfo = PRICING[pkg]?.[dur] || PRICING[pkg]?.['perm'];
-  if (priceInfo) {
-    const fmt = new Intl.NumberFormat('vi-VN').format(priceInfo.price);
-    priceDisplay.innerHTML = `💰 <b>Giá: ${fmt}đ</b> (${priceInfo.label})`;
-  } else {
-    priceDisplay.textContent = '💰 Chọn gói và thời hạn để xem giá';
-  }
+  const is40k = (pkg === '40k');
+  const price = is40k ? '40.000đ' : '30.000đ';
+  const label = is40k ? 'Gói 40k (15s Vĩnh viễn)' : 'Gói 30k (5s Vĩnh viễn)';
+  priceDisplay.innerHTML = `💰 <b>Giá thanh toán: ${price}</b> (${label})`;
 };
 let currentMsgKhCode = '', currentMsgXwCode = '';
 function buildZaloMsg(khCode,xwCode){
@@ -1371,7 +1337,7 @@ window.showCodeMsgModal=function(khCode,xwCode,title,isReentry=true){
   currentMsgKhCode = khCode || '';
   currentMsgXwCode = xwCode || '';
   const tEl=document.getElementById('msgModalTitle');
-  if(tEl) tEl.textContent=title||(isReentry ? '📌 Mẫu tin nhắn Vào lại / bảo hành' : '🌟 Mẫu tin nhắn gửi khách');
+  if(tEl) tEl.textContent=title||(isReentry ? '📌 Mẫu tin nhắn cấp lại mã' : '🌟 Mẫu tin nhắn gửi khách');
   document.getElementById('msgResKH').textContent=khCode||'—';
   document.getElementById('msgResAC').textContent=xwCode||'—';
   window.switchZaloMsgType(isReentry ? 'reentry' : 'full');
@@ -2187,42 +2153,6 @@ const SS_LABELS={
   active:{cls:'ss-active',txt:'✅ Đã lên Gold'},
   expired:{cls:'ss-expired',txt:'⌛ Hết hạn'},
 };
-// Trả null khi KHÔNG có ngày kết thúc. Gói vĩnh viễn (duration 'perm') cũng trả
-// null nhưng vì lý do khác: không bao giờ hết hạn. Chốt sớm để đọc code khỏi
-// tưởng là bug thiếu dữ liệu — đừng đi vào phép tính tháng vì PRICING['150'] và
-// PRICING['180'] không có field months.
-function calculateWarrantyEnd(startDate,duration){
-  if(!startDate||!duration)return null;
-  if(duration==='perm')return null;
-  const start=new Date(startDate);
-  const months=duration==='3m'?3:(PRICING['5s']?.[duration]?.months||PRICING['15s']?.[duration]?.months||0);
-  if(!months)return null;
-  const end=new Date(start);
-  end.setMonth(end.getMonth()+months);
-  return end;
-}
-function getWarrantyStatus(customer){
-  if(!customer)return{status:'pending',daysLeft:0};
-  const duration=customer.duration||'3m';
-  const startDate=customer.warranty_started_at||customer.created_at;
-  if(customer.service_status==='pending_gold'||!customer.warranty_started_at){
-    return{status:'pending',daysLeft:0};
-  }
-  // Gói vĩnh viễn: chốt sớm, KHÔNG đi vào phép tính tháng/đếm ngày. Phải khớp
-  // getWarrantyStatus() ở api/_lib/utils.js — bản server trả status 'permanent',
-  // daysLeft null. Thiếu nhánh này thì months=0 → trả 'pending' → khách gói
-  // vĩnh viễn mãi hiện "⏳ Chưa lên Gold".
-  if(duration==='perm'||isPermPkg(customer.package))return{status:'permanent',daysLeft:null};
-  const months=duration==='3m'?3:(PRICING['5s']?.[duration]?.months||PRICING['15s']?.[duration]?.months||0);
-  if(!months)return{status:'pending',daysLeft:0};
-  const start=new Date(startDate);
-  const end=new Date(start);
-  end.setMonth(end.getMonth()+months);
-  const now=new Date();
-  const daysLeft=Math.ceil((end-now)/(1000*60*60*24));
-  if(daysLeft<=0)return{status:'expired',daysLeft:0};
-  return{status:'active',daysLeft};
-}
 function ssText(s,pkg){
   const v=SS_LABELS[s]||SS_LABELS['pending_gold'];
   return v.txt;
@@ -2230,17 +2160,6 @@ function ssText(s,pkg){
 function ssBadge(s,pkg){
   const v=SS_LABELS[s]||SS_LABELS['pending_gold'];
   return `<span class="ss-badge ${v.cls}">${v.txt}</span>`;
-}
-function custTypeBadge(type){
-  return type==='moi'
-    ? '<span class="badge-bh" style="background:rgba(6,182,212,.08);border-color:rgba(6,182,212,.25);color:var(--accent)">🛒 Mua mới</span>'
-    : '<span class="badge-bh">🛡️ Bảo hành</span>';
-}
-
-function getPkgPrice(pkg, dur) {
-  if (pkg === '150') return 150000;
-  if (pkg === '180') return 180000;
-  return PRICING[pkg]?.[dur]?.price || (pkg==='15s'?(dur==='1y'?100000:60000):(dur==='1y'?80000:50000));
 }
 
 function getFirstCodeCompletedAt(c) {
@@ -2255,115 +2174,20 @@ function getFirstCodeCompletedAt(c) {
   return null;
 }
 
-function calculateUpgradeInfo(cust, newPkg, newDur) {
-  if (!cust) return null;
-  const curPkg = cust.package || '5s';
-  const curDur = cust.duration || '6m';
-  let oldPrice = getPkgPrice(curPkg, curDur);
-  if (cust.deposit_note && cust.deposit_note.includes('40k')) {
-    oldPrice = 40000;
-  } else if (cust.deposit_note && cust.deposit_note.includes('50k') && curPkg === '15s') {
-    oldPrice = 50000;
-  }
-  const newPrice = getPkgPrice(newPkg, newDur);
-  
-  // Logic check 1 tuần DỰA VÀO THỜI GIAN HOÀN THÀNH MÃ TRUY CẬP ĐẦU TIÊN
-  const firstCompletedAt = getFirstCodeCompletedAt(cust);
-  let daysUsed = 0;
-  let hasCompletedFirstCode = false;
-  
-  if (firstCompletedAt) {
-    hasCompletedFirstCode = true;
-    const startDate = new Date(firstCompletedAt);
-    const now = new Date();
-    daysUsed = Math.max(0, Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
-  } else if (cust.activated_at || cust.warranty_started_at) {
-    const startDate = new Date(cust.activated_at || cust.warranty_started_at);
-    const now = new Date();
-    daysUsed = Math.max(0, Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
-    hasCompletedFirstCode = true;
-  } else {
-    // Khách chưa hoàn thành mã truy cập đầu tiên -> chưa dùng ngày nào (daysUsed = 0)
-    daysUsed = 0;
-    hasCompletedFirstCode = false;
-  }
-  
-  const wStatus = getWarrantyStatus(cust);
-  const isExpired = wStatus.status === 'expired';
-  
-  const isWithin1Week = (!isExpired && daysUsed <= 7);
-  const diff = Math.max(0, newPrice - oldPrice);
-  
-  let amountToPay = newPrice;
-  let caseType = 'full_after_1week';
-  let depositNote = null;
-  let summaryText = '';
-  let badgeColor = '#d97706';
-  
-  if (isWithin1Week && diff > 0) {
-    caseType = 'diff_1week';
-    amountToPay = diff;
-    depositNote = `Bù nâng cấp ${diff/1000}k`;
-    const timeLabel = hasCompletedFirstCode ? `đã dùng ${daysUsed} ngày kể từ mã đầu` : 'chưa kích hoạt mã đầu';
-    summaryText = `🟢 <b>Hỗ trợ đổi gói trong 1 tuần (${timeLabel}):</b> Chỉ cần bù chênh lệch: <b>${diff/1000}k</b> (${newPrice/1000}k - ${oldPrice/1000}k).`;
-    badgeColor = '#059669';
-  } else if (!isExpired && daysUsed > 7) {
-    caseType = 'full_after_1week';
-    amountToPay = newPrice;
-    depositNote = isPermPkg(newPkg) ? 'Cọc 20k' : `Nâng cấp ${newPrice/1000}k`;
-    summaryText = `🟡 <b>Nâng cấp sau 1 tuần (đã dùng ${daysUsed} ngày kể từ mã đầu):</b> Thu full giá gói mới: <b>${newPrice/1000}k</b>.`;
-    badgeColor = '#d97706';
-  } else {
-    caseType = 'expired_renew';
-    amountToPay = newPrice;
-    depositNote = isPermPkg(newPkg) ? 'Cọc 20k' : null;
-    summaryText = `⌛ <b>Gia hạn chu kỳ mới (bảo hành cũ đã hết):</b> Thu full gói mới: <b>${newPrice/1000}k</b>.`;
-    badgeColor = 'var(--p1)';
-  }
-  
-  return {
-    daysUsed,
-    hasCompletedFirstCode,
-    isWithin1Week,
-    isExpired,
-    oldPrice,
-    newPrice,
-    diff,
-    amountToPay,
-    caseType,
-    depositNote,
-    summaryText,
-    badgeColor
-  };
-}
-
 function getPendingPayInfo(c) {
   if (!c) return null;
   if (c.service_status !== 'active') return null;
   const isPaid = c.deposit_note && (c.deposit_note.includes('Đã thanh toán') || c.deposit_note.includes('Thu đủ') || c.deposit_note.includes('Đã thu') || c.deposit_note.includes('Full'));
   if (isPaid) return null;
   
-  // 1. Nếu có deposit_note ghi rõ số tiền
-  if (c.deposit_note) {
-    const match = c.deposit_note.match(/(\d+)\s*k/i);
-    if (match) {
-      const num = parseInt(match[1], 10);
-      if (c.deposit_note.toLowerCase().includes('bù') || c.deposit_note.toLowerCase().includes('thu') || c.deposit_note.toLowerCase().includes('nâng')) {
-        return { amount: num + 'k', isPerm: isPermPkg(c.package), isRemainder: false };
-      }
-    }
-  }
-  
-  // 2. Mặc định theo gói:
-  if (c.package === '40k' || c.package === '180' || c.package === '15s') return { amount: '40k', isPerm: true, isRemainder: false };
-  return { amount: '30k', isPerm: true, isRemainder: false };
+  if (c.package === '40k' || c.package === '180' || c.package === '15s') return { amount: '40k' };
+  return { amount: '30k' };
 }
 
 function custSmartBadge(c, inModal = false) {
   if (!c) return '';
   if (c.service_status === 'pending_gold') {
-    const noteText = c.deposit_note ? ` (${esc(c.deposit_note)})` : '';
-    return `<span class="ss-badge ss-pending" title="Khách đang cài đặt">⏳ Chưa lên Gold${noteText}</span>`;
+    return `<span class="ss-badge ss-pending" title="Khách đang cài đặt">⏳ Chưa lên Gold</span>`;
   }
   if (c.service_status === 'expired') {
     return `<span class="ss-badge ss-expired">⌛ Hết hạn</span>`;
@@ -2378,9 +2202,8 @@ function custSmartBadge(c, inModal = false) {
   
   const payInfo = getPendingPayInfo(c);
   const amt = payInfo ? payInfo.amount : 'tiền';
-  const prefix = payInfo?.isRemainder ? 'nốt ' : '';
   
-  return `<span class="ss-badge ss-coc" style="cursor:pointer;animation:pulse 2s infinite;" onclick="toggleCustomerPaid('${c.id}','${esc(c.name)}',true,event,'${amt}')" title="Nhấp 1-chạm để xác nhận đã thu đủ tiền">🟡 Chờ thu ${prefix}${amt} 💵</span>`;
+  return `<span class="ss-badge ss-coc" style="cursor:pointer;animation:pulse 2s infinite;" onclick="toggleCustomerPaid('${c.id}','${esc(c.name)}',true,event,'${amt}')" title="Nhấp 1-chạm để xác nhận đã thu đủ tiền">🟡 Chờ thu ${amt} 💵</span>`;
 }
 
 window.toggleCustomerPaid = async function(id, custName, markAsPaid, event, amount) {
@@ -2553,38 +2376,10 @@ window.openCustDetail=async function(id){
     if (!c) return;
     document.getElementById('dName').textContent=c.name || 'Khách hàng';
     const genPkgEl=document.getElementById('genPkg');
-    if(genPkgEl){fillGenPkgOptions(c.package||'30k');onGenPkgChange();}
+    if(genPkgEl){fillGenPkgOptions(c.package||'30k');}
 
-    const duration=c.duration||'perm';
-    const priceInfo=PRICING[c.package]?.[duration] || PRICING[c.package]?.['perm'];
-    const priceLabel=priceInfo?priceInfo.label:'Vĩnh viễn';
-
-    let warrantyHtml='';
-    const wStatus=getWarrantyStatus(c);
-    const isPerm = isPermPkg(c.package);
-    const renewBox = document.getElementById('renewBox');
-    if (renewBox) { renewBox.style.display = isPerm ? 'none' : 'block'; }
-    const rnEl=document.getElementById('genRenew');
-    if(rnEl){rnEl.checked=false;onRenewToggle();}
-    const hintEl=document.getElementById('genRenewHint');
-    if(hintEl){
-      if(wStatus.status==='expired'){
-        hintEl.textContent='⌛ Bảo hành đã hết hạn. Nếu khách GIA HẠN (trả tiền gói mới) thì tích ô trên. Nếu chỉ cài lại miễn phí thì để trống.';
-        hintEl.style.display='block';
-      }else{
-        hintEl.textContent='';
-        hintEl.style.display='none';
-      }
-    }
-    if(c.service_status==='pending_gold'){
-      warrantyHtml=`<div class="info-item"><div class="info-label">Bảo hành</div><div class="info-val"><span style="color:var(--warning);font-weight:700">⏳ Chưa lên Gold</span></div></div>`;
-    }else if(wStatus.status==='permanent'){
-      warrantyHtml=`<div class="info-item"><div class="info-label">Bảo hành</div><div class="info-val"><span style="color:var(--p1);font-weight:700">💎 ${priceLabel} · Vĩnh viễn</span></div></div>`;
-    }else if(wStatus.status==='active'){
-      warrantyHtml=`<div class="info-item"><div class="info-label">Bảo hành</div><div class="info-val"><span style="color:var(--green);font-weight:700">✅ ${priceLabel} · Còn ${wStatus.daysLeft} ngày</span></div></div>`;
-    }else if(wStatus.status==='expired'){
-      warrantyHtml=`<div class="info-item"><div class="info-label">Bảo hành</div><div class="info-val"><span style="color:var(--red);font-weight:700">⌛ ${priceLabel} · Đã hết hạn</span></div></div>`;
-    }
+    const is40k = (c.package === '40k' || c.package === '15s' || c.package === '180');
+    const pkgBadge = is40k ? '🌟 Gói 40k (15s Vĩnh viễn)' : '⭐ Gói 30k (5s Vĩnh viễn)';
 
     document.getElementById('dInfoGrid').innerHTML=`
       <div class="info-item"><div class="info-label">Mã khách hàng</div><div class="info-val" style="color:var(--p1);font-weight:800">${esc(c.customer_code)}</div></div>
@@ -2592,16 +2387,10 @@ window.openCustDetail=async function(id){
       <div class="info-item"><div class="info-label">Số điện thoại</div><div class="info-val">${esc(c.phone||'—')}</div></div>
       <div class="info-item"><div class="info-label">Nền tảng</div><div class="info-val">${PI[c.social_platform]||'💬'} ${esc(c.social_platform||'—')}</div></div>
       <div class="info-item"><div class="info-label">Link</div><div class="info-val">${c.social_link?`<a href="${esc(c.social_link)}" target="_blank">${esc(c.social_link)}</a>`:'—'}</div></div>
-      <div class="info-item"><div class="info-label">Gói dịch vụ</div><div class="info-val">${PKG_LABELS[c.package]?(isPermPkg(c.package)?'💎 ':c.package==='15s'?'⏱ ':'⚡ ')+PKG_LABELS[c.package]:'<span style="color:var(--muted);font-weight:600">— Chưa chọn —</span>'}</div></div>
+      <div class="info-item"><div class="info-label">Gói dịch vụ</div><div class="info-val">${pkgBadge}</div></div>
       <div class="info-item"><div class="info-label">Trạng thái &amp; Thanh toán</div><div class="info-val">${custSmartBadge(c)}</div></div>
       <div class="info-item"><div class="info-label">Flow hướng dẫn</div><div class="info-val">${c.special_flow?'<span style="color:#7c3aed;font-weight:800">🛡️ Đặc biệt (có IPA)</span>':'<span style="color:var(--muted);font-weight:700">Mặc định</span>'}</div></div>
-      ${warrantyHtml}
-      ${(() => {
-        const firstCompAt = getFirstCodeCompletedAt(c);
-        return firstCompAt
-          ? `<div class="info-item"><div class="info-label">Mã đầu xong lúc</div><div class="info-val" style="color:var(--green);font-weight:700">⏱ ${new Date(firstCompAt).toLocaleString('vi-VN')}</div></div>`
-          : `<div class="info-item"><div class="info-label">Mã đầu xong lúc</div><div class="info-val" style="color:var(--muted);font-weight:600">— Chưa hoàn thành —</div></div>`;
-      })()}
+      <div class="info-item"><div class="info-label">Kích hoạt lúc</div><div class="info-val">${(c.activated_at || c.first_code_completed_at) ? `⏱ ${new Date(c.activated_at || c.first_code_completed_at).toLocaleString('vi-VN')}` : '<span style="color:var(--muted);font-weight:600">— Chưa kích hoạt —</span>'}</div></div>
       <div class="info-item"><div class="info-label">Ghi chú</div><div class="info-val">${esc(c.notes||'—')}</div></div>
       <div class="info-item"><div class="info-label">Ngày tạo</div><div class="info-val">${new Date(c.created_at).toLocaleString('vi-VN')}</div></div>`;
   }
@@ -2626,7 +2415,6 @@ window.openCustDetail=async function(id){
         target.codes = codes;
       }
       renderHeader(cust);
-      if (typeof updateRenewPrice === 'function') updateRenewPrice();
     }
 
     if(!codes.length){document.getElementById('dCodes').innerHTML='<div style="font-size:.78rem;color:var(--muted);font-weight:600;">Chưa có mã nào</div>';return;}
@@ -2658,10 +2446,10 @@ window.openCustDetail=async function(id){
       const isPending = cls === 'cs-pending';
       const custCode = cust ? cust.customer_code : '';
       const codeMainHtml = isPending
-        ? `<div class="code-main code-clickable" onclick="showCodeMsgModal('${esc(custCode)}','${esc(c.code)}','📋 Mẫu gửi khách (Update / Bảo hành)',true)" title="Bấm để xem & sao chép mẫu tin nhắn gửi khách" style="display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px"><span style="white-space:nowrap">${esc(c.code)}</span><span class="btn-copy-mini">📋 Mẫu Zalo</span></div>`
+        ? `<div class="code-main code-clickable" onclick="showCodeMsgModal('${esc(custCode)}','${esc(c.code)}','📋 Mẫu tin nhắn gửi khách',true)" title="Bấm để xem & sao chép mẫu tin nhắn gửi khách" style="display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px"><span style="white-space:nowrap">${esc(c.code)}</span><span class="btn-copy-mini">📋 Mẫu Zalo</span></div>`
         : `<div class="code-main" style="white-space:nowrap">${esc(c.code)}</div>`;
       const statusHtml = isPending
-        ? `<span class="code-status ${cls}" onclick="showCodeMsgModal('${esc(custCode)}','${esc(c.code)}','📋 Mẫu gửi khách (Update / Bảo hành)',true)" style="cursor:pointer" title="Bấm để xem mẫu gửi khách">${txt}</span>`
+        ? `<span class="code-status ${cls}" onclick="showCodeMsgModal('${esc(custCode)}','${esc(c.code)}','📋 Mẫu tin nhắn gửi khách',true)" style="cursor:pointer" title="Bấm để xem mẫu gửi khách">${txt}</span>`
         : `<span class="code-status ${cls}">${txt}</span>`;
       return `<div class="code-row"><div style="flex:1">${codeMainHtml}<div class="code-meta">Tạo: ${new Date(c.created_at).toLocaleString('vi-VN')}${act?'<br>Kích hoạt: '+new Date(act).toLocaleString('vi-VN'):''}${exp&&act?'<br>Hết hạn: '+exp.toLocaleString('vi-VN'):''}</div>${timerHtml}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">${statusHtml}${choiceBadge}${expireBtn}</div></div>`;
     }).join('');
@@ -2731,126 +2519,38 @@ window.saveEditCust=async function(){
     if(updated) await openCustDetail(currentCustomerId);
   }catch(e){showToast('⚠ Lỗi: '+e.message,'red');}
 };
-// Bật/tắt ô "mua lại gói" → hiện chọn thời hạn + giá (Làm rõ 2).
-window.onRenewToggle=function(){
-  const on=document.getElementById('genRenew')?.checked;
-  const wrap=document.getElementById('genDurWrap');
-  const sel=document.getElementById('genPkg');
-  const hint=document.getElementById('genPkgHint');
-  const cust=allCustomers.find(c=>c.id===currentCustomerId);
-  if(wrap) wrap.style.display=on?'block':'none';
-  if(sel){
-    if(on){
-      sel.innerHTML=`
-        <option value="5s">🟢 Gói 5s</option>
-        <option value="15s">🔵 Gói 15s</option>
-        <option value="150">💎 Gói 150 (5s vĩnh viễn)</option>
-        <option value="180">💎 Gói 180 (15s vĩnh viễn)</option>
-      `;
-      sel.value=cust?.package||'5s';
-      if(hint) hint.textContent='Chọn gói mới muốn nâng cấp / gia hạn cho khách.';
-    } else {
-      fillGenPkgOptions(cust?.package||'5s');
-    }
-  }
-  if(on) updateRenewPrice();
-};
-// Đổi gói ở ô "Sinh thêm mã"
-window.onGenPkgChange=function(){
-  const pkg=document.getElementById('genPkg')?.value||'5s';
-  const durSel=document.getElementById('genDur');
-  if(durSel){
-    if(isPermPkg(pkg)){
-      durSel.value='perm';
-      durSel.parentElement.style.display='none';
-    }else{
-      durSel.parentElement.style.display='block';
-      if(durSel.value==='perm') durSel.value='6m';
-    }
-  }
-  updateRenewPrice();
-};
-window.updateRenewPrice=function(){
-  const el=document.getElementById('genRenewPrice');
-  if(!el) return;
-  const pkg=document.getElementById('genPkg')?.value||'5s';
-  const dur=isPermPkg(pkg)?'perm':(document.getElementById('genDur')?.value||'6m');
-  const cust=allCustomers.find(c=>c.id===currentCustomerId);
-  const upInfo=calculateUpgradeInfo(cust, pkg, dur);
-  
-  if(upInfo){
-    const fmtOld=new Intl.NumberFormat('vi-VN').format(upInfo.oldPrice);
-    const fmtNew=new Intl.NumberFormat('vi-VN').format(upInfo.newPrice);
-    const fmtPay=new Intl.NumberFormat('vi-VN').format(upInfo.amountToPay);
-    
-    el.innerHTML=`
-      <div style="font-size:.8rem;font-weight:800;color:var(--p1);margin-bottom:4px;">💰 Gói mới: ${fmtNew}đ (Gói cũ: ${fmtOld}đ)</div>
-      <div style="padding:8px 10px;border-radius:8px;font-size:.76rem;line-height:1.5;background:${upInfo.isWithin1Week?'rgba(16,185,129,.08)':'rgba(245,158,11,.08)'};border:1px solid ${upInfo.isWithin1Week?'rgba(16,185,129,.25)':'rgba(245,158,11,.25)'}">
-        ${upInfo.summaryText}
-        <div style="margin-top:4px;font-weight:900;color:${upInfo.badgeColor};">👉 Số tiền cần thu khi lên Gold: ${fmtPay}đ</div>
-      </div>
-    `;
-  }
-};
 window.genCodeForCurrent=async function(){
   if(!currentCustomerId)return;
   try{
-    let pkg=document.getElementById('genPkg').value;
-    const renew=!!document.getElementById('genRenew')?.checked;
-    const dur=document.getElementById('genDur')?.value||'6m';
-    
-    if (renew && dur === 'perm') {
-      if (pkg === '5s') pkg = '150';
-      if (pkg === '15s') pkg = '180';
-    }
-
     const cust = allCustomers.find(c=>c.id===currentCustomerId);
-    
-    // Yêu cầu: Khách Flow đặc biệt gói 180 bắt buộc phải có DNS riêng trước khi sinh mã
-    // Block removed to allow 180 special flow to use 15s pool
+    const pkg = document.getElementById('genPkg')?.value || cust?.package || '30k';
 
-    // Chặn sớm khi DNS pool đầy. Gói vĩnh viễn (150/180) không dùng DNS pool.
+    // Chặn sớm khi DNS pool đầy
     const dnsPoolGroups={'30k':'5s', '40k':'15s'};
-    const poolGroup = (pkg === '150' && cust?.special_flow) ? null : dnsPoolGroups[pkg];
-    if(poolGroup && cust){
+    const poolGroup = (pkg === '30k' && cust?.special_flow) ? null : dnsPoolGroups[pkg];
+    if(poolGroup && cust && !cust.has_private_dns){
       try{
-        if(cust.has_private_dns) { /* pass */ }
-        else {
-          const poolRows=await api('GET','/api/admin/customers?action=dns_pool_list')||[];
-          const groupRows=poolRows.filter(r=>r.package===poolGroup);
-          const hasExistingSlot = cust.customer_code && groupRows.some(r=>r.is_active && Array.isArray(r.used_codes) && r.used_codes.includes(cust.customer_code));
-          if(!hasExistingSlot){
-            const activeNotFull=groupRows.filter(r=>r.is_active&&!r.is_full);
-            if(!activeNotFull.length){
-              showToast(`⛔ DNS pool (${poolGroup}) ${groupRows.length?'đã đầy tất cả link':'chưa có link nào'}! Vui lòng thêm link NextDNS mới vào tab "DNS mặc định" trước khi tạo mã.`,'red');
-              return;
-            }
+        const poolRows=await api('GET','/api/admin/customers?action=dns_pool_list')||[];
+        const groupRows=poolRows.filter(r=>r.package===poolGroup);
+        const hasExistingSlot = cust.customer_code && groupRows.some(r=>r.is_active && Array.isArray(r.used_codes) && r.used_codes.includes(cust.customer_code));
+        if(!hasExistingSlot){
+          const activeNotFull=groupRows.filter(r=>r.is_active&&!r.is_full);
+          if(!activeNotFull.length){
+            showToast(`⛔ DNS pool (${poolGroup}) ${groupRows.length?'đã đầy tất cả link':'chưa có link nào'}! Vui lòng thêm link NextDNS mới vào tab "DNS mặc định" trước khi tạo mã.`,'red');
+            return;
           }
         }
       }catch(e){/* swallow */}
     }
 
-    let depositNoteToSend = null;
-    if(renew){
-      const upInfo=calculateUpgradeInfo(cust, pkg, dur);
-      const fmtPay=new Intl.NumberFormat('vi-VN').format(upInfo ? upInfo.amountToPay : 0);
-      const confirmMsg=upInfo?.isWithin1Week && upInfo?.diff > 0
-        ? `Xác nhận nâng cấp gói cho khách "${cust?.name || ''}"?\n\n- Khách mới dùng ${upInfo.daysUsed} ngày (trong 1 tuần đầu)\n- Số tiền cần bù: ${fmtPay}đ\n- Bảo hành mới được tính từ HÔM NAY.`
-        : `Xác nhận MUA LẠI / NÂNG CẤP gói cho khách "${cust?.name || ''}"?\n\n- Số tiền cần thu: ${fmtPay}đ\n- Bảo hành mới được tính từ HÔM NAY.`;
-      if(!confirm(confirmMsg)) return;
-      depositNoteToSend = upInfo?.depositNote || null;
-    }
-    const r=await api('POST','/api/admin/add-code',renew?{customer_id:currentCustomerId,package:pkg,renew:true,duration:dur,deposit_note:depositNoteToSend}:{customer_id:currentCustomerId,package:pkg});
-    showToast('✓ Sinh mã mới ('+pkgLabel(pkg)+(renew?' · nâng cấp/mua lại':'')+'): '+r.code,'green');
-    const rn=document.getElementById('genRenew');
-    if(rn){rn.checked=false;onRenewToggle();}
-    if(renew) await loadCustomers();
+    const r=await api('POST','/api/admin/add-code',{customer_id:currentCustomerId,package:pkg});
+    showToast('✓ Cấp mã mới ('+pkgLabel(pkg)+'): '+r.code,'green');
     await openCustDetail(currentCustomerId);
     const box=document.getElementById('newCodeBox');
     const msgEl=document.getElementById('newCodeMsg');
     const btn=document.getElementById('btnCopyNewCode');
     if(box&&msgEl){
-      const plain=`📌 Bạn vui lòng vào lại website bằng Safari:\n\nlocketvxang.vercel.app\n\n🔑 Mã truy cập:\n\n${r.code}\n\n⏱ Mã hiệu lực 30 phút kể từ lúc xác thực, làm theo đúng từng bước nhé!`;
+      const plain=buildReentryZaloMsg(r.code);
       msgEl.innerHTML=`📌 Bạn vui lòng vào lại website bằng <b>Safari</b>:<br><br><b>locketvxang.vercel.app</b><br><br>🔑 Mã truy cập:<br><br><b>${r.code}</b><br><br>⏱ Mã hiệu lực 30 phút kể từ lúc xác thực, làm theo đúng từng bước nhé!`;
       box.dataset.copyText=plain;
       box.classList.add('show');
@@ -2971,10 +2671,10 @@ function renderCodes(){
     const isPending = st === 'pending';
     const custCode = cust ? cust.customer_code : '';
     const codeMainHtml = isPending
-      ? `<div class="ci-code code-clickable" onclick="showCodeMsgModal('${esc(custCode)}','${esc(c.code)}','📋 Mẫu gửi khách (Update / Bảo hành)',true)" title="Bấm để xem & sao chép mẫu tin nhắn gửi khách" style="display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px"><span style="white-space:nowrap">${esc(c.code)}</span><span class="btn-copy-mini">📋 Mẫu Zalo</span></div>`
+      ? `<div class="ci-code code-clickable" onclick="showCodeMsgModal('${esc(custCode)}','${esc(c.code)}','📋 Mẫu tin nhắn gửi khách',true)" title="Bấm để xem & sao chép mẫu tin nhắn gửi khách" style="display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px"><span style="white-space:nowrap">${esc(c.code)}</span><span class="btn-copy-mini">📋 Mẫu Zalo</span></div>`
       : `<div class="ci-code" style="white-space:nowrap">${esc(c.code)}</div>`;
     const statusBadgeHtml = isPending
-      ? `<span class="ci-status ${sv.cls}" onclick="showCodeMsgModal('${esc(custCode)}','${esc(c.code)}','📋 Mẫu gửi khách (Update / Bảo hành)',true)" style="cursor:pointer" title="Bấm để xem mẫu gửi khách">${sv.txt}</span>`
+      ? `<span class="ci-status ${sv.cls}" onclick="showCodeMsgModal('${esc(custCode)}','${esc(c.code)}','📋 Mẫu tin nhắn gửi khách',true)" style="cursor:pointer" title="Bấm để xem mẫu gửi khách">${sv.txt}</span>`
       : `<span class="ci-status ${sv.cls}">${sv.txt}</span>`;
     return `<div class="code-item">
       ${codeMainHtml}
