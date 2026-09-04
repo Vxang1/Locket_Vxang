@@ -1,5 +1,24 @@
 'use strict';
-const { sb, requireAdmin, allowMethods, buildStepFlow, alignStepFlow, normalizePackage } = require('../_lib/utils');
+const { sb, requireAdmin, allowMethods, buildStepFlow, alignStepFlow } = require('../_lib/utils');
+
+let cachedGuideSteps = null;
+let cachedGuideStepsTime = 0;
+async function getCachedGuideSteps() {
+  const now = Date.now();
+  if (cachedGuideSteps && (now - cachedGuideStepsTime < 45000)) {
+    return cachedGuideSteps;
+  }
+  try {
+    const steps = await sb('GET', 'guide_steps', {
+      q: 'select=type,title,package,order_num&order=order_num.asc',
+    }) || [];
+    cachedGuideSteps = steps;
+    cachedGuideStepsTime = now;
+    return steps;
+  } catch {
+    return cachedGuideSteps || [];
+  }
+}
 
 module.exports = async (req, res) => {
   if (!allowMethods(req, res, ['GET', 'POST'])) return;
@@ -9,15 +28,15 @@ module.exports = async (req, res) => {
     const { session_id } = req.body || {};
     if (!session_id) return res.status(400).json({ error: 'Missing session_id' });
     try {
-      const sessions = await sb('GET', 'sessions', { q: `id=eq.${encodeURIComponent(session_id)}&select=access_code` });
+      const sessions = await sb('GET', 'sessions', { q: `id=eq.${session_id}&select=access_code` });
       const accessCode = sessions?.[0]?.access_code;
       await sb('PATCH', 'sessions', {
-        q: `id=eq.${encodeURIComponent(session_id)}`,
+        q: `id=eq.${session_id}`,
         body: { is_kicked: true },
       });
       if (accessCode) {
         await sb('PATCH', 'access_codes', {
-          q: `code=eq.${encodeURIComponent(accessCode)}`,
+          q: `code=eq.${accessCode}`,
           body: { is_active: false, expires_at: new Date().toISOString() },
         });
       }
@@ -34,10 +53,16 @@ module.exports = async (req, res) => {
     }) || [];
     if (!sessions.length) return res.json([]);
 
+    // Enrich with customer info + guide steps song song
     const codes = sessions.map(s => `"${s.access_code}"`).join(',');
-    const acodes = await sb('GET', 'access_codes', {
-      q: `code=in.(${codes})&select=code,expires_at,customer_id,package`,
-    }) || [];
+    const [acodesRes, guideStepsRes] = await Promise.all([
+      sb('GET', 'access_codes', {
+        q: `code=in.(${codes})&select=code,expires_at,customer_id,package`,
+      }),
+      getCachedGuideSteps(),
+    ]);
+    const acodes = acodesRes || [];
+    const guideSteps = guideStepsRes || [];
 
     const custIds = [...new Set(acodes.map(a => a.customer_id).filter(Boolean))];
     let custs = [];
@@ -50,13 +75,13 @@ module.exports = async (req, res) => {
     const flowCache = {};
     const flowFor = (pkg, specialFlow) => {
       const key = `${pkg}:${specialFlow ? 1 : 0}`;
-      return flowCache[key] ??= buildStepFlow(pkg, null, specialFlow);
+      return flowCache[key] ??= buildStepFlow(pkg, guideSteps, specialFlow);
     };
 
     const enriched = sessions.map(s => {
       const ac   = acodes.find(a => a.code === s.access_code);
       const cust = ac ? custs.find(c => c.id === ac.customer_id) : null;
-      const pkg  = normalizePackage(ac?.package);
+      const pkg  = ac?.package || '5s';
       return {
         id:             s.id,
         access_code:    s.access_code,
@@ -64,21 +89,21 @@ module.exports = async (req, res) => {
         last_ping:      s.last_ping,
         expires_at:     ac?.expires_at || null,
         package:        pkg,
-        customer_name:  cust?.name || 'Khách chưa rõ',
+        customer_name:  cust?.name || 'Khach chua ro',
         customer_phone: cust?.phone || '-',
         customer_code:  cust?.customer_code || '-',
+        // Username Locket để admin đối chiếu ngay trên thẻ phiên live (khách đọc sai
+        // username là lỗi hay gặp nhất). null khi khách chưa nhập tới bước đó.
         locket_username: cust?.locket_username || null,
         current_step:   s.current_step ?? null,
         total_steps:    s.total_steps ?? null,
         step_choice:    s.step_choice ?? null,
-        step_flow:      flowFor(pkg, !!cust?.special_flow),
-        aligned_flow:   alignStepFlow(flowFor(pkg, !!cust?.special_flow), s.total_steps),
-        is_original:    s.is_original !== false,
+        // Nhãn từng bước của ĐÚNG phiên này, đã đối chiếu với total_steps mà phiên báo
+        // lên. null = không khớp được (admin vừa sửa guide_steps giữa lúc khách đang
+        // làm) → admin.html hiện "Bước n" thay vì tên có thể sai.
+        step_labels:    alignStepFlow(flowFor(pkg, cust?.special_flow), s.total_steps ?? null),
       };
     });
-
-    return res.json(enriched);
-  } catch (e) {
-    return res.status(500).json({ error: e.message });
-  }
+    res.json(enriched);
+  } catch (e) { res.status(500).json({ error: e.message }); }
 };

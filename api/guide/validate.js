@@ -1,7 +1,11 @@
 'use strict';
 const { sb, signJWT, verifyJWT, getToken, allowMethods, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, expireCodeAndNotify, lookupCustomerByDnsCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, dnsPrivateUrl, normalizePackage, isPermPackage, getAppConfig, setAppConfig, getAppstoreConfig, maskAppstoreEmail, claimDnsFromPool, DNS_POOL_FULL_MSG } = require('../_lib/utils');
+
 const { randomUUID } = require('crypto');
 
+// Mã có hiệu lực bao lâu kể từ lúc khách kích hoạt. Gói vĩnh viễn (150/180) được
+// 45 phút thay vì 30: flow dài hơn (cài Shadowrocket bằng tài khoản Appstore chung
+// → đăng xuất/đăng nhập App Store → cài IPA qua OTA), 30 phút không đủ.
 const CODE_VALID_MS      = 30 * 60 * 1000;
 const CODE_VALID_MS_PERM = 45 * 60 * 1000;
 function codeValidMs(pkg) {
@@ -14,7 +18,7 @@ function codeValidLabel(pkg) {
 // ── GET ?action=appstore — trả tài khoản Appstore chung cho khách gói vĩnh viễn ──
 // BẮT BUỘC có JWT guide hợp lệ (mã còn hiệu lực). Đây là chỗ DUY NHẤT mật khẩu
 // Appstore rời khỏi server, nên không được nới lỏng thành public: dự án tham khảo
-// (locketvxang) để account trong Firebase RTDB đọc được từ client, ai mở trang cũng
+// (locketxwuan) để account trong Firebase RTDB đọc được từ client, ai mở trang cũng
 // lấy được pass qua DevTools — cố tình KHÔNG làm theo.
 // Rủi ro còn lại (khách có mã tự copy pass rồi share ra ngoài) là rủi ro cố hữu của
 // việc share account, không xử được bằng code.
@@ -107,9 +111,9 @@ async function handleAppstore(req, res) {
         return res.json({
           ok: true,
           is_updating: true,
-            email_masked: "Đợi Vxang cập nhật",
-            email_real: "Đợi Vxang cập nhật",
-            password: "Đợi Vxang cập nhật",
+            email_masked: "Đợi Xwuan cập nhật",
+            email_real: "Đợi Xwuan cập nhật",
+            password: "Đợi Xwuan cập nhật",
           ipa_url,
           has_ipa,
           special_flow
@@ -130,7 +134,7 @@ async function handleAppstore(req, res) {
 // ── GET ?action=ipa_plist — sinh manifest plist OTA động cho iOS itms-services ──
 // Phục vụ trực tiếp từ server Vercel (HTTPS, đúng MIME application/xml, phản hồi 50ms),
 // inject thẳng link download trực tiếp (Dropbox dl=1, Catbox, Archive.org...) vào XML.
-// Giúp iOS hiện popup "Muốn cài đặt Locket_Vxang" ngay lập tức mà không bị lỗi mạng,
+// Giúp iOS hiện popup "Muốn cài đặt Locket_Xwuan" ngay lập tức mà không bị lỗi mạng,
 // không bị GitHub raw rate limit 429, và tải trực tiếp tốc độ cao về iPhone.
 async function handleIpaPlist(req, res) {
   try {
@@ -172,7 +176,7 @@ async function handleIpaPlist(req, res) {
           <key>needs-shine</key>
           <true/>
           <key>url</key>
-          <string>https://raw.githubusercontent.com/Vxang19/Locket-IPA/refs/heads/main/Locket%20Icon.png</string>
+          <string>https://raw.githubusercontent.com/Xwuan19/Locket-IPA/refs/heads/main/Locket%20Icon.png</string>
         </dict>
         <dict>
           <key>kind</key>
@@ -180,7 +184,7 @@ async function handleIpaPlist(req, res) {
           <key>needs-shine</key>
           <true/>
           <key>url</key>
-          <string>https://raw.githubusercontent.com/Vxang19/Locket-IPA/refs/heads/main/Locket%20Icon.png</string>
+          <string>https://raw.githubusercontent.com/Xwuan19/Locket-IPA/refs/heads/main/Locket%20Icon.png</string>
         </dict>
       </array>
       <key>metadata</key>
@@ -192,7 +196,7 @@ async function handleIpaPlist(req, res) {
         <key>kind</key>
         <string>software</string>
         <key>title</key>
-        <string>Locket_Vxang</string>
+        <string>Locket_Xwuan</string>
       </dict>
     </dict>
   </array>
@@ -270,7 +274,7 @@ async function handleDnsCheck(req, res) {
       await notifyTelegram(
         `🔒 <b>${who}</b> vừa bấm vào link DNS riêng\n` +
         `🆔 Mã KH: <code>${escTgHtml(row.customer_code)}</code>\n` +
-        `${normalizePackage(row.package) === '40k' ? '🌟' : '⭐'} Gói: <b>${escTgHtml(row.package || '30k')}</b>`
+        `${row.package === '15s' ? '🌟' : '⭐'} Gói: <b>${escTgHtml(row.package || '5s')}</b>`
       );
       // Fresh access → chắc chắn chưa hết hạn, khỏi cần check thêm.
       return res.json({ ok: true, expired: false, dns_url: dnsPrivateUrl(row), ublockdns_url: dnsPrivateUrl(row), package: row.package, customer_code: row.customer_code });
@@ -295,7 +299,7 @@ async function handleDnsPoolClaim(req, res) {
   const payload = verifyJWT(getToken(req));
   if (!payload || payload.role !== 'guide') return res.status(401).json({ error: 'Unauthorized' });
   try {
-    const pkg = normalizePackage(payload.package || '30k');
+    const pkg = normalizePackage(payload.package || '5s');
     const cust = await lookupCustomerByCode(payload.code);
     const customerCode = cust?.customerCode || payload.code || '';
     const claim = await claimDnsFromPool(pkg, customerCode);
@@ -344,8 +348,6 @@ module.exports = async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     return handleDnsPoolClaim(req, res);
   }
-  // Kích hoạt Locket Gold bằng Username qua RevenueCat
-  
   if (!allowMethods(req, res, ['POST'])) return;
   const { code, device_id } = req.body || {};
   if (!code) return res.status(400).json({ error: 'Missing code' });

@@ -1,6 +1,7 @@
 'use strict';
 const { sb, requireAdmin, allowMethods, genCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, normalizePackage, isPermPackage, getAppstoreConfig, setAppConfig, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, parseContactInput } = require('../_lib/utils');
 
+
 module.exports = async (req, res) => {
   if (!allowMethods(req, res, ['GET', 'POST', 'DELETE', 'PATCH'])) return;
   if (!await requireAdmin(req, res)) return;
@@ -22,6 +23,7 @@ module.exports = async (req, res) => {
       await setAppConfig('dns_template', { template: t });
       return res.json({ ok: true, template: t, message: '✓ Đã lưu cấu hình mẫu DNS tự hiểu' });
     }
+
 
     // ── GET ?action=appstore_get — đọc cấu hình tài khoản Appstore ─────
     // Trả password THẬT cho admin (khác với guide/validate?action=appstore, chỗ đó
@@ -65,7 +67,7 @@ module.exports = async (req, res) => {
       }
 
       // Gói: '5s', '15s', '150', '180'
-      const p = normalizePackage(pkg || '30k');
+      const p = normalizePackage(pkg || '5s');
 
       // BẮT BUỘC mã KH phải tồn tại thật trong customers (theo yêu cầu chốt trước).
       const custs = await sb('GET', 'customers', { q: `customer_code=eq.${encodeURIComponent(customer_code)}&select=id,name` });
@@ -210,7 +212,7 @@ module.exports = async (req, res) => {
       if (!rawList.length) return res.status(400).json({ error: 'Thiếu link DNS' });
 
       // Chỉ có 2 nhóm pool: '5s' và '15s' (gói 180 dùng chung nhóm '15s' — xem dnsPoolKey).
-      const p = (normalizePackage(pkg) === '40k') ? '15s' : '5s';
+      const p = String(pkg || '5s').trim() === '15s' ? '15s' : '5s';
       const maxU = Math.max(1, Math.min(50, parseInt(max_uses, 10) || 5));
 
       const activeTemplate = await getDnsTemplate();
@@ -345,7 +347,7 @@ module.exports = async (req, res) => {
 
       if (special_flow === true) {
           const finalPkg = pkg !== undefined ? normalizePackage(pkg) : current.package;
-          if (finalPkg === '30k' || finalPkg === '40k') {
+          if (finalPkg === '150' || finalPkg === '180') {
             const { getAppstoreConfig } = require('../_lib/utils');
             const cfg = await getAppstoreConfig();
             if (!cfg.email || !cfg.password) {
@@ -356,8 +358,8 @@ module.exports = async (req, res) => {
         
         const finalPkg2 = pkg !== undefined ? normalizePackage(pkg) : current.package;
           const finalSf2 = special_flow !== undefined ? special_flow : current.special_flow;
-          const oldConfig = (current.package === '30k' && current.special_flow) ? null : (normalizePackage(current.package) === '40k' ? '15s' : '5s');
-          const newConfig = (finalPkg2 === '30k' && finalSf2) ? null : (normalizePackage(finalPkg2) === '40k' ? '15s' : '5s');
+          const oldConfig = (current.package === '150' && current.special_flow) ? null : ((current.package === '15s' || current.package === '180') ? '15s' : '5s');
+          const newConfig = (finalPkg2 === '150' && finalSf2) ? null : ((finalPkg2 === '15s' || finalPkg2 === '180') ? '15s' : '5s');
           
           if (current && oldConfig !== newConfig) {
           const { releaseCustomerFromDnsPool } = require('../_lib/utils');
@@ -413,7 +415,7 @@ module.exports = async (req, res) => {
                   nextdns_url: resolvedUrl,
                   nextdns_email: String(nextdns_email || '').trim(),
                   nextdns_password: String(nextdns_password || '').trim(),
-                  package: cust.package || '40k',
+                  package: cust.package || '180',
                 },
                 prefer: 'return=minimal',
               });
@@ -427,7 +429,7 @@ module.exports = async (req, res) => {
 
     // ── DELETE ?id=... ─────────────────────────────────────────────
     if (req.method === 'DELETE') {
-      if (!id || id === 'undefined') return res.status(400).json({ error: 'Missing or invalid id' });
+      if (!id) return res.status(400).json({ error: 'Missing id' });
       
       // 1. Lấy customer_code và các access_codes của khách này
       const [cust] = (await sb('GET', 'customers', { q: `id=eq.${id}&select=customer_code` })) || [];

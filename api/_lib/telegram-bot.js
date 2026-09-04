@@ -1,9 +1,9 @@
 'use strict';
 /**
- * 🤖 LOCKET_VXANG TELEGRAM BOT
- * Thông Báo & Tra Cứu CRM Tức Thì (Không có hệ thống nâng Username tự động)
+ * 🤖 LOCKET VXANG TELEGRAM BOT
+ * Bot Thông Báo + Tra Cứu CRM
  */
-const { sb, lookupCustomerByCode, normalizePackage } = require('./utils');
+const { sb, lookupCustomerByCode } = require('./utils');
 
 const TG_CHAT_ID = (process.env.TELEGRAM_CHAT_ID || '').trim();
 const TG_BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
@@ -24,6 +24,19 @@ function formatVnDateTime(isoStr) {
   } catch {
     return null;
   }
+}
+
+async function warmupDnsFn(req) {
+  try {
+    const host = req.headers['x-forwarded-host'] || req.headers.host;
+    if (!host) return;
+    const proto = (req.headers['x-forwarded-proto'] || 'https').split(',')[0];
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 2500);
+    try {
+      await fetch(`${proto}://${host}/api/guide/validate?action=dns_warmup`, { signal: ctl.signal });
+    } finally { clearTimeout(t); }
+  } catch {}
 }
 
 async function tgApi(endpoint, body) {
@@ -49,245 +62,429 @@ async function replyTelegram(chatId, text, extra = {}) {
   });
   if (r?.ok) return r;
 
-  // Retry plain text nếu lỗi parse HTML
-  const plainText = text.replace(/<[^>]+>/g, '');
-  return await tgApi('sendMessage', {
-    chat_id: chatId,
-    text: plainText,
-    ...extra,
+  // 1. Nếu lỗi parse HTML -> retry plain text
+  if (r?.description && r.description.toLowerCase().includes('parse')) {
+    const plainText = text.replace(/<[^>]+>/g, '');
+    r = await tgApi('sendMessage', {
+      chat_id: chatId,
+      text: plainText,
+      ...extra,
+    });
+    if (r?.ok) return r;
+  }
+
+  // 2. Nếu lỗi BUTTON_DATA_INVALID hoặc lỗi do inline keyboard -> retry không có reply_markup
+  if (extra.reply_markup) {
+    const { reply_markup, ...restExtra } = extra;
+    r = await tgApi('sendMessage', {
+      chat_id: chatId,
+      text,
+      parse_mode: 'HTML',
+      ...restExtra,
+    });
+    if (r?.ok) return r;
+
+    // 3. Fallback tối thượng: Plain text không markup
+    const plainText = text.replace(/<[^>]+>/g, '');
+    r = await tgApi('sendMessage', {
+      chat_id: chatId,
+      text: plainText,
+      ...restExtra,
+    });
+  }
+
+  return r;
+}
+
+async function answerCallbackQuery(callbackQueryId, text, showAlert = false) {
+  return await tgApi('answerCallbackQuery', {
+    callback_query_id: callbackQueryId,
+    text,
+    show_alert: showAlert,
   });
 }
 
-// ─── Format thẻ tra cứu Mã Truy Cập (XW-...) ─────────────────
-function formatCodeDetail(codeRow, cust) {
-  const p = normalizePackage(codeRow.package);
-  const isSpecial = !!cust?.special_flow;
-  const isDone = !!codeRow.completed_at;
-  const isExp = codeRow.expires_at && new Date(codeRow.expires_at) < new Date();
-  let statusBadge = '⏳ Đang chờ cài đặt';
-  if (isDone) statusBadge = '✅ Đã hoàn tất cài đặt';
-  else if (isExp) statusBadge = '❌ Đã hết hạn (quá giờ)';
-  else if (codeRow.is_active) statusBadge = '🟢 Đang trong thời hạn làm';
+async function editMessageText(chatId, messageId, text, extra = {}) {
+  let r = await tgApi('editMessageText', {
+    chat_id: chatId,
+    message_id: messageId,
+    text,
+    parse_mode: 'HTML',
+    ...extra,
+  });
+  if (r?.ok) return r;
 
-  const lines = [
-    '🎫 <b>THÔNG TIN MÃ TRUY CẬP</b>',
-    DIVIDER,
-    `🔑 <b>Mã:</b> <code>${escHtml(codeRow.code)}</code>`,
-    `🚦 <b>Trạng thái:</b> ${statusBadge}`,
-    `💎 <b>Gói:</b> <b>${p === '40k' ? 'Gói 40k (15s Vĩnh viễn)' : 'Gói 30k (5s Vĩnh viễn)'}</b>${isSpecial ? ' · 🛡️ Flow Đặc Biệt' : ''}`,
-  ];
-
-  if (cust) {
-    lines.push(
-      `👤 <b>Khách hàng:</b> ${escHtml(cust.name || '—')}`,
-      `🏷️ <b>Mã KH:</b> <code>${escHtml(cust.customer_code || '—')}</code>`
-    );
-    if (cust.phone) lines.push(`📞 <b>SĐT:</b> <code>${escHtml(cust.phone)}</code>`);
-    if (cust.social_link) lines.push(`🔗 <b>Liên hệ:</b> <a href="${cust.social_link}">Mở link profile</a>`);
+  if (r?.description && r.description.toLowerCase().includes('parse')) {
+    const plainText = text.replace(/<[^>]+>/g, '');
+    r = await tgApi('editMessageText', {
+      chat_id: chatId,
+      message_id: messageId,
+      text: plainText,
+      ...extra,
+    });
   }
-
-  const createdTime = formatVnDateTime(codeRow.created_at);
-  const actTime = formatVnDateTime(codeRow.activated_at);
-  const expTime = formatVnDateTime(codeRow.expires_at);
-  const doneTime = formatVnDateTime(codeRow.completed_at);
-
-  lines.push(DIVIDER);
-  if (createdTime) lines.push(`🕒 Tạo lúc: <code>${createdTime}</code>`);
-  if (actTime) lines.push(`⚡ Kích hoạt: <code>${actTime}</code>`);
-  if (expTime) lines.push(`⏳ Hết hạn: <code>${expTime}</code>`);
-  if (doneTime) lines.push(`🎉 Hoàn thành: <code>${doneTime}</code>`);
-
-  return lines.join('\n');
+  return r;
 }
 
-// ─── Format thẻ tra cứu Khách Hàng (KH-...) ──────────────────
-function formatCustomerDetail(cust, codes = []) {
-  const p = normalizePackage(cust.package);
-  const isSpecial = !!cust.special_flow;
-  const isDone = cust.service_status === 'active' || cust.service_status === 'completed';
-
-  const lines = [
-    '👥 <b>HỒ SƠ KHÁCH HÀNG CRM</b>',
-    DIVIDER,
-    `👤 <b>Tên:</b> <b>${escHtml(cust.name || '—')}</b>`,
-    `🏷️ <b>Mã KH:</b> <code>${escHtml(cust.customer_code || '—')}</code>`,
-    `💎 <b>Gói:</b> <b>${p === '40k' ? 'Gói 40k (15s Vĩnh viễn)' : 'Gói 30k (5s Vĩnh viễn)'}</b>${isSpecial ? ' · 🛡️ Flow Đặc Biệt' : ''}`,
-    `💰 <b>Thanh toán:</b> <code>${escHtml(cust.deposit_note || 'Chờ thu tiền')}</code>`,
-    `🚦 <b>Trạng thái:</b> ${isDone ? '✅ Đã hoàn tất' : '⏳ Đang chờ'}`,
-  ];
-
-  if (cust.phone) lines.push(`📞 <b>SĐT:</b> <code>${escHtml(cust.phone)}</code>`);
-  if (cust.social_link) lines.push(`🔗 <b>Liên hệ:</b> <a href="${cust.social_link}">Mở link profile</a>`);
-  if (cust.notes) lines.push(`📝 <b>Ghi chú:</b> <i>${escHtml(cust.notes)}</i>`);
-
-  lines.push(DIVIDER);
-  lines.push(`🎫 <b>Danh sách mã truy cập (${codes.length}):</b>`);
-  if (codes.length) {
-    for (const c of codes.slice(0, 5)) {
-      const isCExp = c.expires_at && new Date(c.expires_at) < new Date();
-      const mark = c.completed_at ? '✅' : (isCExp ? '❌' : (c.is_active ? '🟢' : '⚪'));
-      lines.push(`• ${mark} <code>${escHtml(c.code)}</code> (${c.status || 'pending'})`);
-    }
-  } else {
-    lines.push('• <i>Chưa có mã nào được cấp</i>');
-  }
-
-  return lines.join('\n');
-}
-
-// ─── Webhook Router chính của Bot ───────────────────────────
-module.exports = async (req, res) => {
+// ══════════════════════════════════════════════════════
+// ⚡ XỬ LÝ WEBHOOK TỔNG HỢP
+// ══════════════════════════════════════════════════════
+async function handleTelegramWebhook(req, res) {
   try {
-    const update = req.body;
-    if (!update) return res.status(200).send('OK');
+    const update = req.body || {};
 
-    const msg = update.message;
-    const callbackQuery = update.callback_query;
+    // ──────────────────────────────────────────────────
+    // 🔘 1. XỬ LÝ NÚT BẤM INLINE (CALLBACK QUERY)
+    // ──────────────────────────────────────────────────
+    if (update.callback_query) {
+      const cb = update.callback_query;
+      const callbackId = cb.id;
+      const data = String(cb.data || '');
+      const chatId = cb.message?.chat?.id;
+      const messageId = cb.message?.message_id;
+      const fromId = cb.from?.id;
 
-    if (callbackQuery) {
-      const cbData = callbackQuery.data || '';
-      const cbChatId = callbackQuery.message?.chat?.id;
-
-      if (cbData.startsWith('lookup_code:')) {
-        const targetCode = cbData.split(':')[1];
-        const codeRows = await sb('GET', 'access_codes', { q: `code=eq.${encodeURIComponent(targetCode)}&limit=1` });
-        if (codeRows?.length) {
-          const cust = await lookupCustomerByCode(targetCode);
-          await replyTelegram(cbChatId, formatCodeDetail(codeRows[0], cust));
-        }
+      // Kiểm tra quyền Admin
+      if (TG_CHAT_ID && String(fromId) !== String(TG_CHAT_ID)) {
+        await answerCallbackQuery(callbackId, '⛔ Bạn không có quyền thực hiện thao tác này.', true);
+        return res.status(200).json({ ok: true });
       }
 
-      await tgApi('answerCallbackQuery', { callback_query_id: callbackQuery.id });
+      // Xử lý nút noop (đã hoàn thành)
+      if (data === 'noop') {
+        await answerCallbackQuery(callbackId, '✨ Tài khoản này đã được kích hoạt Gold thành công rồi!');
+        return res.status(200).json({ ok: true });
+      }
+
+      // Xử lý nút tra cứu mã truy cập
+      if (data.startsWith('lookup_code:')) {
+        const codeId = data.split(':')[1];
+        if (!codeId) return res.status(200).json({ ok: true });
+        
+        await answerCallbackQuery(callbackId, '⏳ Đang tra cứu thông tin...');
+        
+        try {
+          const codeRows = await sb('GET', 'access_codes', { q: `id=eq.${encodeURIComponent(codeId)}` });
+          const codeData = codeRows?.[0];
+          
+          if (!codeData) {
+            await replyTelegram(chatId, `❌ Không tìm thấy mã này.`);
+            return res.status(200).json({ ok: true });
+          }
+          
+          const custRows = await sb('GET', 'customers', { q: `id=eq.${encodeURIComponent(codeData.customer_id)}` });
+          const customer = custRows?.[0] || {};
+          
+          const pkg = customer.package || codeData.package || '30k';
+          const lines = [
+            `🎯 <b>THÔNG TIN TỪ MÃ TRUY CẬP</b>`,
+            DIVIDER,
+            `🔑 <b>Mã:</b> <code>${escHtml(codeData.code)}</code>`,
+            `📦 <b>Gói:</b> <code>${escHtml(pkg)}</code>`,
+            `👤 <b>Khách hàng:</b> <code>${escHtml(customer.customer_code || '-')}</code> (${escHtml(customer.name || 'Chưa có tên')})`,
+            `👤 <b>Username:</b> <code>${escHtml(customer.locket_username || '-')}</code>`,
+            `📞 <b>SĐT:</b> <code>${escHtml(customer.phone || '-')}</code>`,
+            `📊 <b>Trạng thái:</b> <b>${escHtml(customer.service_status || '-')}</b>`
+          ];
+          
+          await replyTelegram(chatId, lines.join('\n'));
+        } catch (err) {
+          await replyTelegram(chatId, `❌ Lỗi tra cứu: ${err.message}`);
+        }
+        return res.status(200).json({ ok: true });
+      }
+
       return res.status(200).json({ ok: true });
     }
 
-    if (!msg) return res.status(200).send('OK');
+    // ──────────────────────────────────────────────────
+    // 💬 2. XỬ LÝ TIN NHẮN VĂN BẢN & FILE (TEXT / DOC)
+    // ──────────────────────────────────────────────────
+    const msg = update.message;
+    const chatId = msg?.chat?.id;
+    const fromId = msg?.from?.id;
 
-    const chatId = String(msg.chat?.id || '');
-    // Bảo mật: chỉ chat của Admin mới được phép thao tác
-    if (TG_CHAT_ID && chatId !== TG_CHAT_ID) {
-      await replyTelegram(chatId, '⛔ <b>Từ chối truy cập:</b> Bạn không có quyền tương tác với Bot quản trị này.');
+    if (!chatId) return res.status(200).json({ ok: true });
+
+    // Chỉ Chat ID Admin mới được điều khiển
+    if (TG_CHAT_ID && String(fromId) !== String(TG_CHAT_ID) && String(chatId) !== String(TG_CHAT_ID)) {
       return res.status(200).json({ ok: true });
     }
 
-    const text = (msg.text || '').trim();
+    let text = (msg?.text || '').trim();
     if (!text) return res.status(200).json({ ok: true });
 
-    // Lệnh /start, help, menu
+    // Lệnh trợ giúp /start, help, menu
     if (text === '/start' || text.toLowerCase() === 'help' || text.toLowerCase() === 'menu') {
       const helpLines = [
-        '👋 <b>Chào Admin Vxang (Locket_Vxang Bot)!</b>',
+        '👋 <b>Chào Admin Vxang (Locket Vxang Bot)!</b>',
         DIVIDER,
-        '⚡ <b>Hệ thống Thông Báo & Tra Cứu CRM Tức Thì:</b>\n',
-        '1️⃣ <b>Nhận thông báo tự động:</b>',
-        '• Khách mới tạo, khách bắt đầu cài đặt, khách hoàn thành (kèm link Zalo).',
-        '• Cảnh báo gian lận chia sẻ mã đa thiết bị.\n',
-        '2️⃣ <b>Tra cứu thông tin:</b>',
-        '• Gõ mã truy cập (VD: <code>XW-A1B2C3</code>) để xem hạn mã và tiến độ.',
-        '• Gõ mã khách hàng (VD: <code>KH-12345678</code>) để xem hồ sơ CRM.',
-        '• Gõ SĐT hoặc Tên khách để tìm kiếm nhanh.\n',
-        '3️⃣ <b>Thống kê:</b>',
-        '• Gõ <code>/stats</code> để xem tổng quan khách hàng và các gói.'
+        '⚡ <b>Hệ thống Quản lý Khách hàng:</b>\n',
+        '1️⃣ <b>Tra cứu thông tin CRM:</b>',
+        '👉 Gõ mã khách hàng <code>KH-xxxxxxx</code>, mã truy cập <code>XW-xxxxxx</code>, SĐT, hoặc Username Locket để xem thông tin.\n',
+        '2️⃣ <b>Thống kê hệ thống:</b>',
+        '👉 Gõ <code>/stats</code> để xem thống kê tổng quan về khách hàng và gói dịch vụ.'
       ];
       await replyTelegram(chatId, helpLines.join('\n'));
       return res.status(200).json({ ok: true });
     }
 
-    // Lệnh /stats
+    // Lệnh thống kê /stats
     if (text === '/stats' || text.toLowerCase() === 'stats') {
-      const customers = await sb('GET', 'customers', { q: 'select=id,package,service_status' });
-      const codes = await sb('GET', 'access_codes', { q: 'is_active=eq.true&select=id' });
-      const sessions = await sb('GET', 'sessions', { q: 'select=id' });
+      try {
+        const [totalCust, pkg30k, pkg40k, completedCust, activeCodes] = await Promise.all([
+          sb('GET', 'customers', { q: 'select=id', count: 'exact', head: true }),
+          sb('GET', 'customers', { q: 'package=eq.30k&select=id', count: 'exact', head: true }),
+          sb('GET', 'customers', { q: 'package=eq.40k&select=id', count: 'exact', head: true }),
+          sb('GET', 'customers', { q: 'service_status=eq.active&select=id', count: 'exact', head: true }),
+          sb('GET', 'access_codes', { q: 'is_active=eq.true&select=id', count: 'exact', head: true })
+        ]);
+        
+        const lines = [
+          '📊 <b>THỐNG KÊ LOCKET VXANG</b>',
+          DIVIDER,
+          `👥 <b>Tổng khách hàng:</b> <code>${totalCust?.count || 0}</code>`,
+          `✅ <b>Đã hoàn thành (active):</b> <code>${completedCust?.count || 0}</code>`,
+          DIVIDER,
+          `📦 <b>Khách gói 30k (5s):</b> <code>${pkg30k?.count || 0}</code>`,
+          `📦 <b>Khách gói 40k (15s):</b> <code>${pkg40k?.count || 0}</code>`,
+          DIVIDER,
+          `🔑 <b>Mã truy cập đang active:</b> <code>${activeCodes?.count || 0}</code>`
+        ];
+        
+        await replyTelegram(chatId, lines.join('\n'));
+      } catch (err) {
+        await replyTelegram(chatId, `❌ Lỗi lấy thống kê: ${err.message}`);
+      }
+      return res.status(200).json({ ok: true });
+    }
 
-      const totalCust = customers?.length || 0;
-      const count30k = customers?.filter(c => normalizePackage(c.package) === '30k').length || 0;
-      const count40k = customers?.filter(c => normalizePackage(c.package) === '40k').length || 0;
-      const countCompleted = customers?.filter(c => c.service_status === 'active' || c.service_status === 'completed').length || 0;
+    // ──────────────────────────────────────────────────
+    // 🔍 2.2 TRA CỨU THEO MÃ KH HOẶC MÃ TRUY CẬP HOẶC SĐT (FIND CUSTOMER CRM)
+    // ──────────────────────────────────────────────────
+    const customer = await findCustomerInCrm(text);
 
-      const statLines = [
-        '📊 <b>THỐNG KÊ HỆ THỐNG LOCKET_VXANG</b>',
+    if (!customer) {
+      await replyTelegram(chatId,
+        '❌ <b>Không tìm thấy thông tin</b>\n' +
+        DIVIDER + '\n' +
+        `Không tìm thấy dữ liệu cho <code>${escHtml(text)}</code>.\n\n` +
+        '👉 <i>Vui lòng nhập đúng mã KH (vd: <code>KH-GE2Y4CX8</code>), mã truy cập (<code>XW-123456</code>), SĐT hoặc Username Locket.</i>'
+      );
+      return res.status(200).json({ ok: true });
+    }
+
+    // Lấy danh sách mã & hâm nóng DNS function
+    const [codesRaw, dnsRowsRaw] = await Promise.all([
+      sb('GET', 'access_codes', { q: `customer_id=eq.${encodeURIComponent(customer.id)}&order=created_at.desc` }).catch(() => []),
+      sb('GET', 'private_dns_links', { q: `customer_code=eq.${encodeURIComponent(customer.customer_code)}&select=created_at,first_accessed_at&order=created_at.desc` }).catch(() => []),
+      warmupDnsFn(req),
+    ]);
+    const codes = codesRaw || [];
+    const dnsRows = dnsRowsRaw || [];
+    const latestCode = codes[0];
+
+    function codeStatus(c) {
+      if (c.completed_at) return '✅ đã hoàn thành';
+      if (!c.is_active && c.fraud_triggered_at) return '🔒 khoá do share mã';
+      if (!c.is_active) return '🚫 admin khoá';
+      if (c.expires_at && new Date(c.expires_at) < new Date()) return '⏰ hết hạn';
+      if (!c.activated_at) return '⏳ chưa dùng';
+      return '🟢 đang còn hiệu lực';
+    }
+
+    const statusEmoji = { pending_gold: '⏳', active: '✅', expired: '⏰' }[customer.service_status] || '❓';
+    const pkg = escHtml(customer.package || latestCode?.package || '30k');
+    const pkgEmoji = (pkg === '40k') ? '⚡' : '✨';
+    
+    const searchedCode = customer._searchedCode;
+    const targetCodeObj = searchedCode ? codes.find(c => (c.code || '').toUpperCase() === searchedCode.toUpperCase()) : null;
+
+    const lines = [];
+
+    // Nếu admin tra cứu đích danh 1 mã truy cập -> hiện thẻ tiêu điểm mã lên đầu
+    if (targetCodeObj) {
+      const actTime = formatVnDateTime(targetCodeObj.activated_at);
+      const compTime = formatVnDateTime(targetCodeObj.completed_at);
+      const expTime = formatVnDateTime(targetCodeObj.expires_at);
+      const createTime = formatVnDateTime(targetCodeObj.created_at);
+
+      lines.push('🎯 <b>THÔNG TIN MÃ TRUY CẬP</b>');
+      lines.push(DIVIDER);
+      lines.push(`🔑 <b>Mã truy cập:</b> <code>${escHtml(targetCodeObj.code)}</code>`);
+      lines.push(`📊 <b>Trạng thái:</b> <b>${codeStatus(targetCodeObj)}</b>`);
+      lines.push(`📦 <b>Gói dịch vụ:</b> <code>${escHtml(targetCodeObj.package || pkg)}</code>`);
+      lines.push(`📅 <b>Ngày tạo mã:</b> <code>${createTime || '-'}</code>`);
+      lines.push(`⚡ <b>Kích hoạt lúc:</b> <b>${actTime ? `<code>${actTime}</code>` : '<i>(Chưa kích hoạt / Chưa dùng)</i>'}</b>`);
+      if (compTime) {
+        lines.push(`✅ <b>Hoàn tất lúc:</b> <code>${compTime}</code>`);
+      } else if (expTime) {
+        lines.push(`⌛ <b>Hết hạn lúc:</b> <code>${expTime}</code>`);
+      }
+      lines.push(DIVIDER);
+      lines.push('👤 <b>CHỦ SỞ HỮU (KHÁCH HÀNG):</b>');
+    }
+
+    if (!targetCodeObj) {
+      lines.push(
+        `👤 <b>${escHtml(customer.name || '(chưa có tên)')}</b>`,
         DIVIDER,
-        `👥 <b>Tổng khách hàng:</b> <code>${totalCust}</code>`,
-        `💎 <b>Gói 30k (5s Vĩnh viễn):</b> <code>${count30k}</code>`,
-        `💎 <b>Gói 40k (15s Vĩnh viễn):</b> <code>${count40k}</code>`,
-        `✅ <b>Đã hoàn thành cài đặt:</b> <code>${countCompleted}</code>`,
-        `🔑 <b>Mã đang hoạt động:</b> <code>${codes?.length || 0}</code>`,
-        `🟢 <b>Phiên đang live:</b> <code>${sessions?.length || 0}</code>`,
-        DIVIDER,
-        `🕒 Thời gian: <code>${new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</code>`
-      ];
-      await replyTelegram(chatId, statLines.join('\n'));
-      return res.status(200).json({ ok: true });
+        `🆔 Mã KH: <code>${escHtml(customer.customer_code)}</code>`,
+        `👤 <b>Username Locket:</b> <code>${escHtml(customer.locket_username || '-')}</code>`,
+        `📞 SĐT: <code>${escHtml(customer.phone || '-')}</code>`,
+        `🔗 Profile: <code>${escHtml(customer.social_link || '-')}</code>`,
+        `${pkgEmoji} Gói: <b>${pkg}</b>`,
+        `${statusEmoji} Trạng thái: <b>${escHtml(customer.service_status || '-')}</b>`
+      );
+    } else {
+      lines.push(
+        `👤 <b>${escHtml(customer.name || '(chưa có tên)')}</b>`,
+        `🆔 Mã KH: <code>${escHtml(customer.customer_code)}</code>`,
+        `👤 <b>Username Locket:</b> <code>${escHtml(customer.locket_username || '-')}</code>`,
+        `📞 SĐT: <code>${escHtml(customer.phone || '-')}</code>`,
+        `🔗 Profile: <code>${escHtml(customer.social_link || '-')}</code>`,
+        `${pkgEmoji} Gói: <b>${pkg}</b>`,
+        `${statusEmoji} Trạng thái: <b>${escHtml(customer.service_status || '-')}</b>`
+      );
     }
 
-    // ── TRA CỨU MÃ TRUY CẬP (XW-...) ──
-    if (/^XW-[A-Z0-9]{4,10}$/i.test(text)) {
-      const upper = text.toUpperCase();
-      const codeRows = await sb('GET', 'access_codes', { q: `code=eq.${encodeURIComponent(upper)}&limit=1` });
-      if (!codeRows?.length) {
-        await replyTelegram(chatId, `❌ Không tìm thấy mã truy cập <code>${escHtml(upper)}</code> trong hệ thống.`);
-        return res.status(200).json({ ok: true });
-      }
-      const cust = await lookupCustomerByCode(upper);
-      await replyTelegram(chatId, formatCodeDetail(codeRows[0], cust));
-      return res.status(200).json({ ok: true });
-    }
-
-    // ── TRA CỨU MÃ KHÁCH HÀNG (KH-...) ──
-    if (/^KH-[0-9A-Z]{4,12}$/i.test(text)) {
-      const upper = text.toUpperCase();
-      const custRows = await sb('GET', 'customers', { q: `customer_code=eq.${encodeURIComponent(upper)}&limit=1` });
-      if (!custRows?.length) {
-        await replyTelegram(chatId, `❌ Không tìm thấy mã khách hàng <code>${escHtml(upper)}</code> trong CRM.`);
-        return res.status(200).json({ ok: true });
-      }
-      const cust = custRows[0];
-      const codes = await sb('GET', 'access_codes', { q: `customer_id=eq.${encodeURIComponent(cust.id)}&order=created_at.desc&limit=10` });
-      await replyTelegram(chatId, formatCustomerDetail(cust, codes || []));
-      return res.status(200).json({ ok: true });
-    }
-
-    // ── TRA CỨU THEO SĐT HOẶC TÊN ──
-    const cleanDigits = text.replace(/[^0-9]/g, '');
-    let searchQ = '';
-    if (cleanDigits.length >= 8) {
-      searchQ = `phone=ilike.*\${cleanDigits}*&limit=5`;
-    } else if (text.length >= 2) {
-      searchQ = `name=ilike.*\${encodeURIComponent(text)}*&limit=5`;
-    }
-
-    if (searchQ) {
-      const custRows = await sb('GET', 'customers', { q: searchQ });
-      if (custRows?.length) {
-        if (custRows.length === 1) {
-          const cust = custRows[0];
-          const codes = await sb('GET', 'access_codes', { q: `customer_id=eq.${encodeURIComponent(cust.id)}&order=created_at.desc&limit=5` });
-          await replyTelegram(chatId, formatCustomerDetail(cust, codes || []));
-        } else {
-          const resultLines = [
-            `🔍 <b>TÌM THẤY ${custRows.length} KHÁCH HÀNG:</b>`,
-            DIVIDER,
-          ];
-          for (const c of custRows) {
-            resultLines.push(
-              `• <b>${escHtml(c.name)}</b> (<code>${escHtml(c.customer_code)}</code>)` +
-              (c.phone ? ` - 📞 <code>${escHtml(c.phone)}</code>` : '') +
-              ` - Gói: ${normalizePackage(c.package)}`
-            );
-          }
-          resultLines.push(DIVIDER);
-          resultLines.push('💡 <i>Gõ mã KH cụ thể ở trên để xem đầy đủ chi tiết mã truy cập.</i>');
-          await replyTelegram(chatId, resultLines.join('\n'));
-        }
-        return res.status(200).json({ ok: true });
+    if (codes.length) {
+      lines.push(DIVIDER);
+      lines.push(`🔑 <b>Mã truy cập (${codes.length})</b>`);
+      for (const c of codes) {
+        lines.push(`<code>${escHtml(c.code)}</code> - ${codeStatus(c)}`);
       }
     }
 
-    // Phản hồi mặc định nếu không khớp
-    await replyTelegram(chatId, `❓ Không tìm thấy dữ liệu phù hợp với "<b>${escHtml(text)}</b>".\n\n💡 Bạn có thể gửi: Mã <code>XW-xxxxxx</code>, Mã <code>KH-xxxxxxxx</code>, Số điện thoại hoặc Tên khách hàng.`);
-    return res.status(200).json({ ok: true });
-  } catch (err) {
-    console.error('[telegram-bot] error:', err.message);
-    return res.status(200).json({ ok: false, error: err.message });
+    if (dnsRows.length) {
+      const opened = dnsRows.filter(r => r.first_accessed_at).length;
+      lines.push(DIVIDER);
+      lines.push(`🌐 <b>Khách làm DNS riêng</b> - ${dnsRows.length} link${opened ? `, đã mở ${opened}` : ', chưa mở link nào'}`);
+    }
+    if (customer.notes) {
+      lines.push(DIVIDER);
+      lines.push(`📝 <i>${escHtml(customer.notes)}</i>`);
+    }
+
+    await replyTelegram(chatId, lines.join('\n'));
+    res.status(200).json({ ok: true });
+  } catch (e) {
+    res.status(200).json({ ok: false, error: e.message });
   }
-};
+}
+
+// ──────────────────────────────────────────────────
+// 🔎 HÀM TÌM KIẾM KHÁCH HÀNG CRM TOÀN DIỆN (4-LAYER SEARCH)
+// ──────────────────────────────────────────────────
+async function findCustomerInCrm(queryText) {
+  if (!queryText) return null;
+  const raw = String(queryText).trim();
+  if (!raw) return null;
+
+  const upper = raw.toUpperCase();
+  const cleanCode = upper.replace(/^(KH-|XW-)/i, '').trim();
+  const esc = encodeURIComponent(raw);
+  const escClean = encodeURIComponent(cleanCode);
+
+  let searchedCode = null;
+  if (/^XW-[A-Z0-9]+$/i.test(raw) || (raw.length === 6 && /^[A-Z0-9]+$/i.test(raw))) {
+    searchedCode = upper.startsWith('XW-') ? upper : `XW-${upper}`;
+  }
+
+  // Layer 1: Query trực tiếp Supabase bảng customers bằng PostgREST OR & ilike
+  const orParts = [
+    `customer_code.ilike.*${esc}*`,
+    `customer_code.ilike.*${escClean}*`,
+    `locket_username.ilike.*${esc}*`,
+    `name.ilike.*${esc}*`,
+    `phone.ilike.*${esc}*`
+  ];
+  const cleanPhone = raw.replace(/[^0-9]/g, '');
+  if (cleanPhone && cleanPhone.length >= 6) {
+    orParts.push(`phone.ilike.*${encodeURIComponent(cleanPhone)}*`);
+  }
+
+  let custs = await sb('GET', 'customers', {
+    q: `or=(${orParts.join(',')})&limit=10`,
+  }).catch(() => []);
+
+  if (Array.isArray(custs) && custs.length) {
+    // Ưu tiên bản ghi khớp chính xác customer_code nhất
+    const exactMatch = custs.find(c => {
+      const cc = (c.customer_code || '').toUpperCase().trim();
+      return cc === upper || cc === `KH-${cleanCode}` || cc.includes(upper) || cc.includes(cleanCode);
+    });
+    const c = exactMatch || custs[0];
+    if (searchedCode) c._searchedCode = searchedCode;
+    return c;
+  }
+
+  // Layer 2: Tìm qua bảng access_codes (Mã truy cập XW-...)
+  const codeRows = await sb('GET', 'access_codes', {
+    q: `or=(code.ilike.*${esc}*,code.ilike.*${escClean}*)&select=code,customer_id&limit=5`,
+  }).catch(() => []);
+
+  if (Array.isArray(codeRows) && codeRows.length) {
+    for (const cr of codeRows) {
+      if (cr.customer_id) {
+        const matched = await sb('GET', 'customers', {
+          q: `id=eq.${encodeURIComponent(cr.customer_id)}&limit=1`,
+        }).catch(() => []);
+        if (matched?.[0]) {
+          const c = matched[0];
+          c._searchedCode = cr.code || searchedCode;
+          return c;
+        }
+      }
+    }
+  }
+
+  // Layer 3: Tìm qua bảng private_dns_links (Token DNS riêng / Mã KH)
+  const dnsLinks = await sb('GET', 'private_dns_links', {
+    q: `or=(token.ilike.*${esc}*,customer_code.ilike.*${esc}*,customer_code.ilike.*${escClean}*)&select=customer_code&limit=5`,
+  }).catch(() => []);
+
+  if (Array.isArray(dnsLinks) && dnsLinks.length) {
+    for (const dl of dnsLinks) {
+      if (dl.customer_code) {
+        const matched = await sb('GET', 'customers', {
+          q: `customer_code=ilike.*${encodeURIComponent(dl.customer_code.trim())}*&limit=1`,
+        }).catch(() => []);
+        if (matched?.[0]) return matched[0];
+      }
+    }
+  }
+
+  // Layer 4: Fallback In-Memory Scan (khớp 100% cơ chế load của Admin Web)
+  // Tải danh sách khách hàng mới nhất và quét Javascript substring (includes)
+  try {
+    const allCusts = await sb('GET', 'customers', {
+      q: 'order=created_at.desc&limit=500',
+    }).catch(() => []);
+    if (Array.isArray(allCusts) && allCusts.length) {
+      const qLower = raw.toLowerCase();
+      const qClean = cleanCode.toLowerCase();
+      const memMatch = allCusts.find(c => {
+        const cc = (c.customer_code || '').toLowerCase();
+        const nm = (c.name || '').toLowerCase();
+        const un = (c.locket_username || '').toLowerCase();
+        const ph = (c.phone || '').replace(/[^0-9]/g, '');
+        return cc.includes(qLower) ||
+               (qClean.length >= 3 && cc.includes(qClean)) ||
+               nm.includes(qLower) ||
+               un.includes(qLower) ||
+               (cleanPhone.length >= 6 && ph.includes(cleanPhone));
+      });
+      if (memMatch) {
+        if (searchedCode) memMatch._searchedCode = searchedCode;
+        return memMatch;
+      }
+    }
+  } catch (err) {
+    console.warn('Lỗi memory scan CRM fallback:', err.message);
+  }
+
+  return null;
+}
+
+module.exports = { handleTelegramWebhook, replyTelegram, answerCallbackQuery, editMessageText, findCustomerInCrm };

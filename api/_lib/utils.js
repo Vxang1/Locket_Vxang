@@ -6,28 +6,32 @@ const JWT_SEC = process.env.JWT_SECRET || 'locket-secret-jwt-key-2026';
 const FIREBASE_DB_URL = process.env.FIREBASE_DB_URL || 'https://xwuan-access-e9d5e-default-rtdb.firebaseio.com';
 
 // ─── Firebase RTDB REST helper (server-side, no SDK needed) ─────────────
+// Đọc 1 node từ Firebase RTDB qua REST API. Không cần auth vì RTDB rules hiện tại
+// cho phép public read (giống dự án tham khảo locketxwuan-main). Nếu sau này bật
+// auth rules, thêm ?auth=<token> vào URL.
 async function fbPut(path, data) {
-  const url = `${FIREBASE_DB_URL}/${path.replace(/^\//, '')}.json?_t=${Date.now()}`;
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 4000);
-  try {
-    const r = await fetch(url, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-      signal: ctrl.signal
-    });
-    clearTimeout(timer);
-    if (!r.ok) throw new Error('fbPut failed');
-    return true;
-  } catch(e) {
-    clearTimeout(timer);
-    return false;
+    const url = `${FIREBASE_DB_URL}/${path.replace(/^\//, '')}.json?_t=${Date.now()}`; // Bypass cache
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 4000);
+    try {
+      const r = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        signal: ctrl.signal
+      });
+      clearTimeout(timer);
+      if (!r.ok) throw new Error('fbPut failed');
+      return true;
+    } catch(e) {
+      clearTimeout(timer);
+      return false;
+    }
   }
-}
 
-async function fbGet(path) {
+  async function fbGet(path) {
   const url = `${FIREBASE_DB_URL}/${path.replace(/^\//, '')}.json`;
+  // Timeout 4s để không treo serverless function khi Firebase chậm/hang.
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 4000);
   try {
@@ -104,6 +108,10 @@ function verifyJWT(token) {
 function getToken(req) {
   const a = req.headers.authorization || '';
   if (a.startsWith('Bearer ')) return a.slice(7);
+  // Fallback: query param ?t=<jwt>. CHỈ dùng cho request mà client KHÔNG THỂ set
+  // header (ví dụ iOS mở itms-services://?...&url=<manifest> — hệ điều hành tự GET
+  // thẳng URL đó, không có cách nào gắn Authorization). Không ảnh hưởng các endpoint
+  // khác vì luôn ưu tiên header trước, query param chỉ là lối thoát hiếm khi cần.
   const t = req.query?.t;
   return typeof t === 'string' && t ? t : null;
 }
@@ -132,52 +140,79 @@ function genCode(prefix, len) {
   return r;
 }
 
-// ─── Gói dịch vụ Locket_Vxang (100% Vĩnh Viễn) ──────────────
+// ─── Gói dịch vụ ─────────────────────────────────────────────
+// Tên gói '150'/'180' là GIÁ TIỀN (150k/180k), không phải số giây quay.
+// '150' = quay 5s vĩnh viễn, '180' = quay 15s vĩnh viễn.
+// PACKAGES giờ chỉ là VIEW MỎNG từ PRICING — giữ key để tương thích DB/JWT, nhưng
+// label/price lấy động theo duration khi cần hiển thị. KHÔNG hardcode giá cũ ở đây.
 const PACKAGES = {
-  '30k': { label: 'Gói 30k (5s Vĩnh viễn)', dns_group: '5s' },
-  '40k': { label: 'Gói 40k (15s Vĩnh viễn)', dns_group: '15s' },
+  '30k': { label: 'Gói 30k (5s Vĩnh viễn)' },
+  '40k': { label: 'Gói 40k (15s Vĩnh viễn)' },
 };
 const PACKAGE_KEYS = ['30k', '40k'];
+const PKG_EMOJI = { '30k': '⭐', '40k': '🌟' };
 
+// Whitelist gói — NGUỒN SỰ THẬT DUY NHẤT. Trước đây 3 chỗ tự viết
+// `pkg === '15s' ? '15s' : '5s'`, nên thêm gói mới là bị âm thầm hạ cấp về 5s
+// (không lỗi, không log, chỉ sai dữ liệu). Mọi chỗ nhận package từ input phải
+// đi qua đây.
 function normalizePackage(pkg) {
-  const p = String(pkg || '').trim();
-  if (p === '40k' || p === '15s' || p === '180') return '40k';
+  if (PACKAGE_KEYS.includes(pkg)) return pkg;
+  if (pkg === '15s' || pkg === '180' || pkg === '40k') return '40k';
   return '30k';
 }
 
-function isPermPackage() {
-  return true;
-}
+// Gói vĩnh viễn: không có ngày hết hạn, không đếm ngày bảo hành.
+function isPermPackage(pkg) { return true; }
 
+// ─── Bảng giá theo gói + thời hạn ────────────────────────────
+// Gói vĩnh viễn dùng duration 'perm' với months: null — KHÔNG phải 0, để phân biệt
+// "vĩnh viễn" với "duration lạ không tra được" (cả hai đều falsy nếu dùng 0).
 const PRICING = {
   '30k': {
-    'perm': { price: 30000, label: '30k - 5s Vĩnh viễn', months: null },
+    'perm': { price: 30000, label: 'Vĩnh viễn - 30k', months: null },
   },
   '40k': {
-    'perm': { price: 40000, label: '40k - 15s Vĩnh viễn', months: null },
+    'perm': { price: 40000, label: 'Vĩnh viễn - 40k', months: null },
   },
 };
 
-function getPrice(pkg) {
+function getPrice(pkg, duration) {
   const p = normalizePackage(pkg);
-  return PRICING[p]?.perm?.price || 30000;
+  const d = duration || 'perm';
+  return PRICING[p]?.[d]?.price || 0;
 }
 
-function getPriceLabel(pkg) {
+function getPriceLabel(pkg, duration) {
   const p = normalizePackage(pkg);
-  return PRICING[p]?.perm?.label || '30k';
+  const d = duration || 'perm';
+  return PRICING[p]?.[d]?.label || '';
 }
 
-function durationMonths() {
-  return null;
+// Tra số tháng của 1 duration, quét MỌI gói thay vì chỉ 5s/15s như trước.
+// Trả null nếu duration đó là vĩnh viễn ('perm'), undefined nếu không tra được.
+// Phân biệt 2 ca này quan trọng: 'perm' phải trả về "còn hạn mãi", còn duration
+// lạ phải trả về "chưa xác định" — trước đây cả hai đều thành 0 tháng.
+function durationMonths(duration) {
+  if (duration === '3m') return 3;
+  if (duration === 'perm') return null;
+  for (const pkg of PACKAGE_KEYS) {
+    const m = PRICING[pkg]?.[duration]?.months;
+    if (m !== undefined) return m;
+  }
+  return undefined;
 }
 
-// ─── Telegram thông báo & Tra cứu ───────────────────────────
+
+// ─── Telegram thông báo ──────────────────────────────────────
+// PHẢI await ở nơi gọi. Vercel đóng băng instance ngay khi handler trả response,
+// nên fire-and-forget làm tin nhắn bị treo giữa đường: chỉ gửi đi khi instance đó
+// tình cờ được tái sử dụng (báo chậm hàng chục phút, mang dữ liệu của lần cũ,
+// hoặc mất hẳn). Hàm tự nuốt mọi lỗi nên await cũng không bao giờ throw.
 const TG_BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
 const TG_CHAT_ID   = (process.env.TELEGRAM_CHAT_ID || '').trim();
-
 async function notifyTelegram(text, extra = {}) {
-  if (!TG_BOT_TOKEN || !TG_CHAT_ID) return false;
+  if (!TG_BOT_TOKEN || !TG_CHAT_ID) return false; // chưa cấu hình — im lặng bỏ qua
   try {
     const bodyPayload = { chat_id: TG_CHAT_ID, text, parse_mode: 'HTML', ...extra };
     let r = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
@@ -187,6 +222,7 @@ async function notifyTelegram(text, extra = {}) {
     });
     if (r.ok) return true;
 
+    // Retry 1: Nếu lỗi BUTTON_DATA_INVALID hoặc lỗi do markup -> thử gửi không có reply_markup
     if (extra.reply_markup) {
       const { reply_markup, ...restExtra } = extra;
       r = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
@@ -197,6 +233,7 @@ async function notifyTelegram(text, extra = {}) {
       if (r.ok) return true;
     }
 
+    // Retry 2: Lỗi parse HTML -> gỡ thẻ HTML và gửi plain text
     const plainText = text.replace(/<[^>]+>/g, '');
     r = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
       method: 'POST',
@@ -207,34 +244,50 @@ async function notifyTelegram(text, extra = {}) {
   } catch { return false; }
 }
 
+// parse_mode 'HTML' coi <, >, & là ký tự đặc biệt — tên khách do admin nhập tự do
+// nên phải escape trước khi nhét vào tin nhắn, giống nguyên tắc esc() trước khi
+// nhét vào template HTML ở admin.html.
 function escTgHtml(s) {
   return String(s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 }
 
+// Lấy id + tên + loại khách + mã KH + username Locket + duration từ mã truy cập, để thông
+// báo Telegram gọi được tên khách, cho admin tra cứu tiếp bằng mã KH, luôn kèm username
+// copy được, và hiển thị đúng giá theo thời hạn (duration).
+// Trả { id, name, type, customerCode, locketUsername, duration } — luôn trả object, mọi lỗi
+// bị nuốt (thiếu tên vẫn phải gửi được thông báo, không được chặn luồng khách hàng).
 async function lookupCustomerByCode(code) {
-  const empty = { id: null, name: null, customerCode: null, locketUsername: null, duration: 'perm', specialFlow: false };
+  const empty = { id: null, name: null, type: 'baohanh', customerCode: null, locketUsername: null, duration: null, specialFlow: false };
   try {
+    // Tối ưu hóa: Dùng JOIN (customers) để lấy dữ liệu trong 1 request duy nhất
     const rows = await sb('GET', 'access_codes', {
-      q: `code=eq.${encodeURIComponent(code)}&select=customer_id,customers(id,name,customer_code,locket_username,duration,special_flow)`,
+      q: `code=eq.${encodeURIComponent(code)}&select=customer_id,customers(id,name,type,customer_code,locket_username,duration,special_flow)`,
     });
     const cData = rows?.[0]?.customers;
     const customerId = rows?.[0]?.customer_id;
     if (!customerId && !cData) return empty;
 
+    // Supabase trả về cData là array (nếu 1-n) hoặc object (nếu 1-1). Với khóa ngoại fk_access_codes_customer, nó thường là object hoặc mảng 1 phần tử.
     const cust = Array.isArray(cData) ? cData[0] : cData;
+
     return {
       id: cust?.id || customerId,
       name: cust?.name || null,
+      type: cust?.type || 'baohanh',
       customerCode: cust?.customer_code || null,
       locketUsername: cust?.locket_username || null,
-      duration: 'perm',
+      duration: cust?.duration || null,
       specialFlow: !!cust?.special_flow,
     };
-  } catch (e) {
-    return empty;
+  } catch (e) { 
+    return empty; 
   }
 }
 
+// Tra tên khách CHỈ qua customers.customer_code (KH-xxxxxxxx) — khác lookupCustomerByCode()
+// vốn nhận access_codes.code (XW-xxxxxx) và JOIN qua customer_id. Dùng cho tính năng DNS
+// riêng, nơi row chỉ lưu customer_code, không có access_code nào liên quan. Tự nuốt lỗi,
+// luôn trả object — không chặn luồng khách/admin.
 async function lookupCustomerByDnsCode(customerCode) {
   const empty = { name: null, customerCode: customerCode || null };
   if (!customerCode) return empty;
@@ -246,9 +299,21 @@ async function lookupCustomerByDnsCode(customerCode) {
   } catch { return empty; }
 }
 
-// ─── DNS riêng (TTL 10 phút) ────────────────────────────────
-const PRIVATE_DNS_TTL_MS = 10 * 60 * 1000;
+// ─── DNS riêng (link NextDNS cấp riêng từng khách, TTL 10 phút) ─────
+// TTL rút từ 2 giờ → 10 phút (2026-08-09). 10 phút khá sát thao tác thật của khách
+// (tải mobileconfig → Cài đặt → Đã tải profile → Cài → nhập passcode), nên bù lại
+// có nút "Kích hoạt lại" ở tab DNS riêng (dns_reactivate) để hồi sinh chính link cũ
+// thêm 10 phút, không phải tạo link mới. HAI THỨ NÀY ĐI KÈM NHAU — đừng rút TTL mà
+// bỏ nút kích hoạt lại.
+const PRIVATE_DNS_TTL_MS = 10 * 60 * 1000; // 10 phút kể từ first_accessed_at
 
+// Check-lười: gọi từ MỌI nơi có request chạm tới 1 row private_dns_links (khách mở lại
+// trang, hoặc admin mở tab danh sách) để bắt "đã quá hạn" mà chưa từng báo Telegram, vì
+// không có cron chạy đủ dày để tự phát hiện đúng lúc (cron hiện tại 1 lần/ngày — xem
+// sweepExpiredCodes). Dùng đúng pattern PATCH-có-điều-kiện + return=representation như
+// expireCodeAndNotify: chỉ request nào thực sự đổi được cột expired_notified_at (từ null)
+// mới được gửi tin, chống báo trùng khi nhiều nguồn cùng chạm vào row gần như đồng thời.
+// Trả true nếu vừa phát hiện + báo hết hạn trong lần gọi này.
 async function checkAndNotifyDnsExpiry(row) {
   if (!row?.id || !row.first_accessed_at || row.expired_notified_at) return false;
   const isExpired = Date.now() - new Date(row.first_accessed_at).getTime() > PRIVATE_DNS_TTL_MS;
@@ -261,7 +326,7 @@ async function checkAndNotifyDnsExpiry(row) {
       prefer: 'return=representation',
     });
   } catch { return false; }
-  if (!patched?.length) return false;
+  if (!patched?.length) return false; // request khác đã báo trước
   const cust = await lookupCustomerByDnsCode(row.customer_code);
   const who = cust?.name ? escTgHtml(cust.name) : 'Khách';
   await notifyTelegram(
@@ -271,15 +336,34 @@ async function checkAndNotifyDnsExpiry(row) {
   return true;
 }
 
+// Link DNS thật của 1 row private_dns_links. Chuyển sang NextDNS (2026-08-09) nhưng
+// CỐ TÌNH không drop cột ublockdns_url: link cũ đang còn hạn trong tay khách vẫn phải
+// dùng được. Row mới ghi nextdns_url, row cũ chỉ có ublockdns_url → đọc theo thứ tự này.
 function dnsPrivateUrl(row) {
   return row?.nextdns_url || row?.ublockdns_url || '';
 }
 
-// ─── Danh sách bước hướng dẫn chuẩn (4 Kịch bản Flow) ───────
-// Gói 30k Flow Thường: Shadow -> DNS -> Gold (3 bước)
-// Gói 30k Flow Đặc Biệt: Shadow -> IPA -> Gold (3 bước, không DNS)
-// Gói 40k Flow Thường: Shadow -> DNS -> VPN -> Gold (4 bước)
-// Gói 40k Flow Đặc Biệt: Shadow -> IPA -> VPN -> DNS -> Gold (5 bước)
+// ─── Danh sách bước của guide (dùng chung guide + admin) ─────────
+// Nguồn sự thật duy nhất cho "khách gói này đi qua những bước nào". Trước đây
+// admin.html tự hardcode mảng tên bước rồi đoán theo total_steps, nên mỗi lần đổi
+// flow (bỏ bước widget, thêm bước mới trong guide_steps) là admin hiện sai tên bước.
+// Giờ server dựng danh sách từ chính guide_steps mà khách đang thấy.
+// Bước 'widget' đã bỏ khỏi cả 2 gói, bước 'gold' (wizard lên Gold) cũng đã bỏ
+// (2026-07-28) — lọc y như guide.html để bản ghi cũ còn sót trong DB không làm
+// lệch danh sách. DNS ('choice') là bước cuối của gói 5s/15s/180.
+//
+// Gói vĩnh viễn (2026-08-09): '150'/'180' KHÔNG có bước username — khách tự cài IPA
+// hạ cấp nên không cần tác động server Locket. Hai bước mới:
+//   'appstore' = cài Shadowrocket bằng tài khoản Appstore chung
+//   'ipa'      = cài Locket hạ cấp qua OTA (itms-services + plist sinh động)
+// MẢNG NÀY PHẢI KHỚP TỪNG PHẦN TỬ với DEFAULT_STEPS_* trong guide.html — hai bên là
+// 2 bản sao chép tay độc lập. Lệch số bước là alignStepFlow trả null và thẻ phiên
+// live của admin tụt xuống "Bước n" thay vì tên bước.
+//
+// Gói vĩnh viễn (2026-08-16): flow mặc định 150/180 KHÔNG có bước 'ipa' — chỉ khách
+// được bật special_flow mới đi flow đặc biệt (có IPA). Thứ tự DNS/VPN:
+//   - 180 mặc định: DNS trước VPN
+//   - 180 đặc biệt: VPN trước DNS (khách đặc biệt cần VPN sẵn trước khi cài IPA)
 const DEFAULT_STEP_FLOW = {
   '30k': [
     { type: 'appstore', title: 'Cài Shadowrocket' },
@@ -294,6 +378,10 @@ const DEFAULT_STEP_FLOW = {
   ],
 };
 
+// Flow đặc biệt — chỉ dùng khi customers.special_flow=true. PHẢI KHỚP TỪNG PHẦN TỬ
+// với DEFAULT_STEPS_150_SPECIAL / DEFAULT_STEPS_180_SPECIAL trong guide.html (2 bản
+// sao chép tay thứ 3+4, cùng cảnh báo lệch như bản mặc định ở trên). Bảng guide_steps
+// không có cột special_flow nên flow đặc biệt LUÔN dùng fallback này (bỏ qua DB rows).
 const DEFAULT_STEP_FLOW_SPECIAL = {
   '30k': [
     { type: 'appstore', title: 'Cài Shadowrocket' },
@@ -309,6 +397,8 @@ const DEFAULT_STEP_FLOW_SPECIAL = {
   ],
 };
 
+// Nhãn ngắn để hiện trên thẻ phiên live. Các type có ý nghĩa cố định thì dùng nhãn
+// cố định (ngắn, admin quen mắt); type nội dung tự do thì lấy title admin đã đặt.
 const STEP_TYPE_LABELS = {
   username: 'Nhập Username',
   vpn:      'Cài đặt VPN',
@@ -317,7 +407,6 @@ const STEP_TYPE_LABELS = {
   ipa:      'Cài Locket IPA',
   gold:     'Lên Gold',
 };
-
 function stepLabel(step, index) {
   const fixed = STEP_TYPE_LABELS[step?.type];
   if (fixed) return fixed;
@@ -326,6 +415,10 @@ function stepLabel(step, index) {
   return 'Bước ' + (index + 1);
 }
 
+// Dựng flow đầy đủ của 1 gói từ guide_steps (đã sort theo order_num), fallback về
+// DEFAULT_STEP_FLOW khi bảng chưa có row nào khớp — khớp đúng hành vi guide.html.
+// Khi specialFlow=true: LUÔN dùng DEFAULT_STEP_FLOW_SPECIAL (bỏ qua DB rows) vì bảng
+// guide_steps không có cột phân biệt flow đặc biệt, đảm bảo cấu trúc đúng tuyệt đối.
 function buildStepFlow(pkg, dbSteps, specialFlow) {
   const p = normalizePackage(pkg);
   if (specialFlow && DEFAULT_STEP_FLOW_SPECIAL[p]) {
@@ -338,30 +431,58 @@ function buildStepFlow(pkg, dbSteps, specialFlow) {
   return list.map((s, i) => stepLabel(s, i));
 }
 
+// Đối chiếu flow đầy đủ với total_steps mà chính phiên đó báo lên.
+// Vì sao dùng total_steps chứ không dùng "khách đã có locket_username":
+// khách vừa nhập username xong là ping lưu ngay locket_username, nhưng phiên ĐANG
+// CHẠY vẫn còn bước username trong danh sách → suy từ locket_username sẽ cắt nhãn
+// đầu và làm lệch toàn bộ tên bước ngay giữa lúc khách đang làm. total_steps là số
+// bước thật của phiên đó, không đổi giữa phiên.
+// Trả null khi không khớp (admin tự thêm/bớt bước trong DB giữa lúc khách đang làm)
+// để client fallback về "Bước n" thay vì hiện tên sai.
 function alignStepFlow(flow, totalSteps) {
   if (!Array.isArray(flow) || typeof totalSteps !== 'number') return null;
   if (totalSteps === flow.length) return flow;
+  // Khách bảo hành đã có username sẵn → guide lọc bỏ bước đầu, phiên còn ít hơn 1 bước.
   if (totalSteps === flow.length - 1 && flow[0] === STEP_TYPE_LABELS.username) return flow.slice(1);
   return null;
 }
 
-const PKG_EMOJI = { '30k': '💎', '40k': '💎' };
+// Khối chi tiết dùng chung cho mọi tin nhắn nói về 1 mã truy cập. Cố tình dùng cùng
+// bố cục (dải phân cách + emoji + <code>) với phần tra cứu của bot trong
+// telegram-bot.js để chủ dự án đọc quen mắt; mã KH để trong <code> cho bấm-copy
+// nhanh rồi gõ lại vào bot khi cần xem chi tiết.
+// Emoji theo gói: gói vĩnh viễn dùng 💎 để phân biệt ngay trên Telegram, khỏi phải
+// nhớ '150'/'180' là tiền hay là số giây.
+// Dòng "Gói" hiển thị label thời hạn cụ thể (ví dụ "6 tháng - 50k") thay vì giá
+// phẳng cũ — lấy từ PRICING theo duration của khách. Gói vĩnh viễn thêm tag "· vĩnh viễn".
+
 function codeDetailLines(code, pkg, cust) {
   const p = normalizePackage(pkg);
   const uname = cust?.locketUsername;
-  const pkgDisplay = PACKAGES[p]?.label || p;
+  const duration = cust?.duration || null;
+  const priceLbl = duration ? getPriceLabel(p, duration) : null;
+  const permTag = isPermPackage(p) ? ' · vĩnh viễn' : '';
+  // Fallback: nếu không có duration hoặc PRICING không khớp, hiện tên gói đơn thuần.
+  const pkgDisplay = priceLbl && priceLbl !== '—' ? priceLbl : (PACKAGES[p]?.label || p);
   const lines = [
     '━━━━━━━━━━━━━━━',
     `🆔 Mã KH: <code>${escTgHtml(cust?.customerCode || '—')}</code>`,
     `🔑 Mã truy cập: <code>${escTgHtml(code)}</code>`,
   ];
-  if (uname) {
-    lines.push(`👤 Username: <code>${escTgHtml(uname)}</code>`);
+  // Gói vĩnh viễn không đi qua bước Username → không hiện dòng rỗng gây tưởng lỗi.
+  if (!isPermPackage(p)) {
+    lines.push(`👤 Username: ${uname ? `<code>${escTgHtml(uname)}</code>` : '(chưa có)'}`);
   }
-  lines.push(`${PKG_EMOJI[p] || '💎'} Gói: <b>${escTgHtml(pkgDisplay)}</b>`);
+  lines.push(`${PKG_EMOJI[p] || '⭐'} Gói: <b>${escTgHtml(pkgDisplay)}</b>${permTag}`);
   return lines.join('\n');
 }
 
+// Mã hết hiệu lực 30 phút mà khách không bấm hoàn thành: khoá mã và báo Telegram
+// ĐÚNG MỘT LẦN. Không cần thêm cột DB để chống báo trùng: PATCH mang luôn điều kiện
+// `is_active=eq.true&completed_at=is.null` và đọc số dòng thật sự bị đổi qua
+// `return=representation`. Nhiều request cùng lúc (nhiều tab ping, cron chạy chèn)
+// thì chỉ request đổi được dòng mới gửi tin, các request sau nhận mảng rỗng và im lặng.
+// Trả true nếu vừa khoá + vừa báo trong lần gọi này.
 async function expireCodeAndNotify(codeRow) {
   if (!codeRow?.id || codeRow.completed_at || !codeRow.is_active) return false;
   if (!codeRow.expires_at || new Date(codeRow.expires_at) >= new Date()) return false;
@@ -385,6 +506,12 @@ async function expireCodeAndNotify(codeRow) {
   return true;
 }
 
+// Quét các mã đã hết hạn mà chưa ai kịp phát hiện (khách tắt máy giữa guide nên
+// không còn ping nào chạy expireCodeAndNotify). Gọi từ nhánh cron của
+// api/admin/stats.js — Vercel Hobby chỉ cho cron 1 lần/ngày nên đây là lưới hứng
+// chậm, đường nhanh vẫn là ping/validate.
+// CHỈ báo mã hết hạn trong 25 giờ gần nhất: quét không giới hạn thời gian sẽ bung
+// một loạt tin về mã cũ tồn từ trước khi có tính năng này.
 async function sweepExpiredCodes(limit = 50) {
   try {
     const now = new Date();
@@ -396,13 +523,20 @@ async function sweepExpiredCodes(limit = 50) {
          `&order=expires_at.asc&limit=${limit}`,
     });
     let sent = 0;
+    // Tuần tự, không Promise.all: giữ thứ tự tin nhắn theo thời gian hết hạn và
+    // không dội Telegram khi có nhiều mã cùng lúc.
     for (const row of rows || []) if (await expireCodeAndNotify(row)) sent++;
     return sent;
   } catch { return 0; }
 }
 
-// ─── Cấu hình chung (app_config & Appstore) ─────────────────
-const APPSTORE_DEFAULT = { email: '', password: '', ipa_url: '' };
+// ─── Cấu hình dùng chung (app_config) ────────────────────────────
+// Bảng app_config chỉ có vài row, mỗi row 1 key + 1 cột jsonb. Cố tình dùng jsonb
+// thay vì thêm cột cho từng field: mấy field này (tài khoản Appstore, link IPA, link
+// video) là dữ liệu cấu hình thuần, thêm/bớt field không cần migration.
+const APPSTORE_DEFAULT = {
+  email: '', password: '', ipa_url: '',
+};
 
 async function getAppConfig(key) {
   try {
@@ -414,17 +548,37 @@ async function getAppConfig(key) {
 }
 
 async function getAppstoreConfig() {
+  // MIGRATE sang Firebase RTDB (2026-08-15): đọc từ Firebase trước, fallback Supabase.
+  // Admin đã chuyển sang lưu trên Firebase → dữ liệu mới nằm ở đó. Supabase giữ lại
+  // làm fallback cho các server function cũ (handleIpaPlist) nếu Firebase chưa có data.
   try {
     const fbData = await fbGet('appstore');
     if (fbData && (fbData.email || fbData.scraper_url || fbData.scraper_url_backup)) return { ...APPSTORE_DEFAULT, ...fbData };
-  } catch {}
+  } catch { /* Firebase lỗi → fallback Supabase */ }
   const v = await getAppConfig('appstore');
   return { ...APPSTORE_DEFAULT, ...(v || {}) };
 }
 
+// Link IPA — nguồn duy nhất là field ipa_url trong Firebase node
+// 'appstore' ({email, password, ipa_url}). Node 'emergency' đã được xoá hoàn toàn.
+// getEmergencyConfig giữ lại như một alias an toàn đọc từ appstore.
+const EMERGENCY_DEFAULT = { ipa_url: '' };
+async function getEmergencyConfig() {
+  try {
+    const fbData = await fbGet('appstore');
+    if (fbData && fbData.ipa_url) return { ...EMERGENCY_DEFAULT, ipa_url: fbData.ipa_url };
+  } catch {}
+  return { ...EMERGENCY_DEFAULT };
+}
+
+// Ghi (upsert) 1 key vào app_config. Merge với giá trị cũ để không xoá mất field
+// khác trong cùng row — ví dụ admin chỉ đổi password, không nên xoá ipa_url.
 async function setAppConfig(key, fields) {
   const existing = (await getAppConfig(key)) || {};
   const merged = { ...existing, ...fields };
+  // Supabase upsert: on_conflict=key (PK) BẮT BUỘC phải nằm trong query string,
+  // Prefer:resolution=merge-duplicates chỉ nói "upsert" chứ không tự biết cột nào
+  // là khoá xung đột — thiếu on_conflict thì Postgres báo lỗi 21000/no unique constraint.
   await sb('POST', 'app_config', {
     q: 'on_conflict=key',
     body: { key, value: merged },
@@ -433,13 +587,19 @@ async function setAppConfig(key, fields) {
   return merged;
 }
 
+// Che email theo yêu cầu chủ dự án: GIỮ nguyên phần trước @, THAY domain thành
+// @xwuan.com. Cố ý làm ngược với dự án tham khảo (nó che phần trước @ và giữ domain
+// thật) — ở đây mục tiêu là khách nhìn thấy đúng tài khoản mình đang dùng nhưng
+// không đọc được domain thật để tự đăng nhập ngoài luồng.
 function maskAppstoreEmail(email) {
   const e = String(email || '').trim();
   if (!e.includes('@')) return e;
   return e.replace(/@.*$/, '@vxang.com');
 }
 
-// ─── Mẫu URL DNS Tự Hiểu (DNS Template Engine) ───────────────
+// ─── Mẫu URL DNS Tự Hiểu (DNS Template Engine) ────────────────────
+// Cho phép admin tùy chỉnh template (NextDNS, AdGuard, ControlD, v.v.)
+// Khi admin nhập mã ngắn (vd: 48f12a), hệ thống tự ghép mã vào {CODE} trong template.
 const DEFAULT_DNS_TEMPLATE = 'https://apple.dns.nextdns.io/{CODE}';
 
 async function getDnsTemplate() {
@@ -454,8 +614,10 @@ async function getDnsTemplate() {
 function resolveDnsWithTemplate(rawInput, template) {
   const raw = String(rawInput || '').trim();
   if (!raw) return '';
+  // Nếu đã là URL đầy đủ (có http/https), giữ nguyên
   if (/^https?:\/\//i.test(raw)) return raw;
 
+  // Nếu là mã ngắn (chữ cái, chữ số, gạch ngang, gạch dưới)
   if (/^[A-Za-z0-9_-]{2,50}$/.test(raw)) {
     const tmpl = String(template || DEFAULT_DNS_TEMPLATE).trim();
     if (/\{code\}|\{id\}/i.test(tmpl)) {
@@ -471,7 +633,12 @@ function resolveDnsWithTemplate(rawInput, template) {
   return '';
 }
 
-// ─── DNS Pool Xoay Vòng (5s vs 15s) ──────────────────────────
+// ─── Pool DNS NextDNS luân phiên ─────────────────────────────────
+// Mỗi link DNS chỉ phục vụ tối đa max_uses (5) MÃ KHÁCH khác nhau, rồi phải tạo link
+// mới. Đếm theo mã khách (used_codes text[]) chứ không phải số lần bấm: khách cài lại
+// 3 lần vẫn chỉ tính 1 suất.
+// Gói '180' DÙNG CHUNG pool với '15s' (chốt với chủ dự án) → counter tính gộp cả hai.
+// Gói '150' không có bước DNS nên không bao giờ gọi tới đây.
 function dnsPoolKey(pkg) {
   const p = normalizePackage(pkg);
   return p === '40k' ? '15s' : '5s';
@@ -479,22 +646,25 @@ function dnsPoolKey(pkg) {
 
 const DNS_POOL_FULL_MSG = '⛔ DNS đang được cập nhật, nhắn Vxang để được hỗ trợ';
 
+// Kiểm tra pool DNS của 1 nhóm gói còn chỗ trống hay không. Dùng trước khi tạo khách
+// mới hoặc sinh mã mới — nếu pool đầy thì chặn sớm, tránh tạo khách xong rồi mới phát
+// hiện khách không vào được guide vì không có DNS slot.
+// Cache ngắn trong-memory (5s) để admin thao tác nhanh nhiều lần không spam query.
+// Vercel serverless function giữ ấm instance trong vài phút nên cache này có tác dụng.
 const _dnsCapCache = new Map();
 const DNS_CAP_CACHE_MS = 5000;
-
-async function dnsPoolHasCapacity(pkg, customerCode, specialFlow) {
-  const p = normalizePackage(pkg);
-  if (p === '30k' && specialFlow) return true;
-
-  const key = dnsPoolKey(p);
+async function dnsPoolHasCapacity(pkg, customerCode) {
+  const key = dnsPoolKey(pkg);
   const code = String(customerCode || '').trim();
 
+  // Nếu là kiểm tra chung (tạo khách mới không có customerCode), dùng cache 5s
   if (!code) {
     const cached = _dnsCapCache.get(key);
     if (cached && Date.now() - cached.ts < DNS_CAP_CACHE_MS) return cached.ok;
   }
 
   try {
+    // 1. Nếu có customerCode, kiểm tra xem khách có link DNS riêng không
     if (code) {
       const privates = await sb('GET', 'private_dns_links', {
         q: `customer_code=eq.${encodeURIComponent(code)}&select=id&limit=1`,
@@ -502,15 +672,18 @@ async function dnsPoolHasCapacity(pkg, customerCode, specialFlow) {
       if (privates && privates.length) return true;
     }
 
+    // 2. Fetch các link DNS pool active
     const rows = await sb('GET', 'dns_pool', {
       q: `package=eq.${encodeURIComponent(key)}&is_active=eq.true&select=used_codes,max_uses`,
     });
     if (!rows || !rows.length) return false;
 
+    // 3. Nếu khách đã có slot trong bất kỳ link active nào (kể cả link đã 5/5) -> cho phép tái sử dụng
     if (code && rows.some(r => Array.isArray(r.used_codes) && r.used_codes.includes(code))) {
       return true;
     }
 
+    // 4. Nếu là khách mới hoặc chưa có slot -> kiểm tra có link nào còn chỗ (used < max)
     const hasSlot = rows.some(r => {
       const used = Array.isArray(r.used_codes) ? r.used_codes.length : 0;
       const max = r.max_uses || 5;
@@ -522,10 +695,21 @@ async function dnsPoolHasCapacity(pkg, customerCode, specialFlow) {
     }
     return hasSlot;
   } catch {
+    // Lỗi DB → giả sử còn chỗ để không block oan; claimDnsFromPool sẽ trả 503 thật nếu hết.
     return true;
   }
 }
 
+// Lấy link DNS đang hoạt động của 1 nhóm gói + ghi nhận mã khách vào suất.
+// Tự động luân chuyển sang link tiếp theo trong pool khi link trước đó đã đủ max_uses (5 khách).
+// Trả { ok:true, dns_url, used, max } hoặc { ok:false, reason:'empty'|'full' }.
+//
+// Vì sao không dùng cột used_count + phép cộng: hai request của cùng 1 khách (mở 2 tab,
+// bấm lại) sẽ cộng 2 lần và đốt oan suất. Mảng used_codes cho phép idempotent theo mã.
+// Race: dùng PATCH có điều kiện `used_codes=not.cs.{mã}` + return=representation — chỉ
+// request nào THỰC SỰ đổi được row mới coi là chiếm suất, request thua đọc lại row.
+
+// Giả phóng slot của khách khỏi tất cả các DNS pool hiện tại (khi chuyển gói hoặc tạo DNS riêng)
 async function releaseCustomerFromDnsPool(customerCode) {
   if (!customerCode) return;
   try {
@@ -552,11 +736,15 @@ async function claimDnsFromPool(pkg, customerCode) {
   const key = dnsPoolKey(pkg);
   const code = String(customerCode || '').trim();
 
+  // Chạy song song cả query private dns và pool dns
   let privatesPromise = Promise.resolve(null);
   if (code) {
     privatesPromise = sb('GET', 'private_dns_links', {
       q: `customer_code=eq.${encodeURIComponent(code)}&order=created_at.desc&limit=1`,
-    }).catch(() => null);
+    }).catch(e => {
+      console.warn('Lỗi tra private_dns_links trong claimDnsFromPool:', e.message);
+      return null;
+    });
   }
 
   const poolPromise = sb('GET', 'dns_pool', {
@@ -565,6 +753,8 @@ async function claimDnsFromPool(pkg, customerCode) {
 
   const [privates, rows] = await Promise.all([privatesPromise, poolPromise]);
 
+  // 0. Ưu tiên hàng đầu: Nếu khách này đã có link DNS riêng trong private_dns_links,
+  // cấp chính link DNS riêng đó cho khách (không đụng vào dns_pool, không chiếm slot chung).
   if (privates && privates.length) {
     const privUrl = dnsPrivateUrl(privates[0]);
     if (privUrl) {
@@ -574,6 +764,7 @@ async function claimDnsFromPool(pkg, customerCode) {
 
   if (!rows || !rows.length) return { ok: false, reason: 'empty' };
 
+  // 1. Mã này đã chiếm suất ở một link active trước đó → cho qua, dùng lại đúng link cũ (idempotent).
   if (code) {
     const existing = rows.find(r => Array.isArray(r.used_codes) && r.used_codes.includes(code));
     if (existing) {
@@ -583,13 +774,17 @@ async function claimDnsFromPool(pkg, customerCode) {
     }
   }
 
+  // 2. Tìm link đầu tiên còn chỗ trống (used < max)
   const targetRow = rows.find(r => {
     const used = Array.isArray(r.used_codes) ? r.used_codes : [];
     const max = r.max_uses || 5;
     return used.length < max;
   });
 
-  if (!targetRow) return { ok: false, reason: 'full' };
+  // Nếu tất cả các link active đều đã đầy
+  if (!targetRow) {
+    return { ok: false, reason: 'full' };
+  }
 
   const used = Array.isArray(targetRow.used_codes) ? targetRow.used_codes : [];
   const max = targetRow.max_uses || 5;
@@ -606,13 +801,14 @@ async function claimDnsFromPool(pkg, customerCode) {
     });
   } catch { return { ok: true, dns_url: targetRow.dns_url, used: used.length, max }; }
 
+  // Mảng rỗng = request khác vừa ghi mã này trước (cùng khách, 2 tab) → vẫn hợp lệ.
   const finalUsed = patched?.length
     ? (patched[0].used_codes || next).length
     : used.length + 1;
   return { ok: true, dns_url: targetRow.dns_url, used: finalUsed, max, justClaimed: !!patched?.length };
 }
 
-// ─── Phân giải ô nhập liên hệ duy nhất (Smart Single Contact) ─
+// Phân giải ô nhập liên hệ duy nhất (SĐT hoặc Link Profile)
 function parseContactInput(input) {
   const str = String(input || '').trim();
   if (!str) return { phone: '', social_link: '', social_platform: 'zalo' };
@@ -646,13 +842,4 @@ function parseContactInput(input) {
   return { phone: '', social_link: str, social_platform: 'zalo' };
 }
 
-module.exports = {
-  sb, signJWT, verifyJWT, getToken, requireAdmin, requireGuide, allowMethods, genCode,
-  PACKAGES, PACKAGE_KEYS, normalizePackage, isPermPackage, PRICING, getPrice, getPriceLabel, durationMonths,
-  notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, expireCodeAndNotify, sweepExpiredCodes,
-  DEFAULT_STEP_FLOW, DEFAULT_STEP_FLOW_SPECIAL, STEP_TYPE_LABELS, stepLabel, buildStepFlow, alignStepFlow,
-  lookupCustomerByDnsCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, dnsPrivateUrl,
-  getAppConfig, setAppConfig, getAppstoreConfig, maskAppstoreEmail,
-  dnsPoolKey, claimDnsFromPool, releaseCustomerFromDnsPool, dnsPoolHasCapacity, DNS_POOL_FULL_MSG,
-  DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, fbGet, fbPut, parseContactInput
-};
+module.exports = { sb, signJWT, verifyJWT, getToken, requireAdmin, requireGuide, allowMethods, genCode, PACKAGES, PACKAGE_KEYS, normalizePackage, isPermPackage, PRICING, getPrice, getPriceLabel, durationMonths, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, expireCodeAndNotify, sweepExpiredCodes, DEFAULT_STEP_FLOW, DEFAULT_STEP_FLOW_SPECIAL, STEP_TYPE_LABELS, stepLabel, buildStepFlow, alignStepFlow, lookupCustomerByDnsCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, dnsPrivateUrl, getAppConfig, setAppConfig, getAppstoreConfig, getEmergencyConfig, maskAppstoreEmail, dnsPoolKey, claimDnsFromPool, releaseCustomerFromDnsPool, dnsPoolHasCapacity, DNS_POOL_FULL_MSG, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, fbGet, fbPut, parseContactInput };

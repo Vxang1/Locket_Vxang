@@ -1,1096 +1,1141 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
-  <title>Locket_Vxang ✦ Hướng Dẫn Kích Hoạt Gold</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet"/>
-  <style>
-    :root {
-      --bg: #07090e;
-      --bg-surface: #0f172a;
-      --bg-card: rgba(15, 23, 42, 0.84);
-      --border: rgba(0, 240, 255, 0.2);
-      --p1: #00f0ff;
-      --p2: #8b5cf6;
-      --accent: #10b981;
-      --text: #f8fafc;
-      --text-dim: #94a3b8;
-      --muted: #64748b;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --radius: 18px;
-      --radius-sm: 12px;
-      --topbar-h: 58px;
-      --navbar-h: 84px;
-      --sa-top: env(safe-area-inset-top, 0px);
-      --sa-bottom: env(safe-area-inset-bottom, 0px);
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body.cyber-guide {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Be Vietnam Pro', sans-serif;
-      min-height: 100vh;
-      min-height: 100dvh;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-      position: relative;
-    }
-    .hidden { display: none !important; }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1"/>
+<title>Guide — Locket Gold Vxang</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="preconnect" href="https://res.cloudinary.com" crossorigin/>
+<link rel="dns-prefetch" href="https://res.cloudinary.com"/>
+<link rel="dns-prefetch" href="https://ogchtngdbywmayeluebh.supabase.co"/>
+<link rel="dns-prefetch" href="https://apple.dns.nextdns.io"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#f5f4ff;--card:#ffffff;--border:#e6e0ff;
+  --p1:#7c3aed;--p2:#a855f7;--accent:#06b6d4;
+  --text:#1e1b3a;--muted:#8878b0;--warning:#f59e0b;
+  --red:#ef4444;--green:#10b981;--radius:18px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{overscroll-behavior:none;background:var(--bg);color:var(--text);font-family:'Be Vietnam Pro',sans-serif;
+  font-size:15px;line-height:1.7;font-weight:500;-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100vh;}
+.bg-dots{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(circle,rgba(168,85,247,.10) 1px,transparent 1px);background-size:26px 26px;}
+.bg-decos{position:fixed;inset:0;z-index:0;pointer-events:none;font-size:1.8rem;opacity:.06;}
+.bg-decos span:nth-child(1){position:absolute;top:8%;left:5%;animation:floatDeco 7s ease-in-out infinite 0s;}
+.bg-decos span:nth-child(2){position:absolute;top:12%;right:6%;animation:floatDeco 7s ease-in-out infinite 2s;}
+.bg-decos span:nth-child(3){position:absolute;bottom:18%;left:8%;animation:floatDeco 7s ease-in-out infinite 4s;}
+.bg-decos span:nth-child(4){position:absolute;bottom:22%;right:9%;animation:floatDeco 7s ease-in-out infinite 1s;}
+@keyframes floatDeco{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+@keyframes popIn{from{opacity:0;transform:scale(.88) translateY(8px);}to{opacity:1;transform:scale(1) translateY(0);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+@keyframes spin{to{transform:rotate(360deg);}}
 
-    /* LOADING SCREEN */
-    .screen {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: var(--bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .loading-box {
-      text-align: center;
-    }
-    .spin-cyber {
-      width: 48px;
-      height: 48px;
-      border: 3px solid rgba(0, 240, 255, 0.2);
-      border-top-color: var(--p1);
-      border-radius: 50%;
-      margin: 0 auto 16px;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loading-text {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.92rem;
-      font-weight: 800;
-      color: var(--p1);
-      letter-spacing: 0.08em;
-    }
+/* ─── SCREENS ─────────────────────────────────── */
+.screen{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;
+  padding:20px;background:var(--bg);}
+.screen.hidden{display:none;}
 
-    /* TOPBAR DÁN ĐỈNH */
-    .topbar {
-      max-width: 460px;
-      margin: 0 auto;
-      background: rgba(7, 9, 14, 0.94);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-      padding: calc(10px + var(--sa-top)) 16px 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .topbar-logo {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.15rem;
-      font-weight: 900;
-      background: linear-gradient(135deg, var(--p1), var(--p2));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      letter-spacing: -0.01em;
-    }
-    .timer-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      background: rgba(0, 240, 255, 0.08);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8rem;
-      font-weight: 800;
-      color: var(--p1);
-    }
+/* ─── ENTRY BOX ───────────────────────────────── */
+.entry-box{
+  background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);
+  padding:36px 28px;width:100%;max-width:420px;
+  box-shadow:0 4px 32px rgba(124,58,237,.1);
+  animation:popIn .55s cubic-bezier(.34,1.56,.64,1) both;
+  position:relative;z-index:1;
+}
+.back-link{display:inline-flex;align-items:center;gap:5px;color:var(--muted);
+  font-size:.8rem;font-weight:600;text-decoration:none;margin-bottom:20px;transition:color .2s;}
+.back-link:hover{color:var(--p1);}
+.entry-brand{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.7rem;
+  background:linear-gradient(135deg,var(--p1),var(--p2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
+.entry-sub{font-size:.82rem;color:var(--muted);margin-bottom:24px;line-height:1.55;}
+.field-label{display:block;font-family:'Be Vietnam Pro',sans-serif;font-weight:700;
+  font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;}
+.field-input{
+  width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;
+  padding:13px 16px;color:var(--p1);font-family:'Be Vietnam Pro',sans-serif;
+  font-size:1rem;font-weight:700;outline:none;letter-spacing:.07em;
+  text-transform:uppercase;transition:border-color .2s,box-shadow .2s;margin-bottom:12px;
+}
+.field-input::placeholder{color:var(--muted);text-transform:none;font-size:.85rem;font-weight:500;letter-spacing:0;}
+.field-input:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(168,85,247,.1);}
+.err-msg{
+  background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:10px;
+  padding:10px 14px;font-size:.82rem;color:var(--red);line-height:1.55;display:none;margin-bottom:12px;
+}
+.btn-primary{
+  width:100%;padding:15px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;
+  font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:900;letter-spacing:.03em;
+  cursor:pointer;transition:all .18s;
+  box-shadow:0 5px 0 #5b20c0,0 2px 12px rgba(124,58,237,.3);
+}
+.btn-primary:hover{opacity:.92;}
+.btn-primary:active{transform:translateY(4px);box-shadow:0 1px 0 #5b20c0;}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
 
-    /* STEP CONTAINER (THÂN NỘI DUNG CUỘN Ở GIỮA) */
-    .guide-content {
-      max-width: 460px;
-      margin: 0 auto;
-      padding: calc(var(--topbar-h) + var(--sa-top) + 16px) 16px calc(var(--navbar-h) + var(--sa-bottom) + 24px);
-      min-height: 100vh;
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+/* ─── LOADING ─────────────────────────────────── */
+.loading-box{text-align:center;}
+.spin{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--p1);
+  border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
+.loading-text{font-size:.82rem;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
 
-    /* STEP CARD */
-    .step-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border-radius: var(--radius);
-      padding: 20px 18px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 240, 255, 0.05);
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      animation: fadeIn 0.25s ease-out;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .step-meta-badge {
-      align-self: flex-start;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(0, 240, 255, 0.12);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 4px 10px;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.76rem;
-      font-weight: 800;
-      color: var(--p1);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .step-h {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.22rem;
-      font-weight: 900;
-      color: var(--text);
-      line-height: 1.25;
-    }
-    .step-p {
-      font-size: 0.88rem;
-      color: var(--text-dim);
-      line-height: 1.55;
-    }
+/* ─── COMPLETE ────────────────────────────────── */
+/* .screen dùng chung padding:20px cho các màn canh giữa (entry/loading). Riêng màn
+   này banner hero cố tình bo góc 0 0 22px 22px để DÁN SÁT đỉnh máy, nên 20px của
+   .screen + 16px của .complete-wrap cộng lại thành một dải nền ~36px phía trên
+   banner — đúng "khoảng trắng bên trên" khách thấy sau khi bấm hoàn thành, và đẩy
+   luôn thẻ bước 3 (vào nhóm Zalo) xuống dưới màn hình. Bỏ hẳn padding-top ở cả hai
+   để hero chạm đỉnh, phần dưới vẫn giữ padding ngang/đáy như cũ. */
+#completeScreen{overflow-y:auto;align-items:flex-start;padding:0 20px 20px;}
+.complete-wrap{width:100%;max-width:440px;margin:0 auto;padding:0 0 32px;}
+@keyframes bounce{0%,100%{transform:scale(1);}50%{transform:scale(1.15);}}
+.complete-ico{font-size:56px;margin-bottom:16px;animation:bounce .6s ease;}
+.complete-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.7rem;
+  background:linear-gradient(135deg,var(--green),var(--accent));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px;}
+.complete-sub{font-size:.85rem;color:var(--muted);line-height:1.7;margin-bottom:24px;}
+.btn-home{
+  display:inline-block;padding:14px 32px;border-radius:14px;
+  background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;
+  font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:900;text-decoration:none;
+  box-shadow:0 5px 0 #5b20c0;transition:all .18s;
+}
+.btn-home:active{transform:translateY(4px);box-shadow:0 1px 0 #5b20c0;}
 
-    /* BOXES INSIDE STEP */
-    .account-box {
-      background: #090e1a;
-      border: 1.5px dashed var(--border);
-      border-radius: var(--radius-sm);
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .acc-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-    .acc-val {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.88rem;
-      font-weight: 800;
-      color: var(--p1);
-      word-break: break-all;
-    }
-    .btn-copy-sm {
-      padding: 6px 12px;
-      background: rgba(0, 240, 255, 0.14);
-      border: 1px solid var(--p1);
-      color: var(--p1);
-      font-weight: 800;
-      font-size: 0.74rem;
-      border-radius: 8px;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .btn-copy-sm:active { background: var(--p1); color: #030712; }
+/* ─── GUIDE UI ────────────────────────────────── */
+#guideUI{display:none;position:relative;z-index:1;min-height:100vh;}
 
-    .callout {
-      border-radius: var(--radius-sm);
-      padding: 12px 14px;
-      font-size: 0.82rem;
-      line-height: 1.5;
-    }
-    .callout-warn {
-      background: rgba(245, 158, 11, 0.12);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      color: #fef3c7;
-    }
-    .callout-danger {
-      background: rgba(239, 68, 68, 0.12);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #fee2e2;
-    }
-    .callout-info {
-      background: rgba(0, 240, 255, 0.08);
-      border: 1px solid rgba(0, 240, 255, 0.2);
-      color: #e0f2fe;
-    }
+.topbar{
+  position:relative;z-index:20;
+  background:rgba(245,244,255,.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:12px 20px;gap:12px;
+}
+.topbar-logo{font-family:'Nunito',sans-serif;font-weight:900;font-size:1rem;
+  background:linear-gradient(135deg,var(--p1),var(--p2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.timer-chip{
+  background:rgba(168,85,247,.08);border:1.5px solid var(--border);border-radius:20px;
+  padding:6px 14px;font-size:.78rem;color:var(--p1);font-weight:700;white-space:nowrap;
+}
+.timer-chip.warn{color:var(--warning);border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.06);}
+.timer-chip.crit{color:var(--red);border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.06);animation:timerFlash .8s infinite;}
+@keyframes timerFlash{50%{opacity:.4;}}
 
-    .btn-step-action {
-      width: 100%;
-      min-height: 48px;
-      background: linear-gradient(135deg, var(--p1), var(--p2));
-      border: none;
-      border-radius: 12px;
-      color: #030712;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.92rem;
-      font-weight: 900;
-      letter-spacing: 0.02em;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      text-decoration: none;
-      box-shadow: 0 4px 0 #4c1d95, 0 0 16px rgba(0, 240, 255, 0.3);
-      transition: all 0.15s;
-    }
-    .btn-step-action:active {
-      transform: translateY(2px);
-      box-shadow: 0 2px 0 #4c1d95;
-    }
+/* Chừa chỗ cho topbar (fixed) + nav-bar (fixed) theo CHIỀU CAO THẬT do JS đo được
+   (--topbar-h / --navbar-h, xem syncBarHeights ở cuối file). Trước đây là số cứng
+   64px/104px nên máy bé bị chừa dư một khoảng trống, còn khi nav-hint đổi sang chữ
+   dài/2 dòng thì lại bị thiếu, che mất cuối nội dung. Số trong var() chỉ là fallback
+   cho lần vẽ đầu trước khi JS chạy. */
+.guide-content{padding:calc(var(--topbar-h,48px) + 8px) 14px calc(var(--navbar-h,72px) + 12px);max-width:580px;margin:0 auto;}
 
-    /* BOTTOM NAVBAR DÁN ĐÁY */
-    .nav-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 20;
-      background: rgba(7, 9, 14, 0.95);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border-top: 1px solid var(--border);
-      padding: 8px 16px calc(10px + var(--sa-bottom));
-      max-width: 460px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .nav-hint {
-      font-size: 0.78rem;
-      color: var(--muted);
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .hint-arrow { animation: bounce 1.2s infinite; }
-    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-    .nav-btns {
-      display: flex;
-      gap: 10px;
-    }
-    .btn-nav {
-      flex: 1;
-      min-height: 48px;
-      border-radius: 12px;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.92rem;
-      font-weight: 900;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: none;
-      transition: all 0.15s;
-    }
-    .btn-prev {
-      flex: 0 0 110px;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid var(--border);
-      color: var(--text-dim);
-    }
-    .btn-complete {
-      background: linear-gradient(135deg, var(--p1), var(--p2));
-      color: #030712;
-      box-shadow: 0 3px 0 #4c1d95;
-    }
-    .btn-complete:active { transform: translateY(2px); box-shadow: 0 1px 0 #4c1d95; }
+/* MOBILE — thu nhỏ topbar + nav-bar để đỡ chật vùng giữa */
+@media(max-width:640px){
+  .topbar{padding:6px 12px;gap:6px;}
+  .topbar-logo{font-size:.8rem;}
+  .timer-chip{padding:3px 8px;font-size:.66rem;border-radius:12px;}
+  .nav-hint{padding:3px 8px;font-size:.64rem;}
+  .nav-hint.hint-complete{font-size:.64rem;}
+  .btn-nav{padding:8px 10px;font-size:.8rem;}
+  .btn-complete{font-size:.82rem;box-shadow:0 2px 0 #047857;}
+  .btn-complete:active{box-shadow:0 1px 0 #047857;}
+  @keyframes navPulseGreen{
+    0%,100%{box-shadow:0 2px 0 #047857,0 0 0 0 rgba(16,185,129,.5);}
+    55%{box-shadow:0 2px 0 #047857,0 0 0 4px rgba(16,185,129,0);}
+  }
+}
 
-    /* COMPLETE SCREEN */
-    #completeScreen {
-      overflow-y: auto;
-      align-items: flex-start;
-      padding: 0;
-    }
-    .complete-wrap {
-      max-width: 460px;
-      width: 100%;
-      margin: 0 auto;
-      padding-top: var(--sa-top);
-      padding-bottom: calc(40px + var(--sa-bottom));
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-    .complete-hero {
-      background: linear-gradient(180deg, rgba(0, 240, 255, 0.15) 0%, rgba(139, 92, 246, 0.08) 100%);
-      border-bottom: 1.5px solid var(--border);
-      padding: 32px 20px 24px;
-      text-align: center;
-      position: relative;
-    }
-    .hero-shield-icon { font-size: 3rem; margin-bottom: 8px; }
-    .hero-title {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.35rem;
-      font-weight: 900;
-      background: linear-gradient(135deg, var(--p1), var(--p2));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 6px;
-    }
-    .hero-sub {
-      font-size: 0.84rem;
-      color: var(--text-dim);
-      line-height: 1.5;
-      max-width: 360px;
-      margin: 0 auto 16px;
-    }
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
-      background: rgba(16, 185, 129, 0.18);
-      border: 1px solid rgba(16, 185, 129, 0.4);
-      border-radius: 20px;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.8rem;
-      font-weight: 900;
-      color: var(--accent);
-      letter-spacing: 0.04em;
-    }
-    .complete-sub-hint {
-      text-align: center;
-      font-size: 0.86rem;
-      color: var(--text-dim);
-      padding: 0 16px;
-    }
-    .complete-progress-wrap {
-      padding: 0 16px;
-    }
-    .progress-meta {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.78rem;
-      font-weight: 800;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-    .progress-bar-bg {
-      height: 8px;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--p1), var(--accent));
-      border-radius: 10px;
-      transition: width 0.4s ease;
-    }
+/* MÁY NHỎ (≤400px: iPhone SE/8/12 mini, Android 5") */
+@media(max-width:400px){
+  .topbar{padding:5px 10px;gap:5px;}
+  .topbar-logo{font-size:.74rem;}
+  .timer-chip{padding:2px 7px;font-size:.62rem;border-radius:10px;border-width:1px;}
+  .nav-bar{padding:3px 8px 5px;gap:3px;}
+  .nav-hint{padding:2px 6px;font-size:.58rem;border-radius:10px;}
+  .nav-hint.hint-complete{font-size:.58rem;}
+  .btn-nav{padding:7px 8px;font-size:.76rem;border-radius:8px;}
+  .btn-complete{font-size:.78rem;}
+  .guide-content{padding-left:8px;padding-right:8px;}
+}
 
-    .complete-cards-list {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      padding: 0 16px;
-    }
-    .complete-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      transition: all 0.2s;
-    }
-    .complete-card.done-card {
-      border-color: rgba(16, 185, 129, 0.4);
-      background: rgba(16, 185, 129, 0.06);
-    }
-    .card-head {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-    }
-    .card-num-badge {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: rgba(0, 240, 255, 0.15);
-      border: 1px solid var(--p1);
-      color: var(--p1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 900;
-      font-size: 0.82rem;
-      flex-shrink: 0;
-    }
-    .card-text-block { flex: 1; }
-    .card-h {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .badge-tag {
-      font-size: 0.65rem;
-      background: rgba(239, 68, 68, 0.2);
-      border: 1px solid #ef4444;
-      color: #ef4444;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-    .card-p {
-      font-size: 0.8rem;
-      color: var(--text-dim);
-      line-height: 1.45;
-      margin-top: 4px;
-    }
-    .btn-card-action {
-      width: 100%;
-      min-height: 44px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--p1), var(--p2));
-      color: #030712;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.88rem;
-      font-weight: 900;
-      border: none;
-      cursor: pointer;
-    }
-    .btn-danger-action {
-      background: linear-gradient(135deg, #f59e0b, #ef4444);
-      color: #fff;
-    }
-    .btn-cyan-action {
-      background: linear-gradient(135deg, #0284c7, #00f0ff);
-      color: #030712;
-    }
-    .btn-back-home {
-      display: inline-block;
-      color: var(--text-dim);
-      font-size: 0.84rem;
-      font-weight: 700;
-      text-decoration: none;
-    }
+/* MÀN THẤP (≤680px chiều cao) */
+@media(max-height:680px){
+  .topbar{padding:4px 10px;}
+  .timer-chip{padding:2px 8px;font-size:.62rem;}
+  .nav-bar{padding:3px 10px 5px;gap:2px;}
+  .nav-hint{padding:2px 8px;font-size:.6rem;}
+  .btn-nav{padding:7px 10px;font-size:.76rem;}
+}
 
-    /* MODALS OVERLAY */
-    .guide-modal-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 99999;
-      background: rgba(7, 9, 14, 0.92);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .modal-card {
-      background: #0f172a;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      padding: 26px 20px;
-      max-width: 380px;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8);
-    }
-    .modal-ico { font-size: 2.8rem; margin-bottom: 8px; }
-    .modal-title {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.25rem;
-      font-weight: 900;
-      color: var(--p1);
-      margin-bottom: 12px;
-    }
-    .modal-box-info {
-      font-size: 0.84rem;
-      color: var(--text-dim);
-      line-height: 1.55;
-      text-align: left;
-      margin-bottom: 20px;
-    }
-    .btn-cyber {
-      width: 100%;
-      min-height: 46px;
-      background: linear-gradient(135deg, var(--p1), var(--p2));
-      border: none;
-      border-radius: 10px;
-      color: #030712;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.92rem;
-      font-weight: 900;
-      cursor: pointer;
-    }
+/* STEP CARD */
+.step-card{
+  background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);
+  padding:28px 24px;margin-bottom:16px;
+  box-shadow:0 2px 16px rgba(124,58,237,.06);
+  animation:fadeUp .4s ease;
+}
+.step-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.25rem;
+  color:var(--p1);margin-bottom:14px;line-height:1.25;}
+.step-content{font-size:.9rem;color:var(--text);line-height:1.8;white-space:pre-wrap;}
 
-    /* FRAUD TRAP */
-    .modal-fraud {
-      border-color: #ef4444;
-    }
-    .fraud-icon { font-size: 3.2rem; }
-    .fraud-title {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.25rem;
-      font-weight: 900;
-      color: #ef4444;
-      margin: 10px 0;
-    }
-    .fraud-msg {
-      font-size: 0.84rem;
-      color: #fca5a5;
-      line-height: 1.5;
-      margin-bottom: 14px;
-    }
-    .fraud-timer-label {
-      font-size: 0.74rem;
-      font-weight: 800;
-      color: var(--muted);
-      letter-spacing: 0.05em;
-    }
-    .fraud-countdown {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 3rem;
-      font-weight: 900;
-      color: #ef4444;
-      line-height: 1;
-      margin: 8px 0;
-    }
+.notice-box{background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.25);border-left:3px solid var(--red);border-radius:12px;padding:11px 14px;display:flex;align-items:flex-start;gap:8px;margin-top:12px;}
+.notice-box p{font-size:.82rem;color:var(--text);line-height:1.6;}
+.notice-box b{color:var(--red);font-weight:700;}
 
-    /* CONFIRM OVERLAY */
-    .confirm-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 99999;
-      background: rgba(7, 9, 14, 0.92);
-      backdrop-filter: blur(16px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .confirm-box {
-      background: #0f172a;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      padding: 26px 20px;
-      max-width: 380px;
-      width: 100%;
-      text-align: center;
-    }
-    .confirm-icon { font-size: 2.6rem; margin-bottom: 8px; }
-    .confirm-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; font-weight: 900; color: var(--text); margin-bottom: 8px; }
-    .confirm-sub { font-size: 0.84rem; color: var(--text-dim); line-height: 1.5; margin-bottom: 20px; }
-    .confirm-btns { display: flex; gap: 10px; }
-    .confirm-cancel { flex: 1; min-height: 44px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 10px; color: var(--text-dim); font-weight: 800; font-size: 0.88rem; cursor: pointer; }
-    .confirm-ok { flex: 1; min-height: 44px; background: linear-gradient(135deg, var(--p1), var(--p2)); border: none; border-radius: 10px; color: #030712; font-weight: 900; font-family: 'Space Grotesk', sans-serif; font-size: 0.88rem; cursor: pointer; }
-  </style>
+/* STEP INDICATOR */
+.step-indicator{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.step-indicator-bar{flex:1;height:5px;background:var(--border);border-radius:99px;overflow:hidden;}
+.step-indicator-fill{height:100%;background:linear-gradient(90deg,var(--p1),var(--p2));border-radius:99px;transition:width .4s ease;}
+.step-indicator-label{font-size:.72rem;font-weight:800;color:var(--p1);white-space:nowrap;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.15);border-radius:20px;padding:3px 11px;}
+
+/* USERNAME STEP */
+.field-label-u{display:block;font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;}
+.username-input{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;
+  padding:13px 16px;color:var(--p1);font-family:'Be Vietnam Pro',sans-serif;
+  font-size:1rem;font-weight:700;outline:none;transition:border-color .2s,box-shadow .2s;margin-bottom:16px;}
+.username-input::placeholder{color:var(--muted);font-weight:500;}
+.username-input:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(168,85,247,.1);}
+
+.username-img-placeholder{
+  width:100%;max-width:220px;aspect-ratio:1/1;margin:0 auto;border-radius:16px;
+  background:linear-gradient(150deg,#1a1a2e,#0f0a1e);
+  border:1.5px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 4px 20px rgba(124,58,237,.12);
+  position:relative;overflow:hidden;
+}
+.username-img-placeholder img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;}
+.img-ph-fallback{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;position:relative;z-index:1;}
+.img-ph-icon{font-size:2.2rem;opacity:.5;}
+.img-ph-text{font-size:.74rem;color:rgba(255,255,255,.45);text-align:center;line-height:1.5;font-weight:600;padding:0 16px;}
+.img-caption{text-align:center;font-size:.8rem;color:var(--muted);line-height:1.6;margin:12px 0 18px;font-weight:600;}
+.img-caption b{color:var(--p1);}
+
+/* VIDEO */
+.video-wrap{margin:16px 0 0;}
+.video-shell{position:relative;width:100%;max-width:280px;margin:0 auto;border-radius:16px;overflow:hidden;border:1.5px solid var(--border);box-shadow:0 4px 24px rgba(124,58,237,.10);background:#0f0a1e;}
+.video-shell::before{content:'';display:block;padding-top:177.78%;}
+.video-shell iframe,.video-shell video{position:absolute;inset:0;width:100%;height:100%;border:none;}
+.video-shell video{object-fit:contain;background:#000;}
+.btn-download{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:none;border-radius:14px;margin-top:16px;background:linear-gradient(135deg,var(--accent),#0891b2);color:#fff;font-family:'Nunito',sans-serif;font-size:.92rem;font-weight:900;letter-spacing:.02em;cursor:pointer;text-decoration:none;box-shadow:0 4px 0 #0e7490;transition:all .18s;}
+.btn-download:active{transform:translateY(3px);box-shadow:0 1px 0 #0e7490;}
+.btn-inject-gold{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:none;border-radius:14px;margin-top:14px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:900;letter-spacing:.02em;cursor:pointer;text-decoration:none;box-shadow:0 4px 0 #b91c1c;transition:all .18s;}
+.btn-inject-gold:hover{filter:brightness(1.05);}
+.btn-inject-gold:active{transform:translateY(3px);box-shadow:0 1px 0 #b91c1c;}
+.btn-inject-gold:disabled{background:#9ca3af;box-shadow:none;cursor:not-allowed;}
+.btn-link{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:1.5px solid var(--p2);border-radius:14px;margin-top:12px;background:transparent;color:var(--p1);font-family:'Nunito',sans-serif;font-size:.92rem;font-weight:900;letter-spacing:.02em;cursor:pointer;text-decoration:none;transition:all .18s;}
+.btn-link:hover{background:rgba(124,58,237,.06);}
+
+/* APPSTORE / IPA COPY CARD */
+.acct-copy-wrap{margin:16px 0 8px;}
+.acct-copy-label{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;}
+.acct-copy-card{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:rgba(124,58,237,.07);border:1.5px solid rgba(124,58,237,.22);border-radius:13px;
+  padding:12px 15px;cursor:pointer;transition:background .18s,border-color .18s;user-select:none;}
+.acct-copy-card:active{background:rgba(124,58,237,.14);}
+.acct-copy-card.copied{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.3);}
+.acct-copy-value{font-family:'Nunito',sans-serif;font-weight:900;font-size:1rem;color:var(--p1);word-break:break-all;}
+.acct-copy-badge{flex-shrink:0;font-size:.72rem;font-weight:800;padding:4px 10px;border-radius:20px;
+  background:rgba(124,58,237,.15);color:var(--p1);transition:background .18s,color .18s;white-space:nowrap;}
+.acct-copy-card.copied .acct-copy-badge{background:rgba(16,185,129,.18);color:#059669;}
+.acct-copy-hint{font-size:.72rem;color:var(--muted);margin-top:5px;text-align:center;}
+.video-caption{text-align:center;font-size:.8rem;color:var(--muted);line-height:1.5;margin:10px 0 4px;font-weight:600;}
+.video-caption b{color:var(--p1);}
+
+/* NAV BAR */
+.nav-bar{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);z-index:20;
+  background:rgba(245,244,255,.96);backdrop-filter:blur(14px);
+  border-top:1px solid var(--border);
+  padding:5px 14px 7px;
+  display:flex;flex-direction:column;gap:4px;
+  width:100%;max-width:580px;
+  border-radius:16px 16px 0 0;
+  box-shadow:0 -3px 16px rgba(124,58,237,.06);
+}
+@media(max-width:640px){
+  .nav-bar{left:0;transform:none;max-width:100%;border-radius:0;padding:4px 10px 5px;gap:3px;}
+}
+.nav-hint{
+  text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-size:.66rem;font-weight:800;color:var(--p1);letter-spacing:.01em;
+  background:linear-gradient(135deg,rgba(124,58,237,.06),rgba(168,85,247,.06));
+  border:1px solid rgba(168,85,247,.18);
+  border-radius:12px;padding:3px 10px;line-height:1.3;
+  animation:hintPop .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+.nav-hint .hint-arrow{display:inline-block;animation:hintBounce 1.2s ease-in-out infinite;}
+@keyframes hintBounce{0%,100%{transform:translateY(0);}50%{transform:translateY(2px);}}
+@keyframes hintPop{from{opacity:0;transform:scale(.92);}to{opacity:1;transform:scale(1);}}
+.nav-hint.hint-complete{
+  background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(5,150,105,.12));
+  border-color:rgba(16,185,129,.35);color:#047857;
+  font-size:.66rem;
+}
+
+.nav-btns{display:flex;align-items:center;gap:6px;}
+.btn-nav{
+  flex:1;padding:8px 14px;border-radius:10px;
+  font-family:'Nunito',sans-serif;font-size:.84rem;font-weight:900;letter-spacing:.01em;
+  cursor:pointer;transition:all .18s;border:none;
+}
+.btn-complete{
+  background:linear-gradient(135deg,#059669,#10b981);color:#fff;
+  box-shadow:0 3px 0 #047857;font-size:.86rem;font-weight:900;
+  animation:navPulseGreen 1.6s ease-in-out infinite;
+  border:none;letter-spacing:.02em;
+}
+@keyframes navPulseGreen{
+  0%,100%{box-shadow:0 3px 0 #047857,0 0 0 0 rgba(16,185,129,.5);}
+  55%{box-shadow:0 3px 0 #047857,0 0 0 6px rgba(16,185,129,0);}
+}
+.btn-complete:active{transform:translateY(2px);box-shadow:0 1px 0 #047857;animation:none;}
+.btn-complete:disabled{animation:none;opacity:.45;}
+
+/* PC layout */
+@media(min-width:640px){
+  .topbar{padding:10px 24px;}
+  .guide-content{padding:calc(var(--topbar-h,52px) + 16px) 20px calc(var(--navbar-h,72px) + 20px);max-width:620px;}
+  .step-card{padding:26px 26px;}
+  .entry-box{padding:36px 32px;}
+  .video-shell{max-width:300px;}
+  .nav-bar{padding:6px 18px 8px;gap:5px;}
+  .btn-nav{padding:10px 16px;font-size:.88rem;}
+  .nav-hint{font-size:.7rem;padding:4px 14px;}
+}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--p1);color:#fff;border-radius:30px;
+  padding:10px 22px;font-size:.82rem;font-weight:700;
+  opacity:0;transition:.3s;pointer-events:none;z-index:50;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* CONFIRM MODAL */
+.confirm-overlay{
+  display:none;position:fixed;inset:0;z-index:60;
+  background:rgba(30,27,58,.45);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;padding:24px;
+}
+.confirm-overlay.show{display:flex;}
+.confirm-box{
+  background:var(--card);border-radius:22px;padding:28px 24px;
+  width:100%;max-width:340px;text-align:center;
+  border:1.5px solid var(--border);
+  box-shadow:0 12px 48px rgba(124,58,237,.2);
+  animation:popIn .35s cubic-bezier(.34,1.56,.64,1) both;
+}
+.confirm-icon{font-size:2.8rem;margin-bottom:12px;}
+.confirm-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.1rem;color:var(--text);margin-bottom:8px;}
+.confirm-sub{font-size:.82rem;color:var(--muted);line-height:1.65;margin-bottom:20px;}
+.confirm-btns{display:flex;gap:10px;}
+.confirm-cancel{
+  flex:1;padding:13px;border-radius:12px;border:1.5px solid var(--border);
+  background:transparent;color:var(--muted);font-family:'Nunito',sans-serif;
+  font-size:.88rem;font-weight:900;cursor:pointer;transition:all .18s;
+}
+.confirm-cancel:hover{border-color:var(--p2);color:var(--p1);}
+.confirm-ok{
+  flex:2;padding:13px;border-radius:12px;border:none;
+  background:linear-gradient(135deg,#059669,#10b981);color:#fff;
+  font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:900;
+  cursor:pointer;transition:all .18s;
+  box-shadow:0 4px 0 #047857;
+}
+.confirm-ok:active{transform:translateY(3px);box-shadow:0 1px 0 #047857;}
+
+@media(max-width:640px){
+  .entry-box{padding:28px 20px;}
+  .step-card{padding:20px 16px;}
+  /* CHỈ đổi padding ngang. Trước đây block này set cả 4 chiều (74px/125px) và vì nằm
+     sau nên ghi đè padding dọc động ở trên — máy bé lại bị chừa dư đúng như cũ.
+     Chiều dọc luôn để --topbar-h/--navbar-h quyết định. */
+  .guide-content{padding-left:12px;padding-right:12px;}
+}
+</style>
+
+<!-- PWA & iOS Home Screen Support -->
+<meta name="theme-color" content="#f5f4ff" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Locket Vxang" />
+<link rel="apple-touch-icon" href="/images/locket.png" />
+<link rel="icon" type="image/png" href="/images/locket_rounded.png" />
+
+<!-- Twemoji Integration -->
+<style>img.emoji{height:1.2em;width:1.2em;margin:0 .05em 0 .1em;vertical-align:-0.1em;}</style>
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@15.1.0/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  let parsing = false;
+  const twemojiObserver = new MutationObserver(() => {
+    if (parsing) return;
+    parsing = true;
+    twemoji.parse(document.body);
+    parsing = false;
+  });
+  twemojiObserver.observe(document.body, { childList: true, subtree: true });
+  parsing = true;
+  twemoji.parse(document.body);
+  parsing = false;
+});
+</script>
 </head>
-<body class="cyber-guide">
+<body>
+<div class="bg-dots"></div>
+<div class="bg-decos"><span>✨</span><span>💫</span><span>⭐</span><span>🌟</span></div>
 
-  <!-- 1. LOADING SCREEN -->
-  <div class="screen" id="loadScreen">
-    <div class="loading-box">
-      <div class="spin-cyber"></div>
-      <div class="loading-text">ĐANG XÁC THỰC MÃ TRUY CẬP...</div>
-    </div>
+<!-- ENTRY SCREEN -->
+<div class="screen" id="entryScreen">
+  <div class="entry-box">
+    <a href="/" class="back-link">← Quay về trang chủ</a>
+    <div class="entry-brand">📖 Guide Locket Gold</div>
+    <div class="entry-sub">Nhập mã do Vxang cấp sau khi thanh toán.<br>Mã có hiệu lực 30 phút kể từ khi xác thực.</div>
+    <label class="field-label">Mã truy cập</label>
+    <input type="text" class="field-input" id="codeInput" placeholder="VD: XW-A3K7P2" maxlength="20"
+      oninput="this.value=this.value.toUpperCase()"
+      onkeydown="if(event.key==='Enter')enterGuide()"/>
+    <div class="err-msg" id="errMsg"></div>
+    <button class="btn-primary" id="enterBtn" onclick="enterGuide()">→ Xác thực &amp; Vào Guide</button>
   </div>
+</div>
 
-  <!-- 2. MAIN GUIDE UI -->
-  <div id="guideUI" style="display:none; min-height: 100dvh; position: relative;">
-    <!-- A. TOPBAR CỐ ĐỊNH DÁN ĐỈNH -->
-    <div id="headerWrap" style="position:fixed; top:0; left:0; right:0; z-index:20;">
-      <div class="topbar">
-        <div class="topbar-logo">✦ LOCKET_VXANG</div>
-        <div class="timer-chip" id="timerChip">⏱ --:--</div>
-      </div>
-    </div>
-
-    <!-- B. THÂN NỘI DUNG CUỘN Ở GIỮA (Chỉ hiển thị 1 step card) -->
-    <div class="guide-content" id="stepContainer"></div>
-
-    <!-- C. NAVBAR CỐ ĐỊNH DÁN ĐÁY -->
-    <div class="nav-bar" id="navBar">
-      <div class="nav-hint" id="navHint">
-        <span class="hint-arrow">👆</span>&nbsp;<span id="navHintText">Làm theo hướng dẫn bên trên để tiếp tục</span>
-      </div>
-      <div class="nav-btns">
-        <button class="btn-nav btn-prev" id="btnPrev" onclick="prevStep()">← Quay lại</button>
-        <button class="btn-nav btn-complete" id="btnNext" onclick="nextStep()">Tiếp theo →</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 3. COMPLETE SCREEN -->
-  <div class="screen hidden" id="completeScreen">
-    <div class="complete-wrap">
-      <!-- Banner Hero Bảo Hành Vĩnh Viễn -->
-      <div class="complete-hero">
-        <div class="hero-shield-icon">🛡️</div>
-        <div class="hero-title">GÓI VĨNH VIỄN TRỌN ĐỜI</div>
-        <div class="hero-sub">Hệ thống hỗ trợ <b style="color:#00f0ff">cài lại miễn phí vĩnh viễn ngay cả khi bạn đổi máy</b>. 💎</div>
-        <div class="hero-badge">
-          <span>🎉</span>
-          <span>CÀI ĐẶT HOÀN TẤT!</span>
-        </div>
-      </div>
-
-      <div class="complete-sub-hint">Còn <b style="color:var(--p1)">3 bước nhỏ</b> bên dưới để hoàn tất xác nhận 👇</div>
-
-      <!-- Thanh tiến trình 0 / 3 bước -->
-      <div class="complete-progress-wrap">
-        <div class="progress-meta"><span>Tiến trình</span><span id="cProgressTxt">0 / 3 bước</span></div>
-        <div class="progress-bar-bg"><div id="cProgressFill" class="progress-bar-fill"></div></div>
-      </div>
-
-      <!-- Danh sách 3 thẻ hành động cuối cùng -->
-      <div class="complete-cards-list">
-        <!-- THẺ 1: Chụp màn hình gửi Zalo xác nhận -->
-        <div id="cCard1" class="complete-card">
-          <div class="card-head">
-            <div class="card-num-badge">1</div>
-            <div class="card-text-block">
-              <div class="card-h">📸 Chụp màn hình gửi Vxang</div>
-              <div class="card-p">Chụp lại ảnh màn hình này gửi qua Zalo cho Vxang để xác nhận kích hoạt. <b style="color:var(--p1)">Quan trọng!</b></div>
-            </div>
-          </div>
-          <button id="cBtn1" class="btn-card-action" onclick="cGoZaloGold()">💬 Gửi Zalo Cho Vxang Ngay</button>
-        </div>
-
-        <!-- THẺ 2: Kết bạn Locket -->
-        <div id="cCard2" class="complete-card">
-          <div class="card-head">
-            <div class="card-num-badge">2</div>
-            <div class="card-text-block">
-              <div class="card-h">🤝 Kết bạn Locket @vxang</div>
-              <div class="card-p">Add shop để nhận thông báo và hỗ trợ kích hoạt trực tiếp.</div>
-            </div>
-          </div>
-          <button id="cBtn2" class="btn-card-action btn-danger-action" onclick="cGoLocket()">Kết bạn @vxang →</button>
-        </div>
-
-        <!-- THẺ 3: Nhóm Thông Báo Zalo -->
-        <div id="cCard3" class="complete-card">
-          <div class="card-head">
-            <div class="card-num-badge badge-cyan">3</div>
-            <div class="card-text-block">
-              <div class="card-h">📣 Vào nhóm thông báo Locket_Vxang <span class="badge-tag">ĐỪNG BỎ QUA</span></div>
-              <div class="card-p">Nhận cập nhật sớm nhất — ưu đãi, icon sự kiện, bản vá lỗi Locket Gold.</div>
-            </div>
-          </div>
-          <button id="cBtn3" class="btn-card-action btn-cyan-action" onclick="cGoZalo()">📣 Vào nhóm thông báo →</button>
-        </div>
-      </div>
-
-      <div style="text-align:center; padding: 0 16px 28px;">
-        <a href="/" class="btn-back-home">← Về trang chủ</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- 4. MODALS OVERLAY THIẾT YẾU -->
-  <!-- Modal Chào Mừng Đọc Kỹ -->
-  <div id="welcomeOverlay" class="guide-modal-overlay" style="display:none;">
-    <div class="modal-card">
-      <div class="modal-ico">⚡</div>
-      <div class="modal-title">Chào bạn! Đọc kỹ trước nhé</div>
-      <div class="modal-box-info">
-        <div>📖 <b>Làm theo đúng thứ tự</b> từng bước hướng dẫn.</div>
-        <div style="margin-top:8px;">▶️ <b>Làm cẩn thận từng bước</b> để tránh thao tác sai.</div>
-        <div style="margin-top:8px; padding:8px 10px; background:rgba(239,68,68,.12); border:1px solid #ef4444; border-radius:8px;">
-          ⚠️ Có thắc mắc, <b>nhắn Zalo cho Vxang</b> để được trợ giúp ngay.
-        </div>
-      </div>
-      <button class="btn-cyber" onclick="closeWelcome()">OK, ĐÃ HIỂU! 🚀</button>
-    </div>
-  </div>
-
-  <!-- Modal Bẫy Gian Lận (Fraud Trap) 15s -->
-  <div id="fraudOverlay" class="guide-modal-overlay" style="display:none;">
-    <div class="modal-card modal-fraud">
-      <div class="fraud-icon">🚨</div>
-      <div class="fraud-title" id="fraudTitle">PHÁT HIỆN CHIA SẺ MÃ TRÁI PHÉP</div>
-      <div class="fraud-msg" id="fraudMsg">Mã truy cập chỉ áp dụng cho 1 thiết bị duy nhất. Hành vi chia sẻ mã đã bị hệ thống ghi nhận.</div>
-      <div class="fraud-timer-label">MÃ SẼ BỊ KHÓA VĨNH VIỄN TRONG</div>
-      <div class="fraud-countdown" id="fraudCountdown">15</div>
-    </div>
-  </div>
-
-  <!-- Modal Xác Nhận Hoàn Thành -->
-  <div class="confirm-overlay" id="confirmOverlay" style="display:none;">
-    <div class="confirm-box">
-      <div class="confirm-icon">✅</div>
-      <div class="confirm-title">Xác nhận hoàn thành?</div>
-      <div class="confirm-sub">Bạn đã thực hiện đầy đủ các bước chưa? Sau khi xác nhận, mã truy cập sẽ <b>hết hiệu lực ngay</b>.</div>
-      <div class="confirm-btns">
-        <button class="confirm-cancel" onclick="closeConfirm()">Chưa xong</button>
-        <button class="confirm-ok" onclick="doComplete()">✓ Xác nhận</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // 1. Quản lý Device ID
-    function getDeviceId() {
-      let id = localStorage.getItem('xwDeviceId');
-      if (!id) {
-        id = 'dev_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
-        localStorage.setItem('xwDeviceId', id);
-      }
-      return id;
-    }
-
-    // 2. State toàn cục
-    let state = {
-      code: '',
-      token: '',
-      expiresAt: null,
-      package: '30k',
-      specialFlow: false,
-      locketUsername: '',
-      steps: [],
-      curIndex: 0,
-      appstoreData: null,
-      dnsUrl: '',
-      pingInterval: null,
-      timerInterval: null
-    };
-
-    // 3. Complete Steps Progress
-    let completeSteps = { s1: false, s2: false, s3: false };
-    function updateCompleteProgress() {
-      const done = (completeSteps.s1 ? 1 : 0) + (completeSteps.s2 ? 1 : 0) + (completeSteps.s3 ? 1 : 0);
-      const fill = document.getElementById('cProgressFill');
-      const txt = document.getElementById('cProgressTxt');
-      if (fill) fill.style.width = (done / 3 * 100) + '%';
-      if (txt) txt.textContent = `${done} / 3 bước`;
-    }
-    function cGoZaloGold() {
-      completeSteps.s1 = true;
-      document.getElementById('cCard1').classList.add('done-card');
-      document.getElementById('cBtn1').textContent = '✓ Đã gửi Zalo';
-      updateCompleteProgress();
-      window.open('https://zalo.me/0822307662', '_blank');
-    }
-    function cGoLocket() {
-      completeSteps.s2 = true;
-      document.getElementById('cCard2').classList.add('done-card');
-      document.getElementById('cBtn2').textContent = '✓ Đã kết bạn';
-      updateCompleteProgress();
-      window.open('https://locket.cam', '_blank');
-    }
-    function cGoZalo() {
-      completeSteps.s3 = true;
-      document.getElementById('cCard3').classList.add('done-card');
-      document.getElementById('cBtn3').textContent = '✓ Đã vào nhóm';
-      updateCompleteProgress();
-      window.open('https://zalo.me/0822307662', '_blank');
-    }
-
-    // 4. API Gọi Serverless
-    async function api(path, opts = {}) {
-      const headers = { 'Content-Type': 'application/json', ...opts.headers };
-      if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
-      const res = await fetch(path, { ...opts, headers });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error((data && data.error) || 'Lỗi mạng');
-      return data;
-    }
-
-    // 5. Khởi tạo phiên
-    async function initSession() {
-      const params = new URLSearchParams(window.location.search);
-      let c = params.get('code');
-      if (!c) {
-        c = prompt('Vui lòng nhập mã truy cập (XW-xxxxxx):');
-        if (!c) { window.location.href = '/'; return; }
-      }
-      state.code = c.trim().toUpperCase();
-
-      try {
-        const valRes = await api('/api/guide/validate', {
-          method: 'POST',
-          body: JSON.stringify({ code: state.code, device_id: getDeviceId() })
-        });
-
-        state.token = valRes.token;
-        state.expiresAt = new Date(valRes.expires_at);
-
-        // Tải danh sách steps
-        const stepRes = await api('/api/guide/steps');
-        state.package = stepRes.package;
-        state.specialFlow = stepRes.special_flow;
-        state.locketUsername = stepRes.locket_username || '';
-        state.steps = stepRes.steps || [];
-
-        // Ẩn loading, hiện giao diện Guide
-        document.getElementById('loadScreen').classList.add('hidden');
-        document.getElementById('guideUI').style.display = 'block';
-
-        // Hiển thị modal chào mừng nếu chưa thấy
-        if (!sessionStorage.getItem('welcomed_' + state.code)) {
-          document.getElementById('welcomeOverlay').style.display = 'flex';
-        }
-
-        startCountdownTimer();
-        startHeartbeat();
-        renderCurrentStep();
-      } catch (err) {
-        alert(err.message || 'Mã truy cập không hợp lệ hoặc đã hết hạn!');
-        window.location.href = '/';
-      }
-    }
-
-    function closeWelcome() {
-      sessionStorage.setItem('welcomed_' + state.code, '1');
-      document.getElementById('welcomeOverlay').style.display = 'none';
-    }
-
-    // 6. Countdown Timer (30 phút)
-    function startCountdownTimer() {
-      if (state.timerInterval) clearInterval(state.timerInterval);
-      const timerEl = document.getElementById('timerChip');
-      state.timerInterval = setInterval(() => {
-        if (!state.expiresAt) return;
-        const diff = Math.max(0, state.expiresAt.getTime() - Date.now());
-        if (diff <= 0) {
-          clearInterval(state.timerInterval);
-          alert('Phiên làm việc đã hết 30 phút. Vui lòng liên hệ shop để nhận mã mới nếu chưa xong!');
-          window.location.href = '/';
-          return;
-        }
-        const m = Math.floor(diff / 60000);
-        const s = Math.floor((diff % 60000) / 1000);
-        timerEl.textContent = `⏱ ${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-      }, 1000);
-    }
-
-    // 7. Live Heartbeat Ping (4s)
-    function startHeartbeat() {
-      if (state.pingInterval) clearInterval(state.pingInterval);
-      state.pingInterval = setInterval(async () => {
-        try {
-          const res = await api('/api/guide/ping', {
-            method: 'POST',
-            body: JSON.stringify({ currentStep: state.curIndex, username: state.locketUsername })
-          });
-          if (res.kicked) {
-            clearInterval(state.pingInterval);
-            alert('Phiên này đã bị Admin đóng!');
-            window.location.href = '/';
-          }
-          if (res.expired) {
-            clearInterval(state.pingInterval);
-            alert('Mã truy cập đã hết hạn hoặc bị khóa do vi phạm!');
-            window.location.href = '/';
-          }
-          if (res.fraud_warning) {
-            showFraudModal(res.seconds_left || 15);
-          }
-        } catch {}
-      }, 4000);
-    }
-
-    function showFraudModal(sec) {
-      const modal = document.getElementById('fraudOverlay');
-      const timer = document.getElementById('fraudCountdown');
-      modal.style.display = 'flex';
-      let left = sec;
-      timer.textContent = left;
-      const count = setInterval(() => {
-        left--;
-        if (left <= 0) {
-          clearInterval(count);
-          alert('Mã truy cập đã bị khóa vĩnh viễn do phát hiện chia sẻ mã!');
-          window.location.href = '/';
-        } else {
-          timer.textContent = left;
-        }
-      }, 1000);
-    }
-
-    // 8. Render Bước Hiện Tại
-    async function renderCurrentStep() {
-      const container = document.getElementById('stepContainer');
-      const cur = state.steps[state.curIndex];
-      if (!cur) return;
-
-      const total = state.steps.length;
-      document.getElementById('btnPrev').style.visibility = state.curIndex === 0 ? 'hidden' : 'visible';
-      const btnNext = document.getElementById('btnNext');
-      btnNext.textContent = state.curIndex === total - 1 ? 'Hoàn thành →' : 'Tiếp theo →';
-
-      // STEP: AppStore (Shadowrocket)
-      if (cur.type === 'appstore') {
-        container.innerHTML = `
-          <div class="step-card">
-            <span class="step-meta-badge">Bước 1 • Cài Đặt Shadowrocket</span>
-            <div class="step-h">Cài Đặt Shadowrocket Từ App Store</div>
-            <div class="step-p">
-              Đăng nhập tài khoản Apple ID của shop bên dưới vào ứng dụng <b>App Store</b> để tải Shadowrocket miễn phí.
-            </div>
-
-            <div class="account-box" id="acctBox">
-              <div style="font-size:0.75rem; color:var(--muted); text-align:center;">ĐANG TẢI TÀI KHOẢN APP STORE...</div>
-            </div>
-
-            <a class="btn-step-action" href="https://apps.apple.com/app/shadowrocket/id932747118" target="_blank">
-              🚀 Mở App Store Tải Shadowrocket
-            </a>
-
-            <div class="callout callout-danger">
-              ⛔ <b>LƯU Ý BẮT BUỘC:</b> Giữ lại app Shadowrocket trên máy, tuyệt đối không được xóa app Shadowrocket đi.
-            </div>
-
-            <div class="callout callout-info">
-              ${state.specialFlow 
-                ? '⚠️ <b>LƯU Ý:</b> Tải xong Shadowrocket KHÔNG ĐĂNG XUẤT tài khoản vì cần phải dùng cho bước cài Locket IPA tiếp theo.'
-                : '💡 Tải xong Shadowrocket, hãy đăng xuất tài khoản shop rồi đăng nhập lại tài khoản App Store cá nhân của bạn.'}
-            </div>
-          </div>
-        `;
-        loadAppstoreAccount();
-      }
-
-      // STEP: IPA Hạ Cấp
-      else if (cur.type === 'ipa') {
-        const manifestUrl = `itms-services://?action=download-manifest&url=${encodeURIComponent(window.location.origin + '/api/guide/validate?action=ipa_plist')}`;
-        container.innerHTML = `
-          <div class="step-card">
-            <span class="step-meta-badge">Bước ${state.curIndex + 1} • Cài Đặt Bản Hạ Cấp</span>
-            <div class="step-h">Cài Đặt Locket IPA Hạ Cấp</div>
-            <div class="step-p">
-              Bấm nút tải bên dưới để cài đặt bản Locket IPA phiên bản tối ưu tính năng Gold.
-            </div>
-
-            <button class="btn-step-action" onclick="window.location.href='${manifestUrl}'">
-              ⬇ Tải Locket IPA Về Máy (OTA)
-            </button>
-
-            <div class="callout callout-warn">
-              ⚠️ <b>QUAN TRỌNG:</b> Giữ nguyên ứng dụng Locket hiện tại trên máy, KHÔNG XÓA app Locket cũ khi bấm tải.
-            </div>
-          </div>
-        `;
-      }
-
-      // STEP: VPN USA (Gói 40k)
-      else if (cur.type === 'vpn') {
-        container.innerHTML = `
-          <div class="step-card">
-            <span class="step-meta-badge">Bước ${state.curIndex + 1} • Kết Nối VPN USA</span>
-            <div class="step-h">Cài Đặt & Kết Nối VPN Hoa Kỳ</div>
-            <div class="step-p">
-              Tải và kết nối VPN sang máy chủ <b>Hoa Kỳ (United States)</b> để kích hoạt tính năng 15 giây.
-            </div>
-
-            <a class="btn-step-action" href="https://apps.apple.com/app/vpn-super-unlimited-proxy/id1370293473" target="_blank">
-              🌐 Mở App Store Tải VPN Super Proxy
-            </a>
-
-            <div class="callout callout-info">
-              💡 Bật VPN và chọn máy chủ <b>United States (Mỹ)</b> trước khi sang bước tiếp theo.
-            </div>
-          </div>
-        `;
-      }
-
-      // STEP: DNS
-      else if (cur.type === 'dns' || cur.type === 'choice') {
-        const pkgText = state.package === '40k' ? '15s Vĩnh Viễn' : '5s Vĩnh Viễn';
-        container.innerHTML = `
-          <div class="step-card">
-            <span class="step-meta-badge">Bước ${state.curIndex + 1} • Cài Đặt DNS ${pkgText}</span>
-            <div class="step-h">Cài Đặt Cấu Hình DNS</div>
-            <div class="step-p">
-              Bấm nút bên dưới để tải và cài đặt hồ sơ cấu hình DNS Locket Gold vào thiết bị.
-            </div>
-
-            <button class="btn-step-action" id="btnDownloadDns" onclick="downloadDns()">
-              🔒 Tải Cấu Hình DNS (${pkgText})
-            </button>
-
-            <div class="callout callout-info">
-              📲 <b>HƯỚNG DẪN CÀI TRÊN IPHONE:</b><br/>
-              1. Bấm nút <b>Tải Cấu Hình</b> ở trên → Chọn <b>Cho phép</b>.<br/>
-              2. Mở ứng dụng <b>Cài đặt (Settings)</b> trên iPhone.<br/>
-              3. Chọn mục <b>Đã tải về hồ sơ</b> ngay trên đầu → Bấm <b>Cài đặt</b>.
-            </div>
-          </div>
-        `;
-        loadDnsPool();
-      }
-
-      // STEP: Lên Locket Gold
-      else if (cur.type === 'gold') {
-        const moduleUrl = `${window.location.origin}/api/guide/validate?action=shadowrocket_module&code=${encodeURIComponent(state.code)}`;
-        container.innerHTML = `
-          <div class="step-card">
-            <span class="step-meta-badge">Bước Cuối • Kích Hoạt Gold</span>
-            <div class="step-h">Kích Hoạt Locket Gold Trong Shadowrocket</div>
-            <div class="step-p">
-              Sao chép liên kết Module bên dưới và dán vào Shadowrocket để hoàn tất kích hoạt Gold.
-            </div>
-
-            <div class="account-box">
-              <div style="font-size:0.75rem; color:var(--muted);">LIÊN KẾT MODULE SHADOWROCKET:</div>
-              <div class="acc-row">
-                <span class="acc-val" style="font-size:0.75rem;">${moduleUrl}</span>
-                <button class="btn-copy-sm" onclick="copyText('${moduleUrl}')">Sao chép</button>
-              </div>
-            </div>
-
-            <a class="btn-step-action" href="shadowrocket://" style="background:linear-gradient(135deg,#0284c7,#00f0ff);">
-              ⚡ Mở Shadowrocket
-            </a>
-
-            <div class="callout callout-info">
-              💡 <b>Cách dán vào Shadowrocket:</b><br/>
-              Mở Shadowrocket ➔ Vào mục <b>Cấu hình (Config)</b> ➔ Chọn Module ➔ Dán liên kết vừa sao chép ➔ Bật công tắc kết nối!
-            </div>
-          </div>
-        `;
-      }
-
-      // Cuộn lên đầu
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    // 9. Xử lý các tác vụ của Bước
+<!-- IN-APP BROWSER BLOCKING MODAL -->
+<div id="inappBlockModal" style="display:none;position:fixed;inset:0;z-index:999999;background:rgba(15,10,40,.95);backdrop-filter:blur(12px);padding:20px;overflow-y:auto;align-items:center;justify-content:center;">
+  <div style="max-width:390px;width:100%;background:#ffffff;border-radius:24px;padding:26px 20px;box-shadow:0 24px 64px rgba(0,0,0,.5);text-align:center;border:2px solid var(--p1);animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both;">
+    <div style="font-size:44px;margin-bottom:8px">🧭</div>
+    <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:1.25rem;color:var(--p1);margin-bottom:8px;line-height:1.35;" id="inappTitle">Bắt Buộc Mở Bằng Safari</div>
     
-    function escXml(s) {
-      return String(s ?? '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+    <div style="background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.25);border-radius:14px;padding:12px 14px;margin-bottom:14px;text-align:left;font-size:.82rem;color:#991b1b;line-height:1.55;font-weight:600;" id="inappMsg">
+      ⛔ <b>Trình duyệt ứng dụng này (Zalo/Messenger/FB) không thể tải cấu hình Locket Gold</b>. Bạn bắt buộc phải chuyển sang ứng dụng <b>Safari</b> của iPhone!
+    </div>
+
+    <div style="background:var(--bg,#f5f4ff);border-radius:16px;padding:14px 16px;text-align:left;font-size:.84rem;color:#1e1b3a;line-height:1.65;font-weight:600;margin-bottom:16px;" id="inappGuide">
+      <div style="font-weight:800;color:var(--p1);margin-bottom:6px;">👉 Cách mở trên Safari:</div>
+      <div><b>Cách 1:</b> Bấm dấu <b>(•••)</b> ở góc màn hình ➔ Chọn <b>"Mở bằng trình duyệt" (Safari)</b>.</div>
+      <div style="margin-top:6px;"><b>Cách 2:</b> Bấm nút sao chép bên dưới ➔ Mở ứng dụng <b>Safari</b> trên iPhone và dán link vào.</div>
+    </div>
+
+    <button id="btnCopyInapp" onclick="copyCurrentUrl(this)" style="width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;font-family:'Nunito',sans-serif;font-weight:900;font-size:.92rem;cursor:pointer;box-shadow:0 4px 0 #5b20c0;transition:all .18s;">
+      📋 Sao chép liên kết để gửi qua iPhone
+    </button>
+  </div>
+</div>
+
+<!-- LOADING SCREEN -->
+<div class="screen hidden" id="loadScreen">
+  <div class="loading-box"><div class="spin"></div><div class="loading-text">Đang xác thực mã...</div></div>
+</div>
+
+<!-- COMPLETE SCREEN -->
+<div class="screen hidden" id="completeScreen">
+  <div class="complete-wrap">
+
+    <!-- Hero: Bảo hành theo gói — nổi bật nhất -->
+    <div style="margin:0 0 12px;background:linear-gradient(150deg,#065f46 0%,#059669 55%,#10b981 100%);border-radius:0 0 22px 22px;padding:16px 20px 14px;text-align:center;box-shadow:0 6px 32px rgba(5,150,105,.35);">
+      <div style="font-size:32px;display:inline-block;margin-bottom:4px;animation:bounce .6s ease">🛡️</div>
+      <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:1.2rem;color:#fff;margin-bottom:4px;letter-spacing:.01em">Bảo hành theo gói</div>
+      <div style="font-size:.76rem;color:rgba(255,255,255,.85);line-height:1.55;margin-bottom:10px">Trong thời gian bảo hành, Vxang hỗ trợ <b style="color:#fff">cài lại miễn phí ngay cả khi đổi máy</b>. 💚</div>
+      <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:20px;padding:6px 16px;">
+        <span style="font-size:.95rem">🎉</span>
+        <span style="font-family:'Nunito',sans-serif;font-weight:900;font-size:.82rem;color:#fff">Cài đặt hoàn tất!</span>
+      </div>
+    </div>
+
+    <!-- Subtitle -->
+    <div style="text-align:center;font-size:.78rem;color:var(--muted);font-weight:600;margin-bottom:10px;padding:0 16px">Còn <b style="color:var(--p1)">3 bước nhỏ</b> bên dưới để kích hoạt bảo hành 👇</div>
+
+    <!-- Progress -->
+    <div style="padding:0 16px 10px">
+      <div style="display:flex;justify-content:space-between;font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:6px">
+        <span>Tiến trình</span><span id="cProgressTxt">0 / 3 bước</span>
+      </div>
+      <div style="height:5px;background:var(--border);border-radius:99px;overflow:hidden">
+        <div id="cProgressFill" style="height:100%;width:0%;background:linear-gradient(90deg,var(--green),#059669);border-radius:99px;transition:width .5s ease"></div>
+      </div>
+    </div>
+
+    <!-- Step cards -->
+    <div style="padding:0 16px">
+
+      <!-- Step 1: Liên hệ Zalo để lên Gold -->
+      <div id="cCard1" style="background:var(--card);border:2px solid var(--p1);border-radius:var(--radius);padding:16px;margin-bottom:10px;transition:all .25s">
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <div id="cBadge1" style="width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;font-size:.75rem;font-weight:900;background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;margin-top:1px">1</div>
+          <div style="flex:1">
+            <div id="cTitle1" style="font-family:'Nunito',sans-serif;font-weight:900;font-size:.9rem;color:var(--text);margin-bottom:3px">💜 Liên hệ Vxang để lên Gold</div>
+            <div id="cDesc1" style="font-size:.78rem;color:var(--muted);line-height:1.55">Nhắn Zalo cho Vxang để được hướng dẫn thao tác lên Gold. <b style="color:var(--p1)">Quan trọng!</b></div>
+          </div>
+        </div>
+        <button id="cBtn1" onclick="cGoZaloGold()" style="width:100%;margin-top:12px;padding:11px;border-radius:10px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:900;cursor:pointer;transition:all .18s;background:var(--bg);color:var(--green);border:1.5px solid rgba(16,185,129,.35)">💬 Liên hệ Zalo ngay</button>
+      </div>
+
+      <!-- Step 2: Kết bạn Locket -->
+      <div id="cCard2" style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:10px;transition:all .25s">
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <div id="cBadge2" style="width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;font-size:.75rem;font-weight:900;background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;margin-top:1px">2</div>
+          <div style="flex:1">
+            <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:.9rem;color:var(--text);margin-bottom:3px">🤝 Kết bạn Locket @vxang1</div>
+            <div style="font-size:.78rem;color:var(--muted);line-height:1.55">Add shop để nhận thông báo và dễ liên hệ hỗ trợ hơn.</div>
+          </div>
+        </div>
+        <button id="cBtn2" onclick="cGoLocket()" style="width:100%;margin-top:12px;padding:11px;border-radius:10px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:900;cursor:pointer;transition:all .18s;background:var(--bg);color:#b91c1c;border:1.5px solid rgba(239,68,68,.35)">Kết bạn @vxang1 →</button>
+      </div>
+
+      <!-- Step 3: Nhóm Zalo — viền xanh + nền nhạt cho khác hẳn thẻ 2, vì khách hay
+           bỏ sót đúng thẻ này (nằm cuối, trước đây trông y hệt thẻ 2). -->
+      <div id="cCard3" style="background:#f0f7ff;border:2px solid rgba(0,104,255,.45);border-radius:var(--radius);padding:16px;margin-bottom:14px;transition:all .25s">
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <div id="cBadge3" style="width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;font-size:.75rem;font-weight:900;background:linear-gradient(135deg,#0052cc,#0a84ff);color:#fff;margin-top:1px">3</div>
+          <div style="flex:1">
+            <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:.9rem;color:var(--text);margin-bottom:3px">📣 Vào nhóm thông báo Locket_Vxang <span style="font-size:.68rem;font-weight:900;color:#0052cc;background:rgba(0,104,255,.12);border-radius:6px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">ĐỪNG BỎ QUA</span></div>
+            <div style="font-size:.78rem;color:var(--muted);line-height:1.55">Nhận cập nhật sớm nhất — ưu đãi, icon sự kiện, bản vá lỗi. Có lỗi Locket là nhóm báo trước tiên.</div>
+          </div>
+        </div>
+        <button id="cBtn3" onclick="cGoZalo()" style="width:100%;margin-top:12px;padding:12px;border-radius:10px;font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:900;cursor:pointer;transition:all .18s;background:linear-gradient(135deg,#0052cc,#0a84ff);color:#fff;border:none;box-shadow:0 3px 0 #003d99">📣 Vào nhóm thông báo →</button>
+      </div>
+
+    </div>
+
+    <div style="text-align:center;padding:0 16px 28px">
+      <a href="/" style="display:inline-block;padding:12px 28px;border-radius:14px;background:transparent;border:1.5px solid var(--border);color:var(--muted);font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:900;text-decoration:none;transition:all .2s">← Về trang chủ</a>
+    </div>
+  </div>
+
+  <!-- Popup hoàn tất 3 bước -->
+  <div id="cDoneOverlay" style="display:none;position:fixed;inset:0;background:rgba(124,58,237,.18);z-index:50;align-items:center;justify-content:center;padding:20px">
+    <div style="background:var(--card);border-radius:20px;padding:28px 22px;text-align:center;max-width:320px;width:100%;border:2px solid var(--p1);box-shadow:0 8px 32px rgba(124,58,237,.2);animation:popIn .4s cubic-bezier(.34,1.56,.64,1)">
+      <div style="font-size:44px;margin-bottom:12px">🎊</div>
+      <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:1.15rem;color:var(--p1);margin-bottom:8px">Hoàn tất rồi!</div>
+      <div style="font-size:.82rem;color:var(--muted);line-height:1.65;margin-bottom:18px">Cảm ơn bạn đã hoàn thành đủ 3 bước. Vxang sẽ liên hệ xác nhận sớm nhé 💜</div>
+      <button onclick="document.getElementById('cDoneOverlay').style.display='none'" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-weight:900;font-size:.88rem;cursor:pointer;box-shadow:0 4px 0 #5b20c0;transition:all .18s">OK, cảm ơn Vxang! 💜</button>
+    </div>
+  </div>
+</div>
+
+<!-- GUIDE UI -->
+<div id="guideUI">
+  <div id="headerWrap" style="position:fixed;top:0;left:0;right:0;z-index:20;">
+    <div class="topbar">
+      <div class="topbar-logo">✦ Locket Gold</div>
+      <div class="timer-chip" id="timerChip">⏱ --:--</div>
+    </div>
+  </div>
+  <div class="guide-content" id="stepContainer"></div>
+  <div class="nav-bar" id="navBar">
+    <div class="nav-hint" id="navHint"><span class="hint-arrow">👆</span>&nbsp;Nhập username rồi bấm <b>Sao chép</b>!</div>
+    <div class="nav-btns">
+      <button class="btn-nav btn-complete" id="btnNext" disabled style="opacity:.45">Sao chép trước đã →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Welcome Modal after validation -->
+<div id="welcomeOverlay" style="display:none;position:fixed;inset:0;z-index:70;background:rgba(30,27,58,.55);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--card);border-radius:22px;padding:28px 22px 24px;width:100%;max-width:360px;border:2px solid var(--p1);box-shadow:0 12px 48px rgba(124,58,237,.25);animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both;text-align:center;">
+    <div style="font-size:44px;margin-bottom:12px">🌟</div>
+    <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:1.2rem;color:var(--p1);margin-bottom:10px;">Chào bạn! Đọc trước nha 💜</div>
+    <div style="background:rgba(124,58,237,.06);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:16px;text-align:left;">
+      <div style="font-size:.85rem;color:var(--text);line-height:1.75;font-weight:600;">
+        <div style="margin-bottom:8px;">📖 <b>Đọc kỹ</b> nội dung hướng dẫn trong từng bước &amp; làm theo đúng thứ tự nhé.</div>
+        <div style="margin-bottom:8px;">▶️ <b>Vừa xem video vừa làm theo</b> — dễ nắm bắt và không sót bước.</div>
+        <div style="padding:9px 11px;background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.25);border-radius:10px;">⚠️ Có thắc mắc trong lúc làm, <b>liên hệ Vxang qua Zalo</b> để được hỗ trợ ngay.</div>
+      </div>
+    </div>
+    <button onclick="document.getElementById('welcomeOverlay').style.display='none'" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;border:none;border-radius:14px;font-family:'Nunito',sans-serif;font-weight:900;font-size:.95rem;cursor:pointer;box-shadow:0 5px 0 #5b20c0;transition:all .18s;letter-spacing:.02em;">
+      OK, mình hiểu rồi! 🚀
+    </button>
+  </div>
+</div>
+
+<!-- Fraud Trap Modal — hiện đồng loạt cho mọi thiết bị khi phát hiện gian lận -->
+<div id="fraudOverlay" style="display:none;position:fixed;inset:0;z-index:80;background:rgba(20,5,5,.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;">
+  <div id="fraudCard" style="background:var(--card);border-radius:22px;padding:30px 24px 26px;width:100%;max-width:360px;border:2px solid var(--red);box-shadow:0 12px 56px rgba(220,38,38,.35);animation:fraudPopIn .45s cubic-bezier(.34,1.56,.64,1) both;text-align:center;">
+    <div id="fraudIcon" style="font-size:50px;margin-bottom:12px;animation:fraudShake .5s ease 2">🚨</div>
+    <div id="fraudTitle" style="font-family:'Nunito',sans-serif;font-weight:900;font-size:1.15rem;color:var(--red);margin-bottom:10px;line-height:1.4;"></div>
+    <div id="fraudBody" style="background:rgba(220,38,38,.06);border:1.5px solid rgba(220,38,38,.25);border-radius:14px;padding:14px 16px;margin-bottom:18px;text-align:left;">
+      <div id="fraudMsg" style="font-size:.86rem;color:var(--text);line-height:1.75;font-weight:600;"></div>
+    </div>
+    <div style="font-size:.78rem;color:var(--muted);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">Mã sẽ tự khóa trong</div>
+    <div id="fraudCountdown" style="font-family:'Nunito',sans-serif;font-weight:900;font-size:2.4rem;color:var(--red);line-height:1;">15</div>
+  </div>
+</div>
+<style>
+@keyframes fraudPopIn{from{opacity:0;transform:scale(.85) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+@keyframes fraudShake{0%,100%{transform:rotate(0);}25%{transform:rotate(-8deg);}75%{transform:rotate(8deg);}}
+@keyframes fraudPulseBorder{0%,100%{box-shadow:0 12px 56px rgba(220,38,38,.35);}50%{box-shadow:0 12px 56px rgba(220,38,38,.6);}}
+#fraudCard{animation:fraudPopIn .45s cubic-bezier(.34,1.56,.64,1) both, fraudPulseBorder 1.2s ease-in-out infinite;}
+
+</style>
+
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">✅</div>
+    <div class="confirm-title">Xác nhận hoàn thành?</div>
+    <div class="confirm-sub">Locket Gold đã hoạt động chưa? Sau khi xác nhận, mã truy cập sẽ <b>hết hiệu lực ngay</b>.</div>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" onclick="closeConfirm()">Chưa xong</button>
+      <button class="confirm-ok" onclick="doComplete()">✓ Xác nhận</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase RTDB cho Appstore realtime (2026-08-15) -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+const FC={apiKey:"AIzaSyB3FSIkvSXob6F7MXrfOpw_hN6wHKIbu38",authDomain:"vxang-access-e9d5e.firebaseapp.com",databaseURL:"https://vxang-access-e9d5e-default-rtdb.firebaseio.com",projectId:"vxang-access-e9d5e",storageBucket:"vxang-access-e9d5e.firebasestorage.app",messagingSenderId:"941977010861",appId:"1:941977010861:web:8edc6af5dddccf4097fc24"};
+const fbApp=initializeApp(FC,'guide-app');
+const db=getDatabase(fbApp);
+// Expose lên window để inline script truy cập
+window._fbDb=db;
+window._fbRef=ref;
+window._fbOnValue=onValue;
+// Notify inline script that Firebase is ready
+document.dispatchEvent(new CustomEvent('firebase-ready'));
+  </script>
+  
+  <script>
+    // Realtime listener for appstore changes
+    document.addEventListener('firebase-ready', () => {
+      let fbDebounce = null;
+    window._fbOnValue(window._fbRef(window._fbDb, 'appstore'), (snapshot) => {
+      if (typeof appstoreData !== 'undefined' && appstoreData !== null) {
+        if (typeof loadAppstoreData === 'function') {
+          clearTimeout(fbDebounce);
+          fbDebounce = setTimeout(() => loadAppstoreData(true), 1200); // 1.2s delay to beat REST API replication latency
+        }
+      }
+    });
+    });
+  </script>
+
+<script>
+let guideToken = sessionStorage.getItem('xwGuideToken') || null;
+let steps = [], currentStep = 0;
+let expiresAt = null, pingInterval, timerInterval;
+let step3Choice = 'dns'; // luôn là 'dns' — giữ field để tương thích DB cũ; mặc định 'dns' để Hoàn thành không bị kẹt nếu reload ở bước Gold
+let usernameValue = '';
+let usernameLocked = false;
+let goldInjected = sessionStorage.getItem('xwGoldInjected') === 'true';
+let goldExpiryVal = sessionStorage.getItem('xwGoldExpiry') || '';
+let pkgType = '5s'; // '5s' | '15s' | '150' | '180' — nhận từ /api/guide/steps
+let specialFlow = false; // true = khách đặc biệt (flow có bước IPA + cảnh báo nghiêm trọng)
+let isCompleted = false;          // chặn ping xử lý sau khi đã Hoàn thành
+let fraudCountdownInterval = null;
+// Cache nạp 1 lần cho bước appstore & ipa. video_shadowrocket/video_locket đã bỏ khỏi
+// appstore node (chuyển sang link cứng VIDEO_SR/VIDEO_IPA); has_ipa & ipa_url chỉ có
+// nghĩa khi specialFlow=true (mặc định không có bước IPA nên client không dùng).
+let appstoreData = null;
+  let dnsPoolData = null; // cache { ok, dns_url, package, customer_code } hoặc { ok:false, error } — nạp 1 lần cho bước DNS (choice)
+
+// 5 video hướng dẫn = link cứng Cloudinary (2026-08-16). Trước đây lưu trong Firebase
+// appstore node (video_shadowrocket/video_locket) — admin phải tự upload/sửa từng link
+// qua tab Appstore. Chuyển sang link cứng vì video không bao giờ cần đổi per-khách, và
+// gỡ bỏ 2 ô nhập khỏi tab Appstore (giữ chỉ Email + Password). VIDEO_SR/IPA/GOLD dùng
+// cho bước appstore/ipa/gold; 2 video DNS/VPN vẫn nằm trong DEFAULT_STEPS (có video_url).
+const VIDEO_SR   = 'https://res.cloudinary.com/dqkilohx1/video/upload/v1786893944/shadowrocket_vbdbyf.mov';
+const VIDEO_IPA  = 'https://res.cloudinary.com/dqkilohx1/video/upload/v1786893919/locketipa_abds5k.mov';
+const VIDEO_GOLD = 'https://res.cloudinary.com/dqkilohx1/video/upload/v1786893926/thaotaclengold_yiorrz.mov';
+
+// ── Điều hướng & nav-bar dùng chung cho mọi loại step ──────────
+function updateNavBar() {
+    const s = steps[currentStep];
+    const btnNext = document.getElementById('btnNext');
+    const navHint = document.getElementById('navHint');
+    if (!s || !btnNext || !navHint) return;
+    const isLast = currentStep === steps.length - 1;
+  
+    if (s.type === 'username') {
+      btnNext.onclick = goNext;
+      if (usernameValue) {
+        btnNext.disabled = false; btnNext.textContent = 'Tiếp theo →'; btnNext.style.opacity = '';
+        navHint.innerHTML = '✅&nbsp;<b>Đã nhập Username! Bấm Tiếp theo để sang bước tiếp theo</b>';
+        navHint.classList.add('hint-complete');
+      } else {
+        btnNext.disabled = true; btnNext.textContent = 'Nhập username trước →'; btnNext.style.opacity = '.45';
+        navHint.innerHTML = '<span class="hint-arrow">👆</span>&nbsp;Nhập Username Locket của bạn rồi bấm <b>Tiếp theo</b> nhé!';
+        navHint.classList.remove('hint-complete');
+      }
+    } else if (s.type === 'appstore' && (!appstoreData || !appstoreData.ok || appstoreData.is_updating)) {
+      btnNext.disabled = true; btnNext.textContent = 'Đợi cập nhật'; btnNext.style.opacity = '.45';
+      navHint.innerHTML = '⏳&nbsp;<b>Đang đợi Vxang cập nhật tài khoản...</b>';
+      navHint.classList.remove('hint-complete');
+    } else if (s.type === 'ipa' && (!appstoreData || !appstoreData.ok || !appstoreData.has_ipa)) {
+      btnNext.disabled = true; btnNext.textContent = 'Chưa có File'; btnNext.style.opacity = '.45';
+      navHint.innerHTML = '❌&nbsp;<b>Chưa có File IPA, vui lòng liên hệ Zalo Admin!</b>';
+      navHint.classList.remove('hint-complete');
+    } else if (s.type === 'choice' && (!dnsPoolData || !dnsPoolData.ok)) {
+      btnNext.disabled = true; btnNext.textContent = 'Lỗi DNS'; btnNext.style.opacity = '.45';
+      navHint.innerHTML = '❌&nbsp;<b>Lỗi lấy link DNS, vui lòng liên hệ Zalo Admin!</b>';
+      navHint.classList.remove('hint-complete');
+    } else if (isLast) {
+      btnNext.style.display = '';
+      btnNext.onclick = completeGuide;
+      btnNext.disabled = false; btnNext.textContent = '✅ Hoàn thành'; btnNext.style.opacity = '';
+      navHint.innerHTML = '🎉&nbsp;<b>Bấm Hoàn thành để kích hoạt bảo hành!</b>';
+      navHint.classList.add('hint-complete');
+    } else {
+      btnNext.style.display = '';
+      btnNext.onclick = goNext;
+      btnNext.disabled = false; btnNext.textContent = 'Tiếp theo →'; btnNext.style.opacity = '';
+      navHint.innerHTML = '💡&nbsp;<b>Làm theo hướng dẫn rồi bấm Tiếp theo!</b>';
+      navHint.classList.add('hint-complete');
     }
-    function randomUUIDGuide() {
-      if (window.crypto && crypto.randomUUID) return crypto.randomUUID().toUpperCase();
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-        const r = Math.random() * 16 | 0;
-        const v = c === 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-      }).toUpperCase();
+  }
+  
+  function goNext() {
+  if (currentStep < steps.length - 1) {
+    currentStep++;
+    saveGuideState();
+    sendStepPing();
+    renderStep();
+  }
+}
+
+function onUsernameInput() {
+  const inputEl = document.getElementById('usernameInput');
+  const val = inputEl ? inputEl.value.trim() : '';
+  usernameValue = val;
+  saveGuideState();
+  updateNavBar();
+}
+
+const DEFAULT_STEPS_5S = [
+  { id:'d0',order_num:1,type:'username',title:'Nhập Username Locket của bạn' },
+  {
+    id:'d1',order_num:2,type:'choice',
+    title:'Cài đặt DNS giữ Gold',
+    video_url:'https://res.cloudinary.com/dqkilohx1/video/upload/v1785147263/IMG_0553_eeelmw.mp4',
+  },
+];
+const DEFAULT_STEPS_15S = [
+  { id:'d0',order_num:1,type:'username',title:'Nhập Username Locket của bạn' },
+  {
+    id:'d1',order_num:2,type:'vpn',title:'Cài đặt VPN (Mỹ)',
+    video_url:'https://res.cloudinary.com/dqkilohx1/video/upload/v1785059358/IMG_0529_pui47l.mp4',
+  },
+  {
+    id:'d2',order_num:3,type:'choice',
+    title:'Cài đặt DNS giữ Gold',
+    video_url:'https://res.cloudinary.com/dqkilohx1/video/upload/v1785147263/IMG_0553_eeelmw.mp4',
+  },
+];
+// Gói vĩnh viễn (150/180) — PHẢI khớp từng phần tử với DEFAULT_STEP_FLOW['150']/['180']
+// và DEFAULT_STEP_FLOW_SPECIAL['150']/['180'] trong api/_lib/utils.js (4 bản chép tay
+// độc lập: 2 mặc định + 2 đặc biệt, xem comment ở đó). Bỏ IPA khỏi mặc định (chỉ khách
+// đặc biệt mới có), video cứng nằm trong hằng VIDEO_SR/VIDEO_IPA/VIDEO_GOLD ở dưới.
+const DEFAULT_STEPS_150 = [
+  { id:'d0',order_num:1,type:'appstore',title:'Cài Shadowrocket' },
+  { id:'d1',order_num:2,type:'choice',title:'Cài đặt DNS giữ Gold' },
+  { id:'d2',order_num:3,type:'gold',title:'Lên Locket Gold' },
+];
+const DEFAULT_STEPS_180 = [
+  { id:'d0',order_num:1,type:'appstore',title:'Cài Shadowrocket' },
+  { id:'d1',order_num:2,type:'choice',title:'Cài đặt DNS giữ Gold' },
+  { id:'d2',order_num:3,type:'vpn',title:'Cài đặt VPN (Mỹ)' },
+  { id:'d3',order_num:4,type:'gold',title:'Lên Locket Gold' },
+];
+// Flow đặc biệt (customers.special_flow=true) — GIỮ bước IPA + cảnh báo nghiêm trọng
+// "không được xóa Locket". 150: Shadow→IPA→Gold (3 bước). 180: Shadow→IPA→VPN→DNS→Gold (5 bước, VPN ĐỨNG TRƯỚC DNS).
+const DEFAULT_STEPS_150_SPECIAL = [
+  { id:'d0',order_num:1,type:'appstore',title:'Cài Shadowrocket' },
+  { id:'d1',order_num:2,type:'ipa',title:'Cài Locket hạ cấp' },
+  { id:'d2',order_num:3,type:'gold',title:'Lên Locket Gold' },
+];
+const DEFAULT_STEPS_180_SPECIAL = [
+  { id:'d0',order_num:1,type:'appstore',title:'Cài Shadowrocket' },
+  { id:'d1',order_num:2,type:'ipa',title:'Cài Locket hạ cấp' },
+  { id:'d2',order_num:3,type:'vpn',title:'Cài đặt VPN (Mỹ)' },
+  { id:'d3',order_num:4,type:'choice',title:'Cài đặt DNS giữ Gold' },
+  { id:'d4',order_num:5,type:'gold',title:'Lên Locket Gold' },
+];
+function defaultStepsForPkg(p, special) {
+  if (special) {
+    if (p === '150') return DEFAULT_STEPS_150_SPECIAL;
+    if (p === '180') return DEFAULT_STEPS_180_SPECIAL;
+  }
+  if (p === '150') return DEFAULT_STEPS_150;
+  if (p === '180') return DEFAULT_STEPS_180;
+  if (p === '15s') return DEFAULT_STEPS_15S;
+  return DEFAULT_STEPS_5S;
+}
+
+async function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (guideToken) headers['Authorization'] = `Bearer ${guideToken}`;
+  const r = await fetch(path, { ...opts, headers });
+  const data = await r.json();
+  if (!r.ok) {
+    const err = new Error(data.error || r.status);
+    err.wait_seconds = data.wait_seconds;
+    throw err;
+  }
+  return data;
+}
+
+// Device ID bền vững theo từng máy/browser — dùng localStorage (KHÔNG phải sessionStorage)
+// để phân biệt "cùng 1 máy vào nhiều lần" vs "nhiều máy khác nhau vào cùng lúc".
+function getDeviceId() {
+  try {
+    let id = localStorage.getItem('xwDeviceId');
+    if (!id) {
+      id = (crypto.randomUUID ? crypto.randomUUID() : 'd-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+      localStorage.setItem('xwDeviceId', id);
     }
-    function downloadDnsProfile(dnsUrl, pkgTypeArg, customerCodeArg) {
-      const pkgTag = pkgTypeArg === '40k' || pkgTypeArg === '15s' ? ' 15s' : ' 5s';
-      const displayName = `Locket_Vxang${pkgTag} ⚡`;
-      const description = `✨ Duy trì Locket Gold${pkgTag} ổn định vĩnh viễn 💛\n🚀 Tối ưu hóa mạng &amp; Chặn quảng cáo`;
-      const organization = customerCodeArg ? `Vxang DNS · ${customerCodeArg}` : 'Vxang DNS';
-      const profileUUID = randomUUIDGuide();
-      const payloadUUID = randomUUIDGuide();
-      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+    return id;
+  } catch { return ''; }
+}
+
+// Phát hiện trình duyệt tích hợp (Zalo, Messenger, Facebook, Instagram, TikTok...)
+// để chặn sớm khách mở link sai chỗ. UA patterns phổ biến:
+// - Zalo: chứa "zalo" hoặc "zalomessenger"
+// - Facebook/Messenger: chứa "fbav" hoặc "fban"
+// - Instagram/TikTok/Telegram in-app browser cũng có dấu hiệu riêng
+// Safari thuần không chứa các chuỗi này. Regex case-insensitive.
+function isIOS() {
+  const ua = (navigator.userAgent || navigator.vendor || window.opera || '').toLowerCase();
+  return /ipad|iphone|ipod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function isInAppBrowser() {
+  const ua = (navigator.userAgent || navigator.vendor || window.opera || '').toLowerCase();
+  return /zalo|zalomessenger|fbav|fban|fb_iab|messenger|instagram|tiktok|snapchat|line\/|micromessenger|telegram/i.test(ua);
+}
+
+let devModeChecked = false;
+let globalDevModeOn = false;
+
+function checkInApp() {
+  const localDev = localStorage.getItem('xw_dev_mode') === '1' && (sessionStorage.getItem('xwAdminToken') || localStorage.getItem('xwAdminToken'));
+  if (globalDevModeOn) return false;
+
+  const inApp = isInAppBrowser();
+  const ios = isIOS();
+  
+  if (inApp || !ios) {
+    if (!devModeChecked) {
+      devModeChecked = true;
+      
+      const handleFirebaseState = (isOn) => {
+        if (isOn === true) {
+           globalDevModeOn = true;
+           localStorage.setItem('xw_dev_mode', '1');
+           const modal = document.getElementById('inappBlockModal');
+           if (modal) modal.style.display = 'none';
+           const input = document.getElementById('codeInput');
+           if (input) input.disabled = false;
+           if (typeof loadDnsInfo === 'function') loadDnsInfo();
+           const btn = document.getElementById('enterBtn');
+           if (btn && window.location.pathname.includes('/guide')) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+        } else {
+           globalDevModeOn = false;
+           localStorage.removeItem('xw_dev_mode');
+           const modal = document.getElementById('inappBlockModal');
+           if (modal && modal.style.display === 'none') {
+             modal.style.display = 'flex';
+             if (!isIOS()) {
+               const t = document.getElementById('inappTitle');
+               if (t) t.textContent = 'Yêu cầu mở trên iPhone';
+               const m = document.getElementById('inappMsg');
+               if (m) m.innerHTML = '⛔ <b>Dịch vụ Locket Gold chỉ hỗ trợ cài đặt trên điện thoại iPhone/iPad</b>. Vui lòng không sử dụng máy tính, PC hay Android!';
+               const g = document.getElementById('inappGuide');
+               if (g) g.innerHTML = '<div style="font-weight:800;color:var(--p1);margin-bottom:6px;">📌 Hướng dẫn:</div><div>Bấm nút sao chép bên dưới, gửi link này qua Zalo/Tin nhắn cho chính bạn 👉 <b>Dùng iPhone mở link đó bằng Safari</b> để tiếp tục.</div>';
+             }
+             const input = document.getElementById('codeInput');
+             if (input) input.disabled = true;
+             const btn = document.getElementById('enterBtn');
+             if (btn && window.location.pathname.includes('/guide')) { btn.disabled = true; btn.style.opacity = '.5'; btn.style.cursor = 'not-allowed'; }
+           }
+        }
+      };
+
+      setInterval(() => {
+        fetch('https://vxang-access-e9d5e-default-rtdb.firebaseio.com/appstore/dev_mode.json', { cache: 'no-store' })
+          .then(r => r.json()).then(handleFirebaseState).catch(()=>{});
+      }, 1500);
+      
+      fetch('https://vxang-access-e9d5e-default-rtdb.firebaseio.com/appstore/dev_mode.json', { cache: 'no-store' })
+        .then(r => r.json()).then(handleFirebaseState).catch(()=>{});
+    }
+
+    if (localDev) return false;
+
+    const modal = document.getElementById('inappBlockModal');
+    if (modal && !globalDevModeOn) {
+      modal.style.display = 'flex';
+      if (!ios) {
+        const t = document.getElementById('inappTitle');
+        if (t) t.textContent = 'Yêu cầu mở trên iPhone';
+        const m = document.getElementById('inappMsg');
+        if (m) m.innerHTML = '⛔ <b>Dịch vụ Locket Gold chỉ hỗ trợ cài đặt trên điện thoại iPhone/iPad</b>. Vui lòng không sử dụng máy tính, PC hay Android!';
+        const g = document.getElementById('inappGuide');
+        if (g) g.innerHTML = '<div style="font-weight:800;color:var(--p1);margin-bottom:6px;">📌 Hướng dẫn:</div><div>Bấm nút sao chép bên dưới, gửi link này qua Zalo/Tin nhắn cho chính bạn 👉 <b>Dùng iPhone mở link đó bằng Safari</b> để tiếp tục.</div>';
+      }
+    }
+    const input = document.getElementById('codeInput');
+    if (input) input.disabled = true;
+    
+    const btn = document.getElementById('enterBtn');
+    if (btn && window.location.pathname.includes('/guide')) { btn.disabled = true; btn.style.opacity = '.5'; btn.style.cursor = 'not-allowed'; }
+
+    return true;
+  }
+  return false;
+}
+
+  function copyCurrentUrl(btn) {
+  const url = window.location.href;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => {
+      btn.style.background = '#059669';
+      btn.style.boxShadow = '0 4px 0 #047857';
+      btn.innerHTML = '✓ Đã sao chép! Mở Safari và dán vào nhé';
+    }).catch(() => fallbackCopy(url, btn));
+  } else {
+    fallbackCopy(url, btn);
+  }
+}
+
+function fallbackCopy(text, btn) {
+  const t = document.createElement('textarea');
+  t.value = text;
+  document.body.appendChild(t);
+  t.select();
+  document.execCommand('copy');
+  document.body.removeChild(t);
+  if (btn) {
+    btn.style.background = '#059669';
+    btn.style.boxShadow = '0 4px 0 #047857';
+    btn.innerHTML = '✓ Đã sao chép! Mở Safari và dán vào nhé';
+  }
+}
+
+// Áp dụng response { steps, package, locket_username, special_flow } từ /api/guide/steps:
+// chọn bộ DEFAULT_STEPS theo gói khi rỗng, bỏ bước username nếu khách đã có locket_username.
+function applyStepsResponse(r) {
+  const PKG_KEYS = ['5s','15s','150','180'];
+  pkgType = PKG_KEYS.includes(r?.package) ? r.package : '5s';
+  specialFlow = !!r?.special_flow;
+  // special_flow=true: LUÔN dùng DEFAULT_STEPS đặc biệt, bỏ qua DB rows (khớp server
+  // buildStepFlow — bảng guide_steps không có cột special_flow nên không thể phân biệt).
+  let list = (r?.steps?.length && !specialFlow)
+    ? r.steps
+    : defaultStepsForPkg(pkgType, specialFlow);
+
+  const hasUsername = !!(r?.locket_username && String(r.locket_username).trim());
+  const shouldSkipUsername = !!(r?.skip_username_step || hasUsername);
+
+  if (hasUsername) {
+    usernameValue = String(r.locket_username).trim();
+    usernameLocked = true;
+    sessionStorage.setItem('xwUsernameLocked', 'true');
+    sessionStorage.setItem('xwGuideUsername', usernameValue);
+  } else {
+    // Khách CHƯA có username -> Mở khóa hoàn toàn cho khách tự do nhập
+    usernameValue = '';
+    usernameLocked = false;
+    sessionStorage.removeItem('xwUsernameLocked');
+    sessionStorage.removeItem('xwGuideUsername');
+  }
+
+  // Khách khi có username rồi (của các gói 50 60 80 100) khi tạo lại mã bảo hành -> Bỏ bước username
+  if (shouldSkipUsername) {
+    list = list.filter(s => s.type !== 'username' && s.step_type !== 'username');
+  }
+
+  steps = list;
+}
+
+window.addEventListener('load', async () => {
+  // Phát hiện in-app browser ngay khi trang load: Bắt buộc chuyển sang Safari
+  if (checkInApp()) return;
+
+  const params = new URLSearchParams(location.search);
+  const code = params.get('code');
+  if (code) document.getElementById('codeInput').value = code.toUpperCase();
+
+  const savedToken = sessionStorage.getItem('xwGuideToken');
+  const savedExpires = sessionStorage.getItem('xwGuideExpires');
+  if (savedToken && savedExpires && new Date(savedExpires) > new Date()) {
+    guideToken = savedToken;
+    expiresAt = new Date(savedExpires);
+    show('loadScreen');
+    try {
+      const r = await api('/api/guide/steps');
+      applyStepsResponse(r);
+      if (steps.length) {
+        currentStep = 0;
+        restoreGuideState();
+        renderStep();
+        startPing();
+        startTimer();
+        show('guideUI');
+        return;
+      }
+    } catch (err) {
+      sessionStorage.removeItem('xwGuideToken');
+      sessionStorage.removeItem('xwGuideExpires');
+      guideToken = null;
+    }
+  }
+  show('entryScreen');
+});
+
+function show(id) {
+  document.querySelectorAll('.screen,#guideUI').forEach(e => { e.classList.add('hidden'); e.style.display = ''; });
+  const el = document.getElementById(id);
+  if (el) { el.classList.remove('hidden'); if (id === 'guideUI') el.style.display = 'block'; }
+  if (id === 'guideUI') syncBarHeights();
+}
+
+// Đo chiều cao THẬT của topbar + nav-bar rồi ghi vào biến CSS --topbar-h/--navbar-h,
+// để .guide-content chừa đúng khoảng đó (xem comment ở .guide-content trong <style>).
+// Lý do cần JS: chiều cao 2 thanh đổi theo nhiều thứ CSS không biết trước — cỡ máy,
+// nav-hint đổi chữ dài/ngắn (có lúc xuống 2 dòng), font hệ thống, safe-area iPhone.
+// Số cứng 74px/125px trước đây khiến máy bé chừa dư, còn hint 2 dòng thì chừa thiếu
+// (che mất cuối nội dung, đúng cảm giác "2 thanh vẫn rất to" trên máy nhỏ).
+let barRO = null;
+function syncBarHeights() {
+  const topbar = document.querySelector('#headerWrap');
+  const navbar = document.getElementById('navBar');
+  if (!topbar || !navbar) return;
+  const set = () => {
+    const th = Math.round(topbar.getBoundingClientRect().height);
+    const nh = Math.round(navbar.getBoundingClientRect().height);
+    if (th > 0) document.documentElement.style.setProperty('--topbar-h', th + 'px');
+    if (nh > 0) document.documentElement.style.setProperty('--navbar-h', nh + 'px');
+  };
+  set();
+  // ResizeObserver bắt mọi lần 2 thanh tự đổi cao (đổi chữ hint, xoay máy, thanh địa
+  // chỉ Safari trượt lên/xuống) — không cần rải lệnh gọi ở từng chỗ sửa nav-hint.
+  if (!barRO && typeof ResizeObserver !== 'undefined') {
+    barRO = new ResizeObserver(set);
+    barRO.observe(topbar);
+    barRO.observe(navbar);
+  }
+  // Fallback cho máy/webview không có ResizeObserver.
+  if (!barRO) {
+    window.addEventListener('resize', set);
+    window.addEventListener('orientationchange', () => setTimeout(set, 250));
+  }
+}
+function showErr(msg) {
+  const e = document.getElementById('errMsg'); e.textContent = msg; e.style.display = 'block';
+  document.getElementById('enterBtn').disabled = false;
+  document.getElementById('codeInput').focus();
+}
+
+async function enterGuide() {
+  if (checkInApp()) return;
+  const code = document.getElementById('codeInput').value.trim().toUpperCase();
+  if (!code) { showErr('⚠ Vui lòng nhập mã truy cập'); return; }
+  document.getElementById('enterBtn').disabled = true;
+  document.getElementById('errMsg').style.display = 'none';
+  show('loadScreen');
+  try {
+    sessionStorage.removeItem('xwGuideStep');
+    sessionStorage.removeItem('xwGuideChoice');
+    sessionStorage.removeItem('xwGuideUsername');
+    sessionStorage.removeItem('xwUsernameLocked');
+    usernameValue = '';
+    usernameLocked = false;
+
+    const { token, expires_at } = await api('/api/guide/validate', { method: 'POST', body: JSON.stringify({ code, device_id: getDeviceId() }) });
+    guideToken = token;
+    expiresAt = new Date(expires_at);
+    sessionStorage.setItem('xwGuideToken', token);
+    sessionStorage.setItem('xwGuideExpires', expires_at);
+    const r = await api('/api/guide/steps');
+    applyStepsResponse(r);
+    currentStep = 0;
+    restoreGuideState();
+    renderStep();
+    startPing();
+    startTimer();
+    show('guideUI');
+    setTimeout(()=>{
+      const ov=document.getElementById('welcomeOverlay');
+      if(ov) { ov.style.display='flex'; }
+    }, 400);
+  } catch (err) {
+    show('entryScreen');
+    showErr('⚠ ' + (err.message || 'Lỗi kết nối. Thử lại.'));
+    document.getElementById('enterBtn').disabled = false;
+  }
+}
+
+// Nạp thông tin tài khoản Appstore từ backend API (có scraper tự động).
+// Không đọc Firebase client-side vì Firebase chỉ có email cố định, không có scraper.
+  async function loadAppstoreData(force = false) {
+      if (appstoreData && appstoreData.ok && !force) return appstoreData;
+    
+    try {
+      const d = await api('/api/guide/validate?action=appstore&t=' + Date.now(), { method: 'GET', cache: 'no-store' });
+      if (d && d.ok) {
+        appstoreData = d;
+      } else {
+        appstoreData = { ok: false, error: d && d.error };
+      }
+    } catch(e) {
+      appstoreData = {ok: false, error: 'Lỗi mạng khi tải dữ liệu.'};
+    }
+    
+    const current = steps[currentStep];
+    if (current && (current.type === 'appstore' || current.type === 'ipa')) {
+      renderStep();
+    }
+    return appstoreData;
+  }
+
+  
+
+// Nạp link DNS đang active từ pool NextDNS (rotate mỗi 5 khách/gói) — thay cho file
+// .mobileconfig tĩnh cũ. 1 lần/phiên, cache vào dnsPoolData. Nếu pool rỗng (admin
+// chưa tạo link nào cho gói này) hoặc đã đầy 5 khách mà chưa tạo link mới, server trả
+// lỗi 503 kèm DNS_POOL_FULL_MSG — renderStep() hiện thông báo liên hệ Zalo thay vì chặn cứng.
+async function loadDnsPoolData() {
+  if (dnsPoolData) return dnsPoolData;
+  try {
+    dnsPoolData = await api('/api/guide/validate?action=dns_pool_claim');
+  } catch (e) {
+    dnsPoolData = { ok: false, error: e.message };
+  }
+  return dnsPoolData;
+}
+
+function escXml(s) {
+  return String(s ?? '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+}
+function randomUUIDGuide() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID().toUpperCase();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  }).toUpperCase();
+}
+// Tạo + tải file .mobileconfig ngay trên guide.html, KHÔNG cần vòng qua dns.html nữa —
+// dnsUrl giờ lấy từ pool NextDNS (claim ở loadDnsPoolData) thay vì link tĩnh cố định.
+// Cấu trúc XML giữ NGUYÊN như dns.html/installDns() để tương thích máy khách đã quen.
+function downloadDnsProfile(dnsUrl, pkgTypeArg, customerCodeArg) {
+  const pkgTag = pkgTypeArg === '15s' || pkgTypeArg === '180' ? ' 15s' : '';
+  const displayName = `Locket_Vxang${pkgTag} 💫`;
+  const description = `✨ Duy trì Locket Gold${pkgTag} ổn định💛\n🚀 Tối ưu hóa mạng\n🚫 Chặn quảng cáo`;
+  const organization = customerCodeArg ? `Vxang DNS · ${customerCodeArg}` : 'Vxang DNS';
+  const profileUUID = randomUUIDGuide();
+  const payloadUUID = randomUUIDGuide();
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
@@ -1133,149 +1178,605 @@
     <key>PayloadVersion</key>
     <integer>1</integer>
 </dict>
-</plist>`;
-      const blob = new Blob([xml], { type: 'application/x-apple-aspen-config' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `dns-${pkgTypeArg}.mobileconfig`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
-    }
+</plist>
+`;
+  const blob = new Blob([xml], { type: 'application/x-apple-aspen-config' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `dns-${pkgTypeArg}.mobileconfig`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+window.downloadDnsProfile = downloadDnsProfile;
 
-    async function loadAppstoreAccount(force = false) {
-      const box = document.getElementById('acctBox');
-      if (!box) return;
-      try {
-        const res = await api('/api/guide/validate?action=appstore&t=' + Date.now());
-        state.appstoreData = res;
-        if (!res.ok || !res.email_real || !res.password) {
-          box.innerHTML = '<div style="color:var(--warning); font-size:0.8rem; text-align:center;">⏳ Đang chờ Vxang cập nhật tài khoản mới... Vui lòng đợi trong giây lát!</div>';
-          return;
-        }
-
-        const emailDisplay = res.email_masked || res.email_real;
-        box.innerHTML = `
-          <div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <span style="font-size:0.72rem; color:var(--muted); font-weight:700;">APPLE ID SHOP:</span>
-              <button class="btn-copy-sm" onclick="copyText('${res.email_real}', this)">📋 Copy Email</button>
-            </div>
-            <div class="acc-row" onclick="copyText('${res.email_real}', this)" style="cursor:pointer;" title="Bấm để copy">
-              <span class="acc-val" style="font-family:'JetBrains Mono'; font-weight:700;">${emailDisplay}</span>
-            </div>
-          </div>
-          <div style="margin-top:10px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <span style="font-size:0.72rem; color:var(--muted); font-weight:700;">MẬT KHẨU:</span>
-              <button class="btn-copy-sm" onclick="copyPassword('${res.password}', this)">📋 Copy Pass</button>
-            </div>
-            <div class="acc-row" onclick="copyPassword('${res.password}', this)" style="cursor:pointer;" title="Bấm để copy">
-              <span class="acc-val" id="pwdVal" style="letter-spacing:2px; font-weight:700;">••••••••</span>
-            </div>
-          </div>
-          ${!state.specialFlow ? `
-            <div style="margin-top:12px; text-align:right;">
-              <button id="btnRefreshAppstore" class="btn-head" style="font-size:0.75rem; padding:4px 10px;" onclick="refreshAppstore(this)">🔄 Nhận tài khoản mới</button>
-            </div>
-          ` : ''}
-        `;
-      } catch {
-        box.innerHTML = '<div style="color:#ef4444; font-size:0.8rem; text-align:center;">Không thể tải tài khoản App Store. Vui lòng liên hệ shop!</div>';
+// Copy text vào clipboard; toggle class "copied" trên element el trong 2s.
+function copyToClipboardEl(text, el) {
+  const doFallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch {}
+    document.body.removeChild(ta);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).catch(doFallback);
+  } else { doFallback(); }
+  if (el) {
+    el.classList.add('copied');
+    const badge = el.querySelector('.acct-copy-badge');
+    if (badge) { const orig = badge.textContent; badge.textContent = '✓ Đã copy'; setTimeout(() => { badge.textContent = orig; el.classList.remove('copied'); }, 2000); }
+    else { setTimeout(() => el.classList.remove('copied'), 2000); }
+  }
+}
+window._refreshAppstore = async function(btn) {
+    if (btn.disabled) return;
+    const oldHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.innerHTML = '⏳ Đang lấy...';
+    try {
+      const d = await api('/api/guide/validate?action=appstore&t=' + Date.now(), { method: 'GET', cache: 'no-store' });
+      appstoreData = d;
+      
+      const wasUpdating = !document.getElementById('acctCard_email');
+      const isUpdatingNow = d && d.ok && d.is_updating === true;
+      
+      if (wasUpdating || isUpdatingNow) {
+        renderStep();
+      } else {
+        const emailEl = document.querySelector('#acctCard_email .acct-copy-value');
+        if (emailEl) emailEl.textContent = d.email_masked || d.email_real || '';
+          // DO NOT REVEAL PASSWORD ON SCREEN (keep it as •••••••••)
+          // The new password is saved in appstoreData, so _copyAcct will copy the right one.
+        
+        btn.innerHTML = '✅ Đã làm mới';
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.style.opacity = '1';
+          btn.innerHTML = oldHtml;
+        }, 3500);
       }
-    }
-
-    async function refreshAppstore(btn) {
-      btn.disabled = true;
-      btn.textContent = '⏳ Đang lấy...';
-      await loadAppstoreAccount(true);
-      btn.textContent = '✅ Đã làm mới';
+    } catch(e) {
+      btn.innerHTML = '❌ Lỗi, thử lại';
       setTimeout(() => {
         btn.disabled = false;
-        btn.textContent = '🔄 Nhận tài khoản mới';
+        btn.style.opacity = '1';
+        btn.innerHTML = oldHtml;
       }, 3000);
     }
+  };
 
-    async function loadDnsPool() {
-      try {
-        const res = await api('/api/guide/validate?action=dns_pool_claim');
-        if (res.ok && res.dns_url) {
-          state.dnsUrl = res.dns_url;
+  window._copyAcct = function(type) {
+  if (!appstoreData) return;
+  const text = type === 'password' ? appstoreData.password : appstoreData.email_real;
+  const el = document.getElementById('acctCard_' + type);
+  copyToClipboardEl(text, el);
+  // Auto-scroll: sau khi copy email/pass Appstore ở bước Shadowrocket → cuộn xuống
+  // caption video Shadowrocket (id: acctVideoCaption_sr). Bước ipa không còn copy nữa.
+  const targetId = type === 'password' ? 'acctVideoCaption_sr' : 'acctVideoCaption_sr';
+  setTimeout(() => {
+    const t = document.getElementById(targetId);
+    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 300);
+};
+window._copyGoldConfig = function(el) {
+  const url = el?.dataset?.url || 'https://raw.githubusercontent.com/Vxang19/Locket-IPA/refs/heads/main/modules/Locket_Vxang.module';
+  copyToClipboardEl(url, el);
+};
+
+function renderStep() {
+  if (checkInApp()) return;
+  const s = steps[currentStep];
+  if (!s) return;
+
+  // Bước appstore/ipa cần data từ server (mật khẩu không được nhúng sẵn vào HTML
+  // tĩnh). Lần đầu vào bước này mà chưa có cache: render tạm 1 khung "Đang tải..."
+  // rồi gọi loadAppstoreData() xong tự renderStep() lại — không block bước khác.
+  if ((s.type === 'appstore' || s.type === 'ipa') && !appstoreData) {
+    document.getElementById('stepContainer').innerHTML = `
+    <div class="step-card">
+      <div class="step-title">${esc(s.title||'')}</div>
+      <div class="step-content">⏳ Đang tải thông tin tài khoản...</div>
+    </div>`;
+    loadAppstoreData().then(() => { if (steps[currentStep] === s) renderStep(); });
+    updateNavBar();
+    return;
+  }
+  // Bước choice (DNS) giờ cần claim link từ pool NextDNS trước khi có URL để tải —
+  // cùng pattern "khung tạm rồi tự render lại" như appstore/ipa ở trên.
+  if (s.type === 'choice' && !dnsPoolData) {
+    document.getElementById('stepContainer').innerHTML = `
+    <div class="step-card">
+      <div class="step-title">${esc(s.title||'Cài đặt DNS giữ Gold')}</div>
+      <div class="step-content">⏳ Đang lấy link DNS...</div>
+    </div>`;
+    loadDnsPoolData().then(() => { if (steps[currentStep] === s) renderStep(); });
+    updateNavBar();
+    return;
+  }
+
+  let inner = '';
+
+  if (steps.length > 1) {
+    inner += `
+    <div class="step-indicator">
+      <div class="step-indicator-bar"><div class="step-indicator-fill" style="width:${((currentStep+1)/steps.length)*100}%"></div></div>
+      <div class="step-indicator-label">Bước ${currentStep+1}/${steps.length}</div>
+    </div>`;
+  }
+
+  if (s.type === 'username') {
+    const isLocked = usernameLocked && !!usernameValue;
+    inner += `
+    <div class="step-card">
+      <div class="step-title">${esc(s.title||'Nhập Username Locket của bạn')}</div>
+      <div class="step-content" style="margin-bottom:16px">${isLocked ? 'Tài khoản Locket của bạn đã được lưu cố định. Bấm <b>Tiếp theo</b> để làm các bước cài đặt nhé!' : 'Nhập <b>chính xác chữ hoa/thường</b> Username Locket của bạn, sau đó bấm <b>Tiếp theo</b> để sang bước cài đặt nhé!'}</div>
+
+      <label class="field-label-u">Username Locket của bạn</label>
+      ${isLocked ? `
+        <div style="position:relative;margin-bottom:4px;">
+          <input type="text" class="username-input" id="usernameInput"
+            value="${esc(usernameValue||'')}" disabled
+            style="background:rgba(124,58,237,.05);color:var(--text);font-weight:800;cursor:not-allowed;border:1.5px solid rgba(124,58,237,.35);opacity:.95;padding-right:38px;" />
+          <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:1.05rem;">🔒</span>
+        </div>
+        <div style="font-size:.76rem;color:var(--muted);margin-bottom:12px;line-height:1.45;">
+          🔒 <i>Username đã được cố định cho tài khoản này (Liên hệ Vxang qua Zalo nếu cần đổi).</i>
+        </div>
+      ` : `
+        <input type="text" class="username-input" id="usernameInput" placeholder="Ví dụ: vxang1..."
+          autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+          value="${esc(usernameValue||'')}"
+          oninput="onUsernameInput()" />
+      `}
+
+      <div class="notice-box" style="margin-top:14px;background:rgba(124,58,237,.06);border-color:rgba(124,58,237,.2)">
+        <span style="font-size:1.1rem;flex-shrink:0">💡</span>
+        <p>Làm theo <b>đầy đủ các bước cài đặt</b> tiếp theo. Sau khi hoàn thành, bạn chỉ cần <b>nhắn tin / alo lại cho Vxang</b> để được hỗ trợ kích hoạt Gold ngay nhé! 💜</p>
+      </div>
+
+      <div class="username-img-placeholder" style="margin-top:18px;">
+        <img src="/images/username.jpeg" alt="Vị trí Username trong app Locket"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <div class="img-ph-fallback" style="display:none">
+          <div class="img-ph-icon">🖼️</div>
+          <div class="img-ph-text">Ảnh minh họa vị trí Username<br><span style="opacity:.65">(sẽ cập nhật)</span></div>
+        </div>
+      </div>
+      <div class="img-caption">👆 Username của bạn nằm ở đây trong app Locket<br><b>Ví dụ: vxang1</b></div>
+    </div>`;
+  } else if (s.type === 'text' || s.type === 'callout') {
+    inner += `<div class="step-card"><div class="step-title">${esc(s.title||'')}</div><div class="step-content">${esc(s.content || '')}</div></div>`;
+  } else if (s.type === 'image') {
+    inner += `<div class="step-card">${s.title?`<div class="step-title">${esc(s.title)}</div>`:''}${s.image_url?`<div class="step-img-wrap"><img src="${esc(s.image_url)}" alt="${esc(s.caption||'')}" loading="lazy"></div>`:''}${s.content?`<div class="step-content">${esc(s.content)}</div>`:''}</div>`;
+  } else if (s.type === 'choice') {
+    if (!step3Choice) step3Choice = 'dns'; // chỉ còn 1 phiên bản — tự gán, không cần chọn
+    const dnsVideo = s.video_url || 'https://res.cloudinary.com/dqkilohx1/video/upload/v1785147263/IMG_0553_eeelmw.mp4';
+    const dp = dnsPoolData;
+    if (!dp || !dp.ok) {
+      // Pool rỗng hoặc đã đầy 5 khách mà admin chưa tạo link mới — không còn fallback
+      // file .mobileconfig tĩnh nữa (đã bỏ), phải chờ admin bổ sung link pool.
+      inner += `
+      <div class="step-card">
+        <div class="step-title">${esc(s.title||'Cài đặt DNS giữ Gold')}</div>
+        <div class="notice-box" style="margin-top:0">
+          <span style="font-size:1rem;flex-shrink:0">⚠</span>
+          <p>${esc((dp&&dp.error)||'DNS đang được cập nhật')}. <b>Liên hệ Vxang qua Zalo</b> để được hỗ trợ ngay.</p>
+        </div>
+      </div>`;
+    } else {
+      inner += `
+      <div class="step-card">
+        <div class="step-title">${esc(s.title||'Cài đặt DNS giữ Gold')}</div>
+
+        <a class="btn-download" href="javascript:void(0)" onclick="downloadDnsProfile('${esc(dp.dns_url)}','${esc(pkgType)}','${esc(dp.customer_code||'')}')">⬇ Tải file DNS${(pkgType==='15s'||pkgType==='180')?' 15s':''} về máy</a>
+
+        <div style="display:flex;align-items:center;gap:7px;margin-top:18px;margin-bottom:10px;"><span class="video-label" style="background:rgba(124,58,237,.1);color:var(--p1);border-radius:6px;padding:3px 8px;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em">▶ Video hướng dẫn</span></div>
+        <div class="video-wrap" style="margin-top:0">
+          <div class="video-shell">
+            <video src="${esc(dnsVideo)}" controls playsinline></video>
+          </div>
+        </div>
+      </div>`;
+    }
+  } else if (s.type === 'vpn') {
+    const vpnVideo = s.video_url || 'https://res.cloudinary.com/dqkilohx1/video/upload/v1785059358/IMG_0529_pui47l.mp4';
+    inner += `
+    <div class="step-card">
+      <div class="step-title">${esc(s.title||'Cài đặt VPN (Mỹ)')}</div>
+      <div class="step-content" style="margin-bottom:14px">Cài và kết nối VPN vào server <b>Mỹ (US)</b> — bước bắt buộc cho gói 15s để DNS hoạt động ổn định.</div>
+
+      <div class="notice-box" style="margin-bottom:14px;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3)">
+        <span style="font-size:1rem;flex-shrink:0">⛔</span>
+        <p><b>LƯU Ý QUAN TRỌNG:</b> Giữ lại app <b>VPN USA</b> trên máy, <b>tuyệt đối không được xóa</b> app VPN USA đi.</p>
+      </div>
+
+      ${(specialFlow && pkgType === '180') ? `
+      <div class="notice-box" style="margin-bottom:14px;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3)">
+        <span style="font-size:1.1rem;flex-shrink:0">⚠️</span>
+        <p><b>LƯU Ý:</b> Hãy <b>bỏ qua bước xóa và cài đặt lại Locket</b> ở trong video.</p>
+      </div>
+      ` : ''}
+
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;"><span class="video-label" style="background:rgba(124,58,237,.1);color:var(--p1);border-radius:6px;padding:3px 8px;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em">▶ Video hướng dẫn</span></div>
+      <div class="video-wrap" style="margin-top:0">
+        <div class="video-shell">
+          <video src="${esc(vpnVideo)}" controls playsinline></video>
+        </div>
+      </div>
+    </div>`;
+  } else if (s.type === 'appstore') {
+      const d = appstoreData;
+      const isUpdating = d && d.ok && d.is_updating === true;
+      if (isUpdating) {
+        inner += `
+        <div class="step-card">
+          <div class="step-title">${esc(s.title||'Cài Shadowrocket')}</div>
+          <div class="notice-box" style="margin-top:0">
+            <span style="font-size:1.1rem;flex-shrink:0">⏳</span>
+            <p style="font-size: 0.9rem"><b>Đợi Vxang cập nhật.</b> Vui lòng chờ, hệ thống sẽ tự động hiển thị tài khoản ngay khi có!</p>
+          </div>
+        </div>`;
+        
+        
+      } else if (!d || !d.ok) {
+      inner += `
+      <div class="step-card">
+        <div class="step-title">${esc(s.title||'Cài Shadowrocket')}</div>
+        <div class="notice-box" style="margin-top:0">
+          <span style="font-size:1rem;flex-shrink:0">⚠</span>
+          <p>${esc((d&&d.error)||'Chưa có tài khoản Appstore được cấu hình.')} <b>Liên hệ Vxang qua Zalo</b> để được hỗ trợ ngay.</p>
+        </div>
+      </div>`;
+    } else {
+        
+        inner += `
+        <div class="step-card">
+          <div class="step-title">${esc(s.title||'Cài Shadowrocket')}</div>
+
+        <div class="acct-copy-wrap">
+          <div class="acct-copy-label">Email Appstore</div>
+          <div class="acct-copy-card" id="acctCard_email" onclick="_copyAcct('email')">
+            <span class="acct-copy-value">${esc(d.email_masked||d.email_real||'')}</span>
+            <span class="acct-copy-badge">⧉ Copy</span>
+          </div>
+        </div>
+        <div class="acct-copy-wrap">
+          <div class="acct-copy-label">Mật khẩu Appstore</div>
+          <div class="acct-copy-card" id="acctCard_password" onclick="_copyAcct('password')">
+            <span class="acct-copy-value">••••••••</span>
+            <span class="acct-copy-badge">⧉ Copy</span>
+          </div>
+        </div>
+
+        ${!specialFlow ? `<div style="margin-top:10px;text-align:right;">
+            <button id="btnRefreshAppstore" onclick="_refreshAppstore(this)" style="display:inline-flex;align-items:center;gap:5px;background:rgba(124,58,237,.08);color:var(--p1);border:none;padding:6px 12px;border-radius:8px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;transition:all .2s ease;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2 12A10 10 0 0 1 17 3.5L21.5 8M2.5 22v-6h6M22 12A10 10 0 0 1 7 20.5L2.5 16"/></svg>
+              Nhận tài khoản mới
+            </button>
+          </div>` : ""}
+
+        <div class="notice-box" style="margin-top:14px;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3)">
+          <span style="font-size:1rem;flex-shrink:0">⛔</span>
+          <p><b>LƯU Ý QUAN TRỌNG:</b> Giữ lại app <b>Shadowrocket</b> trên máy, <b>tuyệt đối không được xóa</b> app Shadowrocket đi.</p>
+        </div>
+
+        ${specialFlow ? `
+        <div class="notice-box" style="margin-top:10px;background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.25)">
+          <span style="font-size:1rem;flex-shrink:0">⚠️</span>
+          <p>Tải xong Shadowrocket <b>không đăng xuất tài khoản App Store</b> vì cần phải dùng cho bước cài Locket IPA tiếp theo.</p>
+        </div>
+        ` : `
+        <div class="notice-box" style="margin-top:10px;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3)">
+          <span style="font-size:1rem;flex-shrink:0">💡</span>
+          <p>Tải xong Shadowrocket thì <b>phải đăng xuất tài khoản App Store của shop rồi đăng nhập lại tài khoản App Store của bạn</b>.</p>
+        </div>
+        `}
+
+        <div style="display:flex;align-items:center;gap:7px;margin-top:18px;margin-bottom:10px;"><span class="video-label" style="background:rgba(124,58,237,.1);color:var(--p1);border-radius:6px;padding:3px 8px;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em">▶ Video hướng dẫn</span></div>
+        <div class="video-wrap" style="margin-top:0">
+          <div class="video-shell">
+            <video src="${VIDEO_SR}" controls playsinline></video>
+          </div>
+        </div>
+      </div>`;
+    }
+  } else if (s.type === 'ipa') {
+        const d = appstoreData;
+        if (!d || !d.ok) {
+      inner += `
+      <div class="step-card">
+        <div class="step-title">${esc(s.title||'Cài Locket hạ cấp')}</div>
+        <div class="notice-box" style="margin-top:0">
+          <span style="font-size:1rem;flex-shrink:0">⚠</span>
+          <p>${esc((d&&d.error)||'Chưa có tài khoản Appstore được cấu hình.')} <b>Liên hệ Vxang qua Zalo</b> để được hỗ trợ ngay.</p>
+        </div>
+      </div>`;
+    } else {
+        
+        const plistUrl = (window.location.origin && window.location.origin.startsWith('http'))
+        ? (window.location.origin + '/api/guide/validate?action=ipa_plist')
+        : 'https://locketvxang.vercel.app/api/guide/validate?action=ipa_plist';
+      inner += `
+      <div class="step-card">
+        <div class="step-title">${esc(s.title||'Cài Locket hạ cấp')}</div>
+
+        ${d.has_ipa ? `<a class="btn-download" href="itms-services://?action=download-manifest&url=${encodeURIComponent(plistUrl)}">⬇ Tải Locket IPA</a>` : `<div class="notice-box" style="margin-top:14px"><span style="font-size:1rem;flex-shrink:0">⚠</span><p>File IPA chưa được cấu hình. <b>Liên hệ Vxang qua Zalo</b> để được gửi link cài trực tiếp.</p></div>`}`;
+        if (d.has_ipa) {
+          inner += `
+          <div class="notice-box" style="margin-top:14px;background:rgba(239,68,68,.12);border:1.5px solid rgba(239,68,68,.4);color:#b91c1c;">
+          <span style="font-size:1.25rem;flex-shrink:0">⛔</span>
+          <p style="font-size:.88rem;line-height:1.5"><b>LƯU Ý CỰC KỲ QUAN TRỌNG:</b> Tuyệt đối <b>KHÔNG ĐƯỢC XÓA ỨNG DỤNG LOCKET</b> sau khi đã tải/cài đặt xong! Nếu xóa bạn sẽ bị mất bản hạ cấp và không thể tự cài lại được.</p>
+        </div>
+        <div class="notice-box" style="margin-top:10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);color:#b91c1c;">
+          <span style="font-size:1.1rem;flex-shrink:0">💡</span>
+          <p style="font-size:.86rem;line-height:1.5">Tải xong Locket thì bạn hãy <b>đăng xuất tài khoản App Store của shop rồi đăng nhập lại tài khoản App Store cá nhân của bạn</b>.</p>
+        </div>
+        ${(specialFlow && pkgType === '180') ? `
+        <div class="notice-box" style="margin-top:10px;background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.35);color:#b91c1c;">
+          <span style="font-size:1.15rem;flex-shrink:0">⚠️</span>
+          <p style="font-size:.86rem;line-height:1.5"><b>LƯU Ý:</b> Cài xong <b>không vào Locket ngay</b>. Bạn cần kết nối VPN (Mỹ) ở bước tiếp theo rồi mới được mở app!</p>
+        </div>
+        ` : ''}
+
+        <div style="display:flex;align-items:center;gap:7px;margin-top:18px;margin-bottom:10px;"><span class="video-label" style="background:rgba(124,58,237,.1);color:var(--p1);border-radius:6px;padding:3px 8px;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em">▶ Video hướng dẫn</span></div>
+        <div class="video-wrap" style="margin-top:0">
+          <div class="video-shell">
+            <video src="${VIDEO_IPA}" controls playsinline></video>
+            </div>
+          </div>`;
         }
-      } catch (e) {
-        alert(e.message || 'Lỗi tải DNS Pool');
+        inner += `</div>`;
+    }
+  } else if (s.type === 'gold') {
+    const goldConfigUrl = 'https://raw.githubusercontent.com/Vxang19/Locket-IPA/refs/heads/main/modules/Locket_Vxang.module';
+    inner += `
+    <div class="step-card">
+      <div class="step-title">${esc(s.title||'Lên Locket Gold')}</div>
+
+      <div class="acct-copy-wrap">
+        <div class="acct-copy-label">Sao chép config Locket</div>
+        <div class="acct-copy-card" onclick="_copyGoldConfig(this)" data-url="${esc(goldConfigUrl)}">
+          <span class="acct-copy-value" style="font-size:.88rem;font-weight:700">📋 Config Locket Gold</span>
+          <span class="acct-copy-badge">⧉ Copy</span>
+        </div>
+      </div>
+
+      <div class="notice-box" style="margin-top:16px;background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.35);color:#b91c1c;">
+        <span style="font-size:1.25rem;flex-shrink:0">⚠️</span>
+        <p style="font-size:.9rem;line-height:1.5"><b>CẢNH BÁO QUAN TRỌNG:</b><br>Đây là <b>bước bắt buộc</b> để kích hoạt Gold.${pkgType==='180'?' Chưa lên Gold thì DNS đã cài ở bước trước <b>sẽ không có tác dụng</b>.':''}</p>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:7px;margin-top:18px;margin-bottom:10px;"><span class="video-label" style="background:rgba(124,58,237,.1);color:var(--p1);border-radius:6px;padding:3px 8px;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em">▶ Video hướng dẫn</span></div>
+      <div class="video-wrap" style="margin-top:0">
+        <div class="video-shell">
+          <video src="${VIDEO_GOLD}" controls playsinline></video>
+        </div>
+      </div>
+
+      
+    </div>`;
+  }
+
+  document.getElementById('stepContainer').innerHTML = inner;
+  window.scrollTo(0, 0);
+
+  updateNavBar();
+}
+
+function sendStepPing() {
+  const body = { currentStep, totalSteps: steps.length, step3Choice };
+  if (usernameValue) body.username = usernameValue;
+  api('/api/guide/ping', { method: 'POST', body: JSON.stringify(body) }).catch(()=>{});
+}
+function saveGuideState() {
+  sessionStorage.setItem('xwGuideStep', currentStep);
+  sessionStorage.setItem('xwGuideChoice', step3Choice || '');
+  sessionStorage.setItem('xwGuideUsername', usernameValue || '');
+}
+// QUAN TRỌNG: không xóa key sau khi đọc — phải giữ liên tục để chịu được
+// MỌI số lần reload (tab bị kill ngầm, mất mạng, chuyển app rồi quay lại...),
+// không chỉ đúng 1 lần duy nhất.
+function restoreGuideState() {
+  const savedStep     = sessionStorage.getItem('xwGuideStep');
+  const savedChoice    = sessionStorage.getItem('xwGuideChoice');
+  const savedUsername  = sessionStorage.getItem('xwGuideUsername');
+  if (savedStep !== null) {
+    const n = parseInt(savedStep);
+    if (!isNaN(n) && n < steps.length) currentStep = n;
+  }
+  if (savedChoice) step3Choice = savedChoice;
+  if (savedUsername) usernameValue = savedUsername;
+}
+
+function closeConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('show');
+}
+async function completeGuide() {
+  document.getElementById('confirmOverlay').classList.add('show');
+}
+async function doComplete() {
+  closeConfirm();
+  isCompleted = true; // chặn mọi ping đang bay tới xử lý kết quả sau khi đã hoàn thành
+  clearInterval(pingInterval);
+  try {
+    await api('/api/guide/complete', { method: 'POST', body: JSON.stringify({ choice: step3Choice || null }) });
+    stopAll();
+    document.querySelectorAll('.screen,#guideUI').forEach(e=>{e.classList.add('hidden');e.style.display='';});
+
+    // Gói 150 / 180 (flow thường lẫn flow đặc biệt): chụp màn gửi Vxang
+    if (pkgType === '150' || pkgType === '180') {
+      const c1 = document.getElementById('cCard1');
+      if (c1) {
+        const titleEl = document.getElementById('cTitle1') || c1.querySelector('div[style*="font-weight:900;font-size:.9rem"]');
+        const descEl  = document.getElementById('cDesc1') || c1.querySelector('div[style*="font-size:.78rem;color:var(--muted)"]');
+        if (titleEl) titleEl.innerHTML = '📸 Chụp màn hình gửi Vxang';
+        if (descEl)  descEl.innerHTML  = 'Chụp lại màn hình gửi qua Zalo cho Vxang để xác nhận. <b style="color:var(--p1)">Bắt buộc!</b>';
+      }
+      const btn1 = document.getElementById('cBtn1');
+      if (btn1) {
+        btn1.textContent = '💬 Gửi qua Zalo ngay';
+        btn1.onclick = cGoZaloGoldPerm;
+      }
+    } else {
+      // Gói 5s, 15s (50k, 60k, 80k, 100k): Liên hệ Vxang để hướng dẫn thao tác lên Gold
+      const c1 = document.getElementById('cCard1');
+      if (c1) {
+        const titleEl = document.getElementById('cTitle1') || c1.querySelector('div[style*="font-weight:900;font-size:.9rem"]');
+        const descEl  = document.getElementById('cDesc1') || c1.querySelector('div[style*="font-size:.78rem;color:var(--muted)"]');
+        if (titleEl) titleEl.innerHTML = '💜 Liên hệ Vxang để lên Gold';
+        if (descEl)  descEl.innerHTML  = 'Nhắn Zalo cho Vxang để được hướng dẫn thao tác lên Gold. <b style="color:var(--p1)">Quan trọng!</b>';
+      }
+      const btn1 = document.getElementById('cBtn1');
+      if (btn1) {
+        btn1.textContent = '💬 Liên hệ Zalo ngay';
+        btn1.onclick = cGoZaloGold;
       }
     }
 
-    function downloadDns() {
-      if (!state.dnsUrl) {
-        alert('Đang tải cấu hình DNS, vui lòng thử lại sau 2 giây...');
-        loadDnsPool();
+    const cs=document.getElementById('completeScreen');
+    cs.classList.remove('hidden');
+    cs.style.display='flex';
+  } catch { showToast('⚠ Lỗi. Thử lại.'); }
+}
+
+// ── COMPLETE SCREEN CHECKLIST ──────────────────────────────
+const cDone={1:false,2:false,3:false};
+function cUpdateProgress(){
+  const n=Object.values(cDone).filter(Boolean).length;
+  document.getElementById('cProgressFill').style.width=(n/3*100)+'%';
+  document.getElementById('cProgressTxt').textContent=n+' / 3 bước';
+  if(n===3) setTimeout(()=>{
+    const ov=document.getElementById('cDoneOverlay');
+    ov.style.display='flex';
+  },400);
+}
+function cTick(s){
+  if(cDone[s]) return; cDone[s]=true;
+  const card=document.getElementById('cCard'+s);
+  const badge=document.getElementById('cBadge'+s);
+  const btn=document.getElementById('cBtn'+s);
+  card.style.border='1.5px solid rgba(16,185,129,.4)';
+  card.style.background='#f0fdf4';
+  badge.textContent='✓';badge.style.background='#10b981';
+  // Thẻ 3 có box-shadow xanh đậm (nút nổi) — phải xóa, không thì nút xanh nhạt
+  // "Đã xong" vẫn còn bóng xanh dương bên dưới trông như chưa bấm.
+  if(btn){btn.style.background='#d1fae5';btn.style.color='#047857';btn.style.border='1.5px solid rgba(16,185,129,.2)';btn.style.boxShadow='none';btn.textContent='✓ Đã xong';btn.onclick=null;btn.style.cursor='default';}
+  cUpdateProgress();
+}
+
+function cGoZaloGold(){
+  window.open('https://zalo.me/0822307662','_blank');
+  setTimeout(()=>cTick(1),600);
+}
+function cGoZaloGoldPerm(){
+  window.open('https://zalo.me/0822307662','_blank');
+  setTimeout(()=>cTick(1),600);
+}
+function cGoLocket(){
+  window.open('https://locket.cam/vxang19','_blank');
+  setTimeout(()=>cTick(2),600);
+}
+function cGoZalo(){
+  window.open('https://zalo.me/g/yowrfu992','_blank');
+  setTimeout(()=>cTick(3),600);
+}
+function startPing() {
+  pingInterval = setInterval(async () => {
+    if (isCompleted) return; // đã hoàn thành rồi, bỏ qua mọi ping còn sót
+    try {
+      const r = await api('/api/guide/ping', { method: 'POST', body: JSON.stringify({ currentStep, totalSteps: steps.length, step3Choice }) });
+      if (isCompleted) return; // double-check sau khi await xong (tránh race condition)
+
+      if (r.fraud_warning) {
+        showFraudModal(r.seconds_left ?? 15, r.is_original !== false);
         return;
       }
-      window.location.href = state.dnsUrl;
-    }
+      hideFraudModal();
 
-    function copyText(txt, btn = null) {
-      if (btn) {
-        const orig = btn.textContent;
-        btn.textContent = '✓ Đã copy!';
-        setTimeout(() => { btn.textContent = orig; }, 2000);
+      if (r.kicked) { stopAll(); alert('⚠ Phiên của bạn đã bị kết thúc bởi admin.'); window.location.href = '/'; return; }
+      if (r.expired) {
+        stopAll();
+        if (r.fraud_final) {
+          alert('🚨 Mã đã bị khóa vĩnh viễn do phát hiện chia sẻ/gian lận.\nMọi tiền cọc sẽ KHÔNG được hoàn trả.');
+        } else {
+          alert('⚠ Mã truy cập đã hết hiệu lực.');
+        }
+        window.location.href = '/';
       }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(txt).then(() => alert('✓ Đã sao chép!'));
-      } else {
-        prompt('Sao chép liên kết:', txt);
-      }
-    }
+    } catch { console.warn('Ping failed'); }
+  }, 4000);
+}
 
-    function copyPassword(pwd, btn = null) {
-      if (btn) {
-        const orig = btn.textContent;
-        btn.textContent = '✓ Đã copy!';
-        setTimeout(() => { btn.textContent = orig; }, 2000);
-      }
-      if (!pwd) return;
-      document.getElementById('pwdVal').textContent = pwd;
-      copyText(pwd);
-    }
+function showFraudModal(seconds, isOriginal) {
+  const overlay = document.getElementById('fraudOverlay');
+  const iconEl = document.getElementById('fraudIcon');
+  const titleEl = document.getElementById('fraudTitle');
+  const msgEl = document.getElementById('fraudMsg');
+  const countEl = document.getElementById('fraudCountdown');
+  if (!overlay) return;
 
-    // 10. Điều hướng Bước
-    function prevStep() {
-      if (state.curIndex > 0) {
-        state.curIndex--;
-        renderCurrentStep();
-      }
+  if (overlay.style.display !== 'flex') {
+    overlay.style.display = 'flex';
+    if (isOriginal) {
+      iconEl.textContent = '🚨';
+      titleEl.textContent = 'Phát hiện gian lận!';
+      msgEl.innerHTML = 'Hệ thống phát hiện <b>thiết bị khác</b> đang dùng mã truy cập của bạn cùng lúc.<br><br>Mọi hành vi <b>share mã, gian lận</b> đều <b>KHÔNG được hoàn trả tiền cọc</b>.';
+    } else {
+      iconEl.textContent = '😏';
+      titleEl.textContent = 'Share mã hả cưng?';
+      msgEl.innerHTML = '<b>Không có đâu nghen 😏</b><br><br>Mã này đã có chủ rồi, dùng chùa kiểu này là bị phát hiện ngay đó!';
     }
+  }
 
-    function nextStep() {
-      const total = state.steps.length;
-      if (state.curIndex < total - 1) {
-        state.curIndex++;
-        renderCurrentStep();
-      } else {
-        openConfirm();
-      }
-    }
-
-    function openConfirm() {
-      document.getElementById('confirmOverlay').style.display = 'flex';
-    }
-    function closeConfirm() {
-      document.getElementById('confirmOverlay').style.display = 'none';
-    }
-
-    async function doComplete() {
-      closeConfirm();
-      try {
-        await api('/api/guide/complete', { method: 'POST' });
-      } catch {}
-      document.getElementById('guideUI').style.display = 'none';
-      document.getElementById('completeScreen').classList.remove('hidden');
-    }
-
-    window.addEventListener('DOMContentLoaded', initSession);
-  </script>
+  let n = Math.max(0, Math.round(seconds));
+  if (countEl) countEl.textContent = n;
+  clearInterval(fraudCountdownInterval);
+  fraudCountdownInterval = setInterval(() => {
+    n = Math.max(0, n - 1);
+    if (countEl) countEl.textContent = n;
+    if (n <= 0) clearInterval(fraudCountdownInterval);
+  }, 1000);
+}
+function hideFraudModal() {
+  const overlay = document.getElementById('fraudOverlay');
+  if (overlay && overlay.style.display !== 'none') {
+    overlay.style.display = 'none';
+    clearInterval(fraudCountdownInterval);
+  }
+}
+function startTimer() {
+  function update() {
+    if (!expiresAt || isCompleted) return;
+    const rem = expiresAt - Date.now();
+    const chip = document.getElementById('timerChip');
+    if (rem <= 0) { chip.textContent = '⏱ Hết giờ'; chip.className = 'timer-chip crit'; stopAll(); setTimeout(() => { if (!isCompleted) alert('⚠ Hết giờ.'); window.location.href = '/'; }, 500); return; }
+    const h = Math.floor(rem / 3600000), m = Math.floor((rem % 3600000) / 60000), s = Math.floor((rem % 60000) / 1000);
+    chip.textContent = `⏱ ${h ? h + 'h ' : ''}${m}m ${s}s`;
+    chip.className = 'timer-chip' + (rem < 600000 ? ' crit' : rem < 1800000 ? ' warn' : '');
+  }
+  update(); timerInterval = setInterval(update, 1000);
+}
+function stopAll() {
+  clearInterval(pingInterval);
+  clearInterval(timerInterval);
+  clearInterval(fraudCountdownInterval);
+  sessionStorage.removeItem('xwGuideToken');
+  sessionStorage.removeItem('xwGuideExpires');
+  sessionStorage.removeItem('xwGuideStep');
+  sessionStorage.removeItem('xwGuideChoice');
+  sessionStorage.removeItem('xwGuideUsername');
+  sessionStorage.removeItem('xwGuideUsernameCopied');
+  sessionStorage.removeItem('xwGoldInjected');
+  sessionStorage.removeItem('xwGoldExpiry');
+}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+let toastT;
+function showToast(msg) { const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2500); }
+</script>
 </body>
 </html>

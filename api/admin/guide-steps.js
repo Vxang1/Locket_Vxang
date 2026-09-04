@@ -1,5 +1,5 @@
 'use strict';
-const { sb, requireAdmin, allowMethods, setAppConfig, fbPut } = require('../_lib/utils');
+const { sb, requireAdmin, allowMethods } = require('../_lib/utils');
 
 module.exports = async (req, res) => {
   if (!allowMethods(req, res, ['GET', 'POST', 'PATCH', 'DELETE'])) return;
@@ -14,11 +14,12 @@ module.exports = async (req, res) => {
     if (req.method === 'POST') {
       if (req.query?.action === 'toggle_dev_mode') {
         const { active } = req.body || {};
-        await setAppConfig('dev_mode', { active: !!active });
-        await fbPut('appstore/dev_mode', !!active);
+        const { setAppConfig, fbPut } = require('../_lib/utils');
+        await setAppConfig('dev_mode', { active });
+        await fbPut('appstore/dev_mode', active);
         return res.json({ ok: true });
       }
-
+      // Nếu có ?action=reorder → logic cũ của reorder-step.js
       if (req.query?.action === 'reorder') {
         const { id_a, order_a, id_b, order_b } = req.body || {};
         if (!id_a || !id_b) return res.status(400).json({ error: 'Missing ids' });
@@ -29,11 +30,12 @@ module.exports = async (req, res) => {
         return res.json({ ok: true });
       }
 
+      // POST thường → tạo step mới
       const { type, title, content, image_url, caption, layout, bg_color } = req.body || {};
       const existing = await sb('GET', 'guide_steps', { q: 'select=order_num&order=order_num.desc&limit=1' }) || [];
       const order_num = existing.length ? (existing[0].order_num + 1) : 1;
       const [step] = await sb('POST', 'guide_steps', {
-        body: { type: type || 'text', title, content, image_url, caption, layout: layout || 'image-left', bg_color: bg_color || 'default', order_num },
+        body: { type: type||'text', title, content, image_url, caption, layout: layout||'image-left', bg_color: bg_color||'default', order_num },
         prefer: 'return=representation',
       });
       return res.json(step);
@@ -53,7 +55,5 @@ module.exports = async (req, res) => {
       await sb('DELETE', 'guide_steps', { q: `id=eq.${id}` });
       return res.json({ ok: true });
     }
-  } catch (e) {
-    return res.status(500).json({ error: e.message });
-  }
+  } catch (e) { res.status(500).json({ error: e.message }); }
 };
