@@ -10,7 +10,7 @@ const DUP_WINDOW_MS = 2 * 60 * 1000; // 2 phút
 module.exports = async (req, res) => {
   if (!allowMethods(req, res, ['POST'])) return;
   if (!await requireAdmin(req, res)) return;
-  const { name, contact, phone, social_platform, social_link, notes, type, package: pkg, duration } = req.body || {};
+  const { name, contact, phone, social_platform, social_link, notes, package: pkg, duration } = req.body || {};
   if (!name) return res.status(400).json({ error: 'Missing name' });
 
   // Tự động phân giải contact input (ô duy nhất) nếu được truyền lên
@@ -21,16 +21,11 @@ module.exports = async (req, res) => {
   const finalPhone = (phone !== undefined ? phone : (parsedContact.phone || '')).trim();
   const finalLink = (social_link !== undefined ? social_link : (parsedContact.social_link || '')).trim();
   const finalPlatform = social_platform || parsedContact.social_platform || 'zalo';
-  if (!PRICING[pkg]) return res.status(400).json({ error: 'Missing or invalid package (5s|15s|150|180)' });
-  // Gói vĩnh viễn (150/180) chỉ có 1 duration hợp lệ: 'perm'. Gói thường (5s/15s)
-  // vẫn chỉ nhận 6m/1y như cũ — tách nhánh để không âm thầm chấp nhận 'perm' cho gói thường.
-  const validDurations = isPermPackage(pkg) ? ['perm'] : ['6m', '1y'];
+  if (!PRICING[pkg]) return res.status(400).json({ error: 'Missing or invalid package (30k|40k)' });
+  const validDurations = ['perm'];
   if (!validDurations.includes(duration)) return res.status(400).json({ error: `Missing or invalid duration (${validDurations.join('|')})` });
 
-  const customerType = type || 'moi';
-
-  // Chặn tạo khách khi DNS pool đầy — yêu cầu #1. Gói vĩnh viễn (150/180) không dùng
-  // DNS pool nên bỏ qua. Check TRƯỚC khi INSERT để tránh tạo khách rác không có mã hoạt động.
+  // Chặn tạo khách khi DNS pool đầy. Check TRƯỚC khi INSERT để tránh tạo khách rác không có mã hoạt động.
   if (!await dnsPoolHasCapacity(pkg)) {
     return res.status(503).json({ error: 'DNS pool đang đầy, vui lòng thêm link DNS trước khi tạo khách mới.' });
   }
@@ -61,7 +56,6 @@ module.exports = async (req, res) => {
         social_link: finalLink || null,
         notes: notes || null,
         customer_code,
-        type: customerType,
         package: pkg,
         duration,
         service_status: 'pending_gold',

@@ -687,15 +687,6 @@ window.addEventListener('DOMContentLoaded', () => {
         <div class="field"><label>Ghi chú</label><textarea id="cNotes" placeholder="Ghi chú thêm (tùy chọn)"></textarea></div>
         <div class="form-grid">
           <div class="field">
-            <label>Loại khách</label>
-            <select id="cType" onchange="updateCreatePrice()">
-              <option value="baohanh">🛡️ Bảo hành (mua cũ)</option>
-              <option value="moi">🛒 Mua mới</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-grid">
-          <div class="field">
             <label>Gói dịch vụ *</label>
             <select id="cPackage" onchange="onCreatePkgChange()">
               <option value="30k">Gói 30k (5s Vĩnh viễn)</option>
@@ -725,11 +716,11 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
       <div class="filter-bar">
         <button class="filter-btn active" id="fb-all" onclick="setCustFilter('all')">Tất cả</button>
+        <button class="filter-btn" id="fb-pkg_30k" onclick="setCustFilter('pkg_30k')">⭐ Gói 30k</button>
+        <button class="filter-btn" id="fb-pkg_40k" onclick="setCustFilter('pkg_40k')">🌟 Gói 40k</button>
+        <button class="filter-btn" id="fb-pending_gold" onclick="setCustFilter('pending_gold')">⏳ Chưa lên Gold</button>
         <button class="filter-btn" id="fb-need_pay" onclick="setCustFilter('need_pay')" style="border-color:rgba(245,158,11,.4);color:#d97706;font-weight:900;">🟡 Chờ thu tiền</button>
         <button class="filter-btn" id="fb-paid" onclick="setCustFilter('paid')">✅ Đã thu đủ</button>
-        <button class="filter-btn" id="fb-pending_gold" onclick="setCustFilter('pending_gold')">⏳ Chưa lên Gold</button>
-        <button class="filter-btn" id="fb-baohanh" onclick="setCustFilter('baohanh')">🛡️ Bảo hành</button>
-        <button class="filter-btn" id="fb-moi" onclick="setCustFilter('moi')">🛒 Mua mới</button>
         <button class="btn-export" onclick="exportXLSX()">📊 Xuất Excel</button>
       </div>
       <div class="table-wrap">
@@ -1123,32 +1114,22 @@ window.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="field-sm"><label>Thời hạn</label>
           <select id="eDur" onchange="updateEditPrice()">
-            <option value="6m">6 tháng</option>
-            <option value="1y">1 năm</option>
             <option value="perm">Vĩnh viễn</option>
           </select>
         </div>
       </div>
       <div id="ePriceDisplay" style="padding:10px;background:var(--gold-bg);border:2px solid var(--ink);border-radius:var(--radius-sm);font-size:.84rem;font-weight:800;color:var(--ink);text-align:center;margin:0">💰 Giá: —</div>
       <div class="field-sm"><label>Số điện thoại hoặc Link profile (Zalo / FB / Telegram...)</label><input type="text" id="eContact" placeholder="Dán SĐT (09xxx) hoặc Link Zalo, Facebook..."/></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="field-sm"><label>Loại khách</label>
-            <select id="eTy">
-              <option value="baohanh">🛡️ Bảo hành (mua cũ)</option>
-              <option value="moi">🛒 Mua mới</option>
-            </select>
-          </div>
-          <div class="field-sm"><label>Trạng thái</label>
-            <select id="eSs">
-              <option value="pending_gold">⏳ Chưa lên Gold</option>
-              <option value="active">✅ Đã lên Gold</option>
-            </select>
-          </div>
+      <div class="field-sm"><label>Trạng thái</label>
+        <select id="eSs">
+          <option value="pending_gold">⏳ Chưa lên Gold</option>
+          <option value="active">✅ Đã lên Gold</option>
+        </select>
       </div>
       <div class="field-sm"><label>Ghi chú</label><textarea id="eNo" placeholder="Ghi chú thêm..."></textarea></div>
       <label id="eSfWrap" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:var(--gold-bg);cursor:pointer;font-weight:900;font-size:.88rem">
           <input type="checkbox" id="eSf" style="width:18px;height:18px;cursor:pointer"/>
-        🛡️ Bật flow đặc biệt (có bước Locket IPA — chỉ gói 150 &amp; 180)
+        🛡️ Bật flow đặc biệt (có bước Locket IPA)
       </label>
     </div>
     <div class="modal-footer">
@@ -1343,37 +1324,19 @@ window.onCreatePkgChange=function(){
 };
 
 window.updateCreatePrice=function(){
-  const type=document.getElementById('cType')?.value || 'baohanh';
-  let pkg=document.getElementById('cPackage').value;
+  const pkg=document.getElementById('cPackage').value;
   const dur=document.getElementById('cDuration').value;
-  if (dur === 'perm') {
-    if (pkg === '5s') pkg = '150';
-    if (pkg === '15s') pkg = '180';
-  }
   const priceDisplay = document.getElementById('cPriceDisplay');
   if(!priceDisplay) return;
 
-  const legacyEnd = new Date('2026-08-01T00:00:00.000Z');
-  legacyEnd.setMonth(legacyEnd.getMonth() + 6);
-  if (type === 'baohanh' && dur !== 'perm' && !['150', '180'].includes(pkg) && new Date() > legacyEnd) {
-    priceDisplay.innerHTML = '⚠️ <span style="color:#ef4444;font-weight:800;">Khách này đã hết hạn bảo hành (đã quá 6 tháng kể từ 01/08/2026), yêu cầu mua gói mới.</span>';
-    return;
-  }
-
-  const priceInfo = PRICING[pkg]?.[dur];
+  const priceInfo = PRICING[pkg]?.[dur] || PRICING[pkg]?.['perm'];
   if (priceInfo) {
-    if (type === 'baohanh') {
-      const diff = priceInfo.price - 40000;
-      const fmtDiff = new Intl.NumberFormat('vi-VN').format(diff);
-      priceDisplay.innerHTML = `💰 <b>Chờ thu: ${fmtDiff}đ</b> (Khách 40k cũ nâng cấp lên ${priceInfo.label})`;
-    } else {
-      const fmt = new Intl.NumberFormat('vi-VN').format(priceInfo.price);
-      priceDisplay.innerHTML = `💰 <b>Giá: ${fmt}đ</b> (${priceInfo.label})`;
-    }
+    const fmt = new Intl.NumberFormat('vi-VN').format(priceInfo.price);
+    priceDisplay.innerHTML = `💰 <b>Giá: ${fmt}đ</b> (${priceInfo.label})`;
   } else {
     priceDisplay.textContent = '💰 Chọn gói và thời hạn để xem giá';
   }
-  };
+};
 let currentMsgKhCode = '', currentMsgXwCode = '';
 function buildZaloMsg(khCode,xwCode){
   return `Vxang gửi thông tin Locket Gold của bạn nè! 🌟\n\n👤 Mã khách hàng (Lưu lại!):\n${khCode}\n\n🔑 Mã truy cập:\n${xwCode}\n\n🔗 Link truy cập:\nlocketvxang.vercel.app\n\n📲 Cách vào:\n1. Mở Safari trên iPhone\n2. Truy cập link trên\n3. Nhập mã truy cập → bấm Xác nhận\n4. Làm theo đúng từng bước nhé!\n\n⏱ Lưu ý: Mã hiệu lực 30 phút từ lúc xác thực. Xem & làm đầy đủ 1 lần nha!\n\nCần hỗ trợ cứ nhắn mình 💜`;
@@ -1455,28 +1418,12 @@ window.createCustomer=async function(){
   const name=document.getElementById('cName').value.trim();
   if(!name){showToast('⚠ Nhập tên khách!','red');return;}
 
-  const type=document.getElementById('cType').value;
-  let pkg=document.getElementById('cPackage').value;
+  const pkg=document.getElementById('cPackage').value;
   const duration=document.getElementById('cDuration').value;
-  if (duration === 'perm') {
-    if (pkg === '5s') pkg = '150';
-    if (pkg === '15s') pkg = '180';
-  }
-
-  // Chặn tạo khách bảo hành nếu đã quá 6 tháng kể từ 01/08/2026
-  const legacyEnd = new Date('2026-08-01T00:00:00.000Z');
-  legacyEnd.setMonth(legacyEnd.getMonth() + 6);
-  if (type === 'baohanh' && duration !== 'perm' && !['150', '180'].includes(pkg)) {
-    if (new Date() > legacyEnd) {
-      showToast('⚠️ Khách này đã hết hạn bảo hành (đã quá 6 tháng kể từ 01/08/2026), yêu cầu khách mua gói mới.', 'red');
-      return;
-    }
-  }
 
   // ── Kiểm tra DNS pool đầy trước khi tạo mã ────────────────────────
-  // Gói có bước DNS: 5s, 15s, 180. Gói 150 KHÔNG có bước DNS (chủ dự án chốt).
   const dnsPoolGroups={'30k':'5s', '40k':'15s'};
-    const poolGroup = dnsPoolGroups[pkg];
+  const poolGroup = dnsPoolGroups[pkg];
   if(poolGroup){
     try{
       const poolRows=await api('GET','/api/admin/customers?action=dns_pool_list')||[];
@@ -1498,14 +1445,11 @@ window.createCustomer=async function(){
       social_platform: parseContactInput(document.getElementById('cContact')?.value || '').social_platform,
       social_link: parseContactInput(document.getElementById('cContact')?.value || '').social_link,
       notes:document.getElementById('cNotes').value.trim(),
-      type,
       package:pkg,
       duration,
     });
     lastCustomerId=r.customer_id;
-    // Hiện modal tin nhắn Zalo: Khách mới thì hiện mẫu Full, khách bảo hành thì hiện mẫu Reentry
-    const isNew = (type === 'moi');
-      showCodeMsgModal(r.customer_code, r.access_code, '✅ Đã tạo khách thành công!', !isNew);
+    showCodeMsgModal(r.customer_code, r.access_code, '✅ Đã tạo khách thành công!', false);
     loadDashboard();
     resetCreateForm();
   }catch(e){showToast('⚠ Lỗi: '+e.message,'red');}
@@ -1516,7 +1460,6 @@ function resetCreateForm(){
   setVal('cName', '');
   setVal('cContact', '');
   setVal('cNotes', '');
-  setVal('cType', 'baohanh');
   setVal('cPackage', '30k');
   setVal('cDuration', 'perm');
   onCreatePkgChange();
@@ -2322,8 +2265,6 @@ function calculateUpgradeInfo(cust, newPkg, newDur) {
     oldPrice = 40000;
   } else if (cust.deposit_note && cust.deposit_note.includes('50k') && curPkg === '15s') {
     oldPrice = 50000;
-  } else if (cust.type === 'baohanh') {
-    oldPrice = (curPkg === '15s') ? 50000 : 40000;
   }
   const newPrice = getPkgPrice(newPkg, newDur);
   
@@ -2337,9 +2278,8 @@ function calculateUpgradeInfo(cust, newPkg, newDur) {
     const startDate = new Date(firstCompletedAt);
     const now = new Date();
     daysUsed = Math.max(0, Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
-  } else if (cust.warranty_started_at && cust.type !== 'baohanh') {
-    // Fallback: Nếu không có mã completed_at (chỉ áp dụng khách mua mới, tránh mốc 01/08 của khách bảo hành)
-    const startDate = new Date(cust.warranty_started_at);
+  } else if (cust.activated_at || cust.warranty_started_at) {
+    const startDate = new Date(cust.activated_at || cust.warranty_started_at);
     const now = new Date();
     daysUsed = Math.max(0, Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
     hasCompletedFirstCode = true;
@@ -2399,20 +2339,16 @@ function calculateUpgradeInfo(cust, newPkg, newDur) {
 }
 
 function getPendingPayInfo(c) {
-  if (!c || c.type === 'baohanh') return null;
+  if (!c) return null;
   if (c.service_status !== 'active') return null;
   const isPaid = c.deposit_note && (c.deposit_note.includes('Đã thanh toán') || c.deposit_note.includes('Thu đủ') || c.deposit_note.includes('Đã thu') || c.deposit_note.includes('Full'));
   if (isPaid) return null;
   
-  // 1. Nếu có deposit_note ghi rõ số tiền (ví dụ: "Bù nâng cấp 30k", "Bù 40k", "Nâng cấp 80k", "Cọc 20k", etc.)
+  // 1. Nếu có deposit_note ghi rõ số tiền
   if (c.deposit_note) {
     const match = c.deposit_note.match(/(\d+)\s*k/i);
     if (match) {
       const num = parseInt(match[1], 10);
-      if ((c.package === '150' || c.package === '180') && c.deposit_note.toLowerCase().includes('cọc')) {
-        const full = c.package === '180' ? 180 : 150;
-        return { amount: (full - num) + 'k', isPerm: true, isRemainder: true };
-      }
       if (c.deposit_note.toLowerCase().includes('bù') || c.deposit_note.toLowerCase().includes('thu') || c.deposit_note.toLowerCase().includes('nâng')) {
         return { amount: num + 'k', isPerm: isPermPkg(c.package), isRemainder: false };
       }
@@ -2420,24 +2356,13 @@ function getPendingPayInfo(c) {
   }
   
   // 2. Mặc định theo gói:
-  if (c.package === '150') return { amount: '130k', isPerm: true, isRemainder: true };
-  if (c.package === '180') return { amount: '160k', isPerm: true, isRemainder: true };
-  if (c.package === '5s') return { amount: (c.duration === '1y' ? '80k' : '50k'), isPerm: false, isRemainder: false };
-  if (c.package === '15s') return { amount: (c.duration === '1y' ? '100k' : '60k'), isPerm: false, isRemainder: false };
-  return { amount: 'tiền', isPerm: false, isRemainder: false };
+  if (c.package === '40k' || c.package === '180' || c.package === '15s') return { amount: '40k', isPerm: true, isRemainder: false };
+  return { amount: '30k', isPerm: true, isRemainder: false };
 }
 
 function custSmartBadge(c, inModal = false) {
   if (!c) return '';
-  if (c.type === 'baohanh') {
-    return `<span class="ss-badge ss-bh">🛡️ Bảo hành</span>`;
-  }
   if (c.service_status === 'pending_gold') {
-    if (c.package === '150' || c.package === '180') {
-      let dep = c.deposit_note || 'Cọc 20k';
-      if (dep === 'Cọc 30k' || dep.includes('30k')) dep = 'Cọc 20k';
-      return `<span class="ss-badge ss-pending" title="Khách đang cài đặt">⏳ Chưa lên Gold · ${esc(dep)}</span>`;
-    }
     const noteText = c.deposit_note ? ` (${esc(c.deposit_note)})` : '';
     return `<span class="ss-badge ss-pending" title="Khách đang cài đặt">⏳ Chưa lên Gold${noteText}</span>`;
   }
@@ -2513,15 +2438,14 @@ window.setCustFilter = function(filter) {
 window.applyCustFilters = function applyCustFilters() {
   const q = document.getElementById('custSearchInput').value.toLowerCase().trim();
   let data = allCustomers;
-  if (currentCustFilter === 'baohanh') {
-    data = data.filter(c => (c.type || 'baohanh') === 'baohanh');
-  } else if (currentCustFilter === 'moi') {
-    data = data.filter(c => (c.type || 'baohanh') === 'moi');
+  if (currentCustFilter === 'pkg_30k') {
+    data = data.filter(c => c.package === '30k' || c.package === '5s' || c.package === '150');
+  } else if (currentCustFilter === 'pkg_40k') {
+    data = data.filter(c => c.package === '40k' || c.package === '15s' || c.package === '180');
   } else if (currentCustFilter === 'pending_gold') {
-    data = data.filter(c => (c.service_status || 'baohanh') === 'pending_gold');
+    data = data.filter(c => (c.service_status || 'pending_gold') === 'pending_gold');
   } else if (currentCustFilter === 'need_pay') {
     data = data.filter(c => {
-      if ((c.type || 'baohanh') === 'baohanh') return false;
       if (c.service_status !== 'active') return false;
       const isPaid = c.deposit_note && (c.deposit_note.includes('Đã thanh toán') || c.deposit_note.includes('Thu đủ') || c.deposit_note.includes('Đã thu') || c.deposit_note.includes('Full'));
       return !isPaid;
@@ -2605,13 +2529,12 @@ window.exportXLSX=function(){
     'Mã KH':c.customer_code,'Tên':c.name||'','SĐT':c.phone||'',
     'Nền tảng':c.social_platform||'','Link':c.social_link||'',
     'Gói':pkgLabel(c.package),
-    'Loại':c.type==='moi'?'Mua mới':'Bảo hành',
-    'Trạng thái':ssText(c.service_status||'baohanh',c.package).replace(/[🛡️💰✅🔧🏁🛒]/gu,'').trim(),
+    'Trạng thái':ssText(c.service_status||'pending_gold',c.package).replace(/[🛡️💰✅🔧🏁🛒]/gu,'').trim(),
     'Ghi chú cọc':c.deposit_note||'','Ghi chú':c.notes||'',
     'Ngày tạo':new Date(c.created_at).toLocaleDateString('vi-VN')
   }));
   const ws=XLSX.utils.json_to_sheet(rows);
-  ws['!cols']=[{wch:12},{wch:20},{wch:14},{wch:12},{wch:28},{wch:14},{wch:12},{wch:18},{wch:24},{wch:24},{wch:12}];
+  ws['!cols']=[{wch:12},{wch:20},{wch:14},{wch:12},{wch:28},{wch:14},{wch:18},{wch:24},{wch:24},{wch:12}];
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Khách hàng');
   XLSX.writeFile(wb,`LocketVxang_KhachHang_${new Date().toISOString().slice(0,10)}.xlsx`);
@@ -2631,11 +2554,11 @@ window.openCustDetail=async function(id){
     if (!c) return;
     document.getElementById('dName').textContent=c.name || 'Khách hàng';
     const genPkgEl=document.getElementById('genPkg');
-    if(genPkgEl){fillGenPkgOptions(c.package||'5s');onGenPkgChange();}
+    if(genPkgEl){fillGenPkgOptions(c.package||'30k');onGenPkgChange();}
 
-    const duration=c.duration||'3m';
-    const priceInfo=PRICING[c.package]?.[duration];
-    const priceLabel=priceInfo?priceInfo.label:(duration==='3m'?'3 tháng (khách cũ)':'—');
+    const duration=c.duration||'perm';
+    const priceInfo=PRICING[c.package]?.[duration] || PRICING[c.package]?.['perm'];
+    const priceLabel=priceInfo?priceInfo.label:'Vĩnh viễn';
 
     let warrantyHtml='';
     const wStatus=getWarrantyStatus(c);
@@ -2671,7 +2594,6 @@ window.openCustDetail=async function(id){
       <div class="info-item"><div class="info-label">Nền tảng</div><div class="info-val">${PI[c.social_platform]||'💬'} ${esc(c.social_platform||'—')}</div></div>
       <div class="info-item"><div class="info-label">Link</div><div class="info-val">${c.social_link?`<a href="${esc(c.social_link)}" target="_blank">${esc(c.social_link)}</a>`:'—'}</div></div>
       <div class="info-item"><div class="info-label">Gói dịch vụ</div><div class="info-val">${PKG_LABELS[c.package]?(isPermPkg(c.package)?'💎 ':c.package==='15s'?'⏱ ':'⚡ ')+PKG_LABELS[c.package]:'<span style="color:var(--muted);font-weight:600">— Chưa chọn —</span>'}</div></div>
-      <div class="info-item"><div class="info-label">Loại khách</div><div class="info-val">${custTypeBadge(c.type||'baohanh')}</div></div>
       <div class="info-item"><div class="info-label">Trạng thái &amp; Thanh toán</div><div class="info-val">${custSmartBadge(c)}</div></div>
       <div class="info-item"><div class="info-label">Flow hướng dẫn</div><div class="info-val">${c.special_flow?'<span style="color:#7c3aed;font-weight:800">🛡️ Đặc biệt (có IPA)</span>':'<span style="color:var(--muted);font-weight:700">Mặc định</span>'}</div></div>
       ${warrantyHtml}
@@ -2762,51 +2684,25 @@ window.openEditCust=function(){
   document.getElementById('eUn').value=cust.locket_username||'';
   const eContactEl = document.getElementById('eContact');
   if (eContactEl) eContactEl.value = cust.phone || cust.social_link || '';
-  document.getElementById('eTy').value=cust.type||'baohanh';
   document.getElementById('eSs').value=cust.service_status||'pending_gold';
   document.getElementById('eNo').value=cust.notes||'';
-  let ePkg = cust.package || '5s';
-  let eDur = cust.duration || '6m';
-  if(ePkg === '150') { ePkg = '5s'; eDur = 'perm'; }
-  if(ePkg === '180') { ePkg = '15s'; eDur = 'perm'; }
+  const ePkg = (cust.package === '40k' || cust.package === '15s' || cust.package === '180') ? '40k' : '30k';
   document.getElementById('ePkg').value = ePkg;
-  
-  const durSel = document.getElementById('eDur');
-  let has3m = false;
-  Array.from(durSel.options).forEach(o => { if(o.value === '3m') has3m = true; });
-  if (eDur === '3m' && !has3m) {
-    durSel.insertAdjacentHTML('afterbegin', '<option value="3m">3 tháng (khách cũ)</option>');
-  }
-  document.getElementById('eDur').value = eDur;
+  document.getElementById('eDur').value = 'perm';
   document.getElementById('eSf').checked=!!cust.special_flow;
 
   updateEditPrice();
   document.getElementById('editModal').classList.add('open');
 };
 window.updateEditPrice=function(){
-  let pkg=document.getElementById('ePkg').value;
-  const dur=document.getElementById('eDur').value;
-  
-  const sfWrap = document.getElementById('eSfWrap');
-  if (sfWrap) {
-    if (dur === 'perm') {
-      sfWrap.style.display = 'flex';
-    } else {
-      sfWrap.style.display = 'none';
-      document.getElementById('eSf').checked = false;
-    }
-  }
-
-  if (dur === 'perm') {
-    if (pkg === '5s') pkg = '150';
-    if (pkg === '15s') pkg = '180';
-  }
-  const priceInfo=PRICING[pkg]?.[dur];
+  const pkg=document.getElementById('ePkg').value;
+  const dur=document.getElementById('eDur').value || 'perm';
+  const priceInfo=PRICING[pkg]?.[dur] || PRICING[pkg]?.['perm'];
   if(priceInfo){
     const fmt=new Intl.NumberFormat('vi-VN').format(priceInfo.price);
     document.getElementById('ePriceDisplay').textContent=`💰 Giá: ${fmt}đ (${priceInfo.label})`;
-  }else if(dur==='3m'){
-    document.getElementById('ePriceDisplay').textContent='💰 Giá: — (khách cũ 3 tháng)';
+  }else{
+    document.getElementById('ePriceDisplay').textContent='💰 Giá: —';
   }
 };
 window.closeEditCust=function(){document.getElementById('editModal').classList.remove('open');};
@@ -2821,11 +2717,10 @@ window.saveEditCust=async function(){
     phone: parseContactInput(document.getElementById('eContact')?.value || '').phone,
     social_platform: parseContactInput(document.getElementById('eContact')?.value || '').social_platform,
     social_link: parseContactInput(document.getElementById('eContact')?.value || '').social_link,
-    type:document.getElementById('eTy').value,
     service_status:document.getElementById('eSs').value,
     notes:document.getElementById('eNo').value.trim(),
-    package: (document.getElementById('eDur').value === 'perm') ? (document.getElementById('ePkg').value === '15s' ? '180' : '150') : document.getElementById('ePkg').value,
-    duration: document.getElementById('eDur').value,
+    package: document.getElementById('ePkg').value,
+    duration: 'perm',
     special_flow:document.getElementById('eSf').checked,
   };
   try{

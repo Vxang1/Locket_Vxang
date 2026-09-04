@@ -319,7 +319,7 @@ module.exports = async (req, res) => {
     if (req.method === 'PATCH' && (action === 'update' || !action)) {
       const targetId = id || req.body?.id;
       if (!targetId) return res.status(400).json({ error: 'Missing id' });
-      const { name, contact, phone, social_platform, social_link, notes, type, service_status, locket_username, package: pkg, duration, special_flow, deposit_note } = req.body || {};
+      const { name, contact, phone, social_platform, social_link, notes, service_status, locket_username, package: pkg, duration, special_flow, deposit_note } = req.body || {};
       let finalPhone = phone;
       let finalPlatform = social_platform;
       let finalLink = social_link;
@@ -338,7 +338,6 @@ module.exports = async (req, res) => {
         if (service_status === 'active') {
           if (current && current.service_status === 'pending_gold' && !current.warranty_started_at) {
           needSetWarrantyStart = true;
-          const finalType = type !== undefined ? type : current.type;
           const finalPkg = pkg !== undefined ? normalizePackage(pkg) : current.package;
           const finalDur = duration !== undefined ? duration : current.duration;
           warrantyStartVal = new Date().toISOString();
@@ -376,7 +375,6 @@ module.exports = async (req, res) => {
       if (finalPlatform !== undefined)        updateBody.social_platform = finalPlatform;
       if (finalLink !== undefined)            updateBody.social_link = finalLink || null;
       if (notes !== undefined)           updateBody.notes = notes || null;
-      if (type !== undefined)            updateBody.type = type;
       if (service_status !== undefined)  updateBody.service_status = service_status;
       if (locket_username !== undefined) updateBody.locket_username = locket_username || null;
       if (pkg !== undefined)             updateBody.package = normalizePackage(pkg);
@@ -476,7 +474,7 @@ module.exports = async (req, res) => {
     if (req.method === 'GET' && action === 'codes') {
       const [allCodes, allCustomers] = await Promise.all([
         sb('GET', 'access_codes', { q: `order=created_at.desc` }),
-        sb('GET', 'customers',    { q: `select=id,name,phone,customer_code,type,service_status,special_flow` }),
+        sb('GET', 'customers',    { q: `select=id,name,phone,customer_code,service_status,special_flow` }),
       ]);
       const custMap = {};
       (allCustomers || []).forEach(c => { custMap[c.id] = c; });
