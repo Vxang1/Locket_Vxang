@@ -435,7 +435,7 @@
     <div class="quick-entry">
       <div class="entry-label">⚡ NHẬP MÃ TRUY CẬP NHANH</div>
       <div class="entry-row">
-        <input class="entry-input" id="codeInput" placeholder="VD: XW-A3K7P2" maxlength="20"
+        <input class="entry-input" id="codeInput" placeholder="VD: VX-A3K7P2" maxlength="20"
           autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"
           oninput="this.value=this.value.toUpperCase()"
           onkeydown="if(event.key==='Enter')goGuide()"/>
@@ -618,8 +618,8 @@
         return;
       }
 
-      if (!val.startsWith('XW-')) {
-        val = 'XW-' + val.replace(/[^A-Z0-9]/g, '');
+      if (!val.startsWith('VX-') && !val.startsWith('XW-')) {
+        val = 'VX-' + val.replace(/[^A-Z0-9]/g, '');
       }
 
       window.location.href = '/guide?code=' + encodeURIComponent(val);

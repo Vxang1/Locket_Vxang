@@ -267,7 +267,7 @@ async function handleTelegramWebhook(req, res) {
         DIVIDER,
         '⚡ <b>Hệ thống Quản lý Khách hàng:</b>\n',
         '1️⃣ <b>Tra cứu thông tin CRM:</b>',
-        '👉 Gõ mã khách hàng <code>KH-xxxxxxx</code>, mã truy cập <code>XW-xxxxxx</code>, SĐT, hoặc Username Locket để xem thông tin.\n',
+        '👉 Gõ mã khách hàng <code>KH-xxxxxxx</code>, mã truy cập <code>VX-xxxxxx</code>, SĐT, hoặc Username Locket để xem thông tin.\n',
         '2️⃣ <b>Thống kê hệ thống:</b>',
         '👉 Gõ <code>/stats</code> để xem thống kê tổng quan về khách hàng và gói dịch vụ.'
       ];
@@ -315,7 +315,7 @@ async function handleTelegramWebhook(req, res) {
         '❌ <b>Không tìm thấy thông tin</b>\n' +
         DIVIDER + '\n' +
         `Không tìm thấy dữ liệu cho <code>${escHtml(text)}</code>.\n\n` +
-        '👉 <i>Vui lòng nhập đúng mã KH (vd: <code>KH-GE2Y4CX8</code>), mã truy cập (<code>XW-123456</code>), SĐT hoặc Username Locket.</i>'
+        '👉 <i>Vui lòng nhập đúng mã KH (vd: <code>KH-GE2Y4CX8</code>), mã truy cập (<code>VX-123456</code>), SĐT hoặc Username Locket.</i>'
       );
       return res.status(200).json({ ok: true });
     }
@@ -428,13 +428,13 @@ async function findCustomerInCrm(queryText) {
   if (!raw) return null;
 
   const upper = raw.toUpperCase();
-  const cleanCode = upper.replace(/^(KH-|XW-)/i, '').trim();
+  const cleanCode = upper.replace(/^(KH-|VX-|XW-)/i, '').trim();
   const esc = encodeURIComponent(raw);
   const escClean = encodeURIComponent(cleanCode);
 
   let searchedCode = null;
-  if (/^XW-[A-Z0-9]+$/i.test(raw) || (raw.length === 6 && /^[A-Z0-9]+$/i.test(raw))) {
-    searchedCode = upper.startsWith('XW-') ? upper : `XW-${upper}`;
+  if (/^(VX-|XW-)[A-Z0-9]+$/i.test(raw) || (raw.length === 6 && /^[A-Z0-9]+$/i.test(raw))) {
+    searchedCode = (upper.startsWith('VX-') || upper.startsWith('XW-')) ? upper : `VX-${upper}`;
   }
 
   // Layer 1: Query trực tiếp Supabase bảng customers bằng PostgREST OR & ilike

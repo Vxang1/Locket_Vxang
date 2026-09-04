@@ -45,7 +45,7 @@ module.exports = async (req, res) => {
       }
     }
     const customer_code = genCode('KH-', 8);
-    const access_code   = genCode('XW-', 6);
+    const access_code   = genCode('VX-', 6);
 
     let depositNote = null;
     const [cust] = await sb('POST', 'customers', {

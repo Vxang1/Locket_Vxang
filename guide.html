@@ -438,7 +438,7 @@ window.addEventListener('DOMContentLoaded', () => {
     <div class="entry-brand">📓 Guide <span>Locket Gold</span></div>
     <div class="entry-sub">Nhập mã do Vxang cấp sau khi thanh toán.<br>Mã có hiệu lực 30 phút kể từ khi xác thực.</div>
     <label class="field-label">Mã truy cập</label>
-    <input type="text" class="field-input" id="codeInput" placeholder="VD: XW-A3K7P2" maxlength="20"
+    <input type="text" class="field-input" id="codeInput" placeholder="VD: VX-A3K7P2" maxlength="20"
       oninput="this.value=this.value.toUpperCase()"
       onkeydown="if(event.key==='Enter')enterGuide()"/>
     <div class="err-msg" id="errMsg"></div>
@@ -1095,8 +1095,12 @@ function showErr(msg) {
 
 async function enterGuide() {
   if (checkInApp()) return;
-  const code = document.getElementById('codeInput').value.trim().toUpperCase();
+  let code = document.getElementById('codeInput').value.trim().toUpperCase();
   if (!code) { showErr('⚠ Vui lòng nhập mã truy cập'); return; }
+  if (!code.startsWith('VX-') && !code.startsWith('XW-')) {
+    code = 'VX-' + code.replace(/[^A-Z0-9]/g, '');
+  }
+  document.getElementById('codeInput').value = code;
   document.getElementById('enterBtn').disabled = true;
   document.getElementById('errMsg').style.display = 'none';
   show('loadScreen');

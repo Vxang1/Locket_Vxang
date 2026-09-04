@@ -287,7 +287,7 @@ async function lookupCustomerByCode(code) {
 }
 
 // Tra tên khách CHỈ qua customers.customer_code (KH-xxxxxxxx) — khác lookupCustomerByCode()
-// vốn nhận access_codes.code (XW-xxxxxx) và JOIN qua customer_id. Dùng cho tính năng DNS
+// vốn nhận access_codes.code (VX-xxxxxx) và JOIN qua customer_id. Dùng cho tính năng DNS
 // riêng, nơi row chỉ lưu customer_code, không có access_code nào liên quan. Tự nuốt lỗi,
 // luôn trả object — không chặn luồng khách/admin.
 async function lookupCustomerByDnsCode(customerCode) {

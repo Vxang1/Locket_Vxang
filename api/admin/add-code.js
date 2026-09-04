@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
       return res.status(503).json({ error: 'DNS pool đang đầy, vui lòng thêm link DNS trước khi tạo mã mới.' });
     }
 
-    const code = genCode('XW-', 6);
+    const code = genCode('VX-', 6);
     await sb('POST', 'access_codes', {
       body: { customer_id, code, is_active: true },
       prefer: 'return=minimal',

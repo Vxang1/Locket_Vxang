@@ -41,7 +41,7 @@
    - Không có hàm `calculateWarrantyEnd()` hay `getWarrantyStatus()`.
    - Bảng `customers` dùng `activated_at` thay cho `warranty_started_at`.
 3. **Cấp Mã Cho Khách Cũ Cần Cài Lại:**
-   - Bấm nút "➕ Cấp mã mới" trong Modal Khách Hàng sinh mã `XW-xxxxxx` thời hạn 30 phút, không gắn cờ bảo hành.
+   - Bấm nút "➕ Cấp mã mới" trong Modal Khách Hàng sinh mã `VX-xxxxxx` thời hạn 30 phút, không gắn cờ bảo hành.
 4. **Duy Nhất 1 Mẫu Tin Nhắn Zalo Chuẩn Gửi Khách:**
    - Chỉ dùng duy nhất 1 mẫu tin nhắn Zalo chuẩn Safari cho mọi trường hợp cấp mã.
 5. **Ô Nhập Liệu Liên Hệ Duy Nhất (`parseContactInput`):**
@@ -97,7 +97,7 @@
    - Link DNS Riêng có TTL 10 phút kích hoạt từ lần mở đầu tiên, có nút hồi sinh TTL trong Admin.
 5. **Telegram Bot Webhook:**
    - Thông báo khách tạo mới, khách bắt đầu làm, khách hoàn tất, gian lận, link DNS riêng.
-   - Tra cứu CRM trực tiếp qua mã `XW-xxxxxx`, `KH-xxxxxxx`, SĐT, Tên.
+   - Tra cứu CRM trực tiếp qua mã `VX-xxxxxx` (hoặc `XW-xxxxxx`), `KH-xxxxxxx`, SĐT, Tên.
 
 ---
 
