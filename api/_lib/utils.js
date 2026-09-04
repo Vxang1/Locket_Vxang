@@ -440,17 +440,13 @@ function alignStepFlow(flow, totalSteps) {
 // Khối chi tiết dùng chung cho mọi tin nhắn nói về 1 mã truy cập.
 function codeDetailLines(code, pkg, cust) {
   const p = normalizePackage(pkg);
-  const duration = cust?.duration || null;
-  const priceLbl = duration ? getPriceLabel(p, duration) : null;
-  const permTag = isPermPackage(p) ? ' · vĩnh viễn' : '';
-  // Fallback: nếu không có duration hoặc PRICING không khớp, hiện tên gói đơn thuần.
-  const pkgDisplay = priceLbl && priceLbl !== '—' ? priceLbl : (PACKAGES[p]?.label || p);
+  const pkgDisplay = PACKAGES[p]?.label || p;
   const lines = [
     '━━━━━━━━━━━━━━━',
     `🆔 Mã KH: <code>${escTgHtml(cust?.customerCode || '—')}</code>`,
     `🔑 Mã truy cập: <code>${escTgHtml(code)}</code>`,
   ];
-  lines.push(`${PKG_EMOJI[p] || '⭐'} Gói: <b>${escTgHtml(pkgDisplay)}</b>${permTag}`);
+  lines.push(`${PKG_EMOJI[p] || '⭐'} Gói: <b>${escTgHtml(pkgDisplay)}</b>`);
   return lines.join('\n');
 }
 
