@@ -1387,13 +1387,7 @@ function fillGenPkgOptions(pkg){
   const hint=document.getElementById('genPkgHint');
   if(!sel)return;
   const p=pkg&&PKG_OPTION_LABELS[pkg]?pkg:'30k';
-  sel.innerHTML=`<option value="${p}">${PKG_OPTION_LABELS[pkg]||('⚡ Gói '+pkg)}</option>`;
-  sel.value=p;
-  if(hint)hint.textContent='Muốn đổi gói, dùng nút "✏️ Chỉnh sửa thông tin khách" ở dưới.';
-}">${PKG_OPTION_LABELS[pkg]||('⚡ Gói '+pkg)}</option>`;
-  sel.value=p;
-  if(hint)hint.textContent='Muốn đổi gói, dùng nút "✏️ Chỉnh sửa thông tin khách" ở dưới.';
-}">${PKG_OPTION_LABELS[pkg]||('⚡ Gói '+pkg)}</option>`;
+  sel.innerHTML=`<option value="${p}">${PKG_OPTION_LABELS[p]||('⚡ Gói '+p)}</option>`;
   sel.value=p;
   if(hint)hint.textContent='Muốn đổi gói, dùng nút "✏️ Chỉnh sửa thông tin khách" ở dưới.';
 }
