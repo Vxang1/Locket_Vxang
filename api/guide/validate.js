@@ -444,104 +444,136 @@ module.exports = async (req, res) => {
 
     let isOriginal = true;
 
+    // ─── XWUAN CORE: THUẬT TOÁN XÁC THỰC PHIÊN VÀ CHỐNG BẮT OAN ───
+    // 1. Kiểm tra môi trường In-App WebView (Trụ Cột 1)
     if (inApp || !deviceId) {
-      // In-app webview hoặc không có deviceId -> Không gán sở hữu cứng, tránh khoá nhầm khi chuyển Safari
+      // In-app webview hoặc không có deviceId -> Cho phép truy cập tạm, KHÔNG gán sở hữu cứng, tránh khoá nhầm khi chuyển Safari
       isOriginal = true;
     } else {
-      // Kiểm tra sở hữu từ Firebase và Supabase
+      // Lấy thông tin chủ sở hữu từ Firebase và Supabase
       let ownership = null;
       try { ownership = await fbGet(`code_ownership/${upperCode}`); } catch {}
       const ownerDeviceId = ownership?.device_id || codeRow.original_device_id;
 
-      // Tìm các session đang ping trong 12s gần nhất
-      const threshold12s = new Date(Date.now() - 12 * 1000).toISOString();
-      let activeSessions = [];
-      try {
-        activeSessions = (await sb('GET', 'sessions', {
-          q: `access_code=eq.${encodeURIComponent(upperCode)}&last_ping=gte.${encodeURIComponent(threshold12s)}`,
-        })) || [];
-      } catch {
-        activeSessions = [];
-      }
-
-      // Lọc các session của thiết bị KHÁC đang ping
-      const otherSessions = (activeSessions || []).filter(s => {
-        if (!s || s.is_kicked === true) return false;
-        return (s.device_id && deviceId) ? (s.device_id !== deviceId) : (s.session_token !== undefined);
-      });
-
-      // Kiểm tra xem owner cũ có đang ping trong 12s qua Firebase không
-      const isOwnerPinging = ownership?.last_ping && 
-        (Date.now() - new Date(ownership.last_ping).getTime() < 12000) && 
-        (ownership.device_id && ownership.device_id !== deviceId);
-
-      // Kiểm tra thêm qua Firebase heartbeats
-      let fbConcurrent = false;
-      let fbConcurrentDeviceId = '';
-      try {
-        const hbs = await fbGet(`heartbeats/${upperCode}`);
-        if (hbs && typeof hbs === 'object') {
-          const nowMs = Date.now();
-          for (const [sTok, hb] of Object.entries(hbs)) {
-            if (hb && hb.last_ping) {
-              const diff = nowMs - new Date(hb.last_ping).getTime();
-              if (diff < 12000 && (!deviceId || !hb.device_id || hb.device_id !== deviceId)) {
-                fbConcurrent = true;
-                fbConcurrentDeviceId = hb.device_id || '';
-                break;
-              }
-            }
-          }
-        }
-      } catch {}
-
-      if (otherSessions.length > 0 || isOwnerPinging || fbConcurrent || (ownerDeviceId && ownerDeviceId !== deviceId && (otherSessions.length > 0 || fbConcurrent))) {
-        // 🚨 CÓ 2 THIẾT BỊ KHÁC NHAU ĐANG CÙNG TRUY CẬP SONG SONG!
-        isOriginal = false;
+      // 2. Thiết bị đầu tiên mở trên trình duyệt chuẩn: Gán quyền sở hữu (claimed_owner)
+      if (!ownerDeviceId) {
         const nowIso = new Date().toISOString();
-        const clientIp = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'Không xác định').split(',')[0].trim();
-
-        if (!existingFraudAt) {
-          // Kích hoạt bẫy gian lận vào Firebase RTDB (tức thời không phụ thuộc migration DB)
-          await fbPut(`fraud/${upperCode}`, {
-            fraud_triggered_at: nowIso,
-            original_device_id: ownerDeviceId || otherSessions[0]?.device_id || 'owner',
-            leech_device_id: deviceId,
-            leech_ip: clientIp,
-          }).catch(() => {});
-
-          // Thử patch Supabase
-          try {
-            await sb('PATCH', 'access_codes', {
-              q: `id=eq.${codeRow.id}`,
-              body: { fraud_triggered_at: nowIso },
-            });
-          } catch {}
-
-          // Bắn cảnh báo khẩn cấp về Telegram Admin
-          const cust = await lookupCustomerByCode(upperCode);
-          const who = cust.name ? escTgHtml(cust.name) : 'Khách';
-          await notifyTelegram(
-            `🚨 <b>${who}</b> đang share mã\n` +
-            codeDetailLines(upperCode, codeRow.package, cust) + '\n' +
-            `⚠️ IP gian lận: <code>${escTgHtml(clientIp)}</code>\n` +
-            `Phát hiện 2 thiết bị khác nhau đang cùng truy cập mã song song — mã sẽ tự khoá sau 20 giây.`
-          );
-        }
-      } else {
-        // Không có thiết bị nào khác đang ping song song -> Máy đầu tiên hoặc chuyển giao sở hữu mượt mà
-        isOriginal = true;
-        const nowIso = new Date().toISOString();
-        await fbPut(`code_ownership/${upperCode}`, {
-          device_id: deviceId,
-          last_ping: nowIso,
-        }).catch(() => {});
+        await fbPut(`code_ownership/${upperCode}`, { device_id: deviceId, last_ping: nowIso }).catch(() => {});
         try {
           await sb('PATCH', 'access_codes', {
             q: `id=eq.${codeRow.id}`,
             body: { original_device_id: deviceId },
           });
         } catch {}
+        isOriginal = true;
+      }
+      // 3. Cùng thiết bị cũ vào lại: Cho phép ngay 100% (re_entry), không bắt nhầm phiên cũ của chính nó
+      else if (ownerDeviceId === deviceId) {
+        isOriginal = true;
+        const nowIso = new Date().toISOString();
+        await fbPut(`code_ownership/${upperCode}`, { device_id: deviceId, last_ping: nowIso }).catch(() => {});
+      }
+      // 4. Thiết bị KHÁC (ownerDeviceId !== deviceId): XỬ LÝ ĐỔI THIẾT BỊ / ĐỔI TRÌNH DUYỆT (CHỐNG BẮT OAN)
+      else {
+        // Kiểm tra xem có thiết bị nào KHÁC đang gửi ping trong 12 giây qua không
+        const threshold12s = new Date(Date.now() - 12 * 1000).toISOString();
+        let activeSessions = [];
+        try {
+          activeSessions = (await sb('GET', 'sessions', {
+            q: `access_code=eq.${encodeURIComponent(upperCode)}&last_ping=gte.${encodeURIComponent(threshold12s)}`,
+          })) || [];
+        } catch {
+          activeSessions = [];
+        }
+
+        // Lọc các session của thiết bị KHÁC đang ping
+        const otherSessions = (activeSessions || []).filter(s => {
+          if (!s || s.is_kicked === true) return false;
+          return s.device_id ? (s.device_id !== deviceId) : (s.session_token !== undefined);
+        });
+
+        // Kiểm tra xem owner cũ có đang ping trong 12s qua Firebase không
+        const isOwnerPinging = ownership?.last_ping && 
+          (Date.now() - new Date(ownership.last_ping).getTime() < 12000) && 
+          (ownership.device_id && ownership.device_id !== deviceId);
+
+        // Kiểm tra thêm qua Firebase heartbeats
+        let fbConcurrent = false;
+        try {
+          const hbs = await fbGet(`heartbeats/${upperCode}`);
+          if (hbs && typeof hbs === 'object') {
+            const nowMs = Date.now();
+            for (const [sTok, hb] of Object.entries(hbs)) {
+              if (hb && hb.last_ping) {
+                const diff = nowMs - new Date(hb.last_ping).getTime();
+                if (diff < 12000 && (!hb.device_id || hb.device_id !== deviceId)) {
+                  fbConcurrent = true;
+                  break;
+                }
+              }
+            }
+          }
+        } catch {}
+
+        if (!otherSessions.length && !isOwnerPinging && !fbConcurrent) {
+          // Không có ai đang dùng song song -> Khách vừa chuyển app / đổi trình duyệt
+          // => CHUYỂN GIAO SỞ HỮU AN TOÀN CHO THIẾT BỊ MỚI (handover_success)
+          isOriginal = true;
+          const nowIso = new Date().toISOString();
+          await fbPut(`code_ownership/${upperCode}`, {
+            device_id: deviceId,
+            last_ping: nowIso,
+          }).catch(() => {});
+          try {
+            await sb('PATCH', 'access_codes', {
+              q: `id=eq.${codeRow.id}`,
+              body: { original_device_id: deviceId },
+            });
+          } catch {}
+          // Xóa cờ bẫy cũ nếu có (vì thiết bị cũ đã ngắt)
+          await fbPut(`fraud/${upperCode}`, null).catch(() => {});
+        } else {
+          // 🚨 THỰC SỰ CÓ 2 THIẾT BỊ ĐANG CÙNG DÙNG SONG SONG -> KÍCH HOẠT BẪY GIAN LẬN
+          isOriginal = false;
+          const nowIso = new Date().toISOString();
+          const clientIp = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'Không xác định').split(',')[0].trim();
+
+          if (!existingFraudAt) {
+            await fbPut(`fraud/${upperCode}`, {
+              fraud_triggered_at: nowIso,
+              original_device_id: ownerDeviceId || otherSessions[0]?.device_id || 'owner',
+              leech_device_id: deviceId,
+              leech_ip: clientIp,
+            }).catch(() => {});
+
+            try {
+              await sb('PATCH', 'access_codes', {
+                q: `id=eq.${codeRow.id}`,
+                body: { fraud_triggered_at: nowIso },
+              });
+            } catch {}
+
+            // Bắn cảnh báo khẩn cấp về Telegram Admin kèm nút Đặc Xá 1-chạm (Trụ Cột 7)
+            const cust = await lookupCustomerByCode(upperCode);
+            const who = cust.name ? escTgHtml(cust.name) : 'Khách';
+            await notifyTelegram(
+              `🚨 <b>${who}</b> đang share mã\n` +
+              codeDetailLines(upperCode, codeRow.package, cust) + '\n' +
+              `⚠️ IP gian lận: <code>${escTgHtml(clientIp)}</code>\n` +
+              `Phát hiện 2 thiết bị khác nhau đang cùng truy cập mã song song — mã sẽ tự khoá sau 20 giây.`,
+              {
+                reply_markup: {
+                  inline_keyboard: [
+                    [
+                      { text: '🔓 Mở khóa ngay (Đặc xá)', callback_data: `unblock_code:${upperCode}` },
+                      { text: '🔍 Tra cứu mã', callback_data: `lookup_code:${codeRow.id}` }
+                    ]
+                  ]
+                }
+              }
+            );
+          }
+        }
       }
     }
 

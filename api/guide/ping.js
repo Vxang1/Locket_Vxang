@@ -13,6 +13,15 @@ module.exports = async (req, res) => {
   let body = {};
   try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); } catch {}
 
+  // 🚪 Hỗ trợ action 'leave' (Trụ Cột 3 & 4): Khi khách đóng tab / rời trang, beacon giải phóng ngay lập tức
+  if (body.action === 'leave') {
+    await Promise.all([
+      fbPut(`heartbeats/${payload.code}/${payload.sessionToken}`, null).catch(() => {}),
+      sb('DELETE', 'sessions', { q: `session_token=eq.${encodeURIComponent(payload.sessionToken)}` }).catch(() => {})
+    ]);
+    return res.json({ ok: true });
+  }
+
   try {
     const [sessions, codes] = await Promise.all([
       sb('GET', 'sessions', {
@@ -65,30 +74,86 @@ module.exports = async (req, res) => {
     } catch {}
 
     if (fraudTriggeredAt) {
-      const elapsed = Date.now() - new Date(fraudTriggeredAt).getTime();
-
-      if (elapsed >= DESTRUCT_AFTER_MS) {
-        // Hết giờ (20s) — tự huỷ vĩnh viễn, văng TẤT CẢ thiết bị
-        await sb('PATCH', 'access_codes', {
-          q: `id=eq.${codeRow.id}`,
-          body: { is_active: false },
-        }).catch(() => {});
-        await sb('DELETE', 'sessions', { q: `access_code=eq.${encodeURIComponent(payload.code)}` }).catch(() => {});
-        await fbPut(`fraud/${payload.code}/destroyed`, true).catch(() => {});
-        return res.json({ expired: true, fraud_final: true });
-      }
-
-      if (elapsed >= SURPRISE_DELAY_MS) {
-        // 5s-20s: đồng loạt cảnh báo, đếm ngược 15 giây để đọc kịp thông báo
-        const secondsLeft = Math.max(0, Math.ceil((DESTRUCT_AFTER_MS - elapsed) / 1000));
-        const isOriginal = (payload.isOriginal !== false) && (session?.is_original !== false);
-        return res.json({
-          fraud_warning: true,
-          is_original: isOriginal,
-          seconds_left: secondsLeft,
+      // 🛡️ TRỤ CỘT 4: BỘ ĐỆM CHỐNG BẮT OAN & TỰ PHỤC HỒI NGUYÊN TRẠNG (AUTO-RECOVERY)
+      // Kiểm tra xem thiết bị phụ đã tắt / ngừng ping chưa:
+      const threshold12s = new Date(Date.now() - 12 * 1000).toISOString();
+      const myDev = body.deviceId || session?.device_id || '';
+      let activeOtherSessions = [];
+      try {
+        const rows = await sb('GET', 'sessions', {
+          q: `access_code=eq.${encodeURIComponent(payload.code)}&last_ping=gte.${encodeURIComponent(threshold12s)}`,
         });
+        activeOtherSessions = (rows || []).filter(s => {
+          if (!s || s.session_token === payload.sessionToken || s.is_kicked === true) return false;
+          return myDev ? (s.device_id !== myDev) : true;
+        });
+      } catch {}
+
+      let fbStillConcurrent = false;
+      try {
+        const hbs = await fbGet(`heartbeats/${payload.code}`);
+        if (hbs && typeof hbs === 'object') {
+          const nowMs = Date.now();
+          for (const [sTok, hb] of Object.entries(hbs)) {
+            if (sTok !== payload.sessionToken && hb && hb.last_ping) {
+              const diff = nowMs - new Date(hb.last_ping).getTime();
+              if (diff < 12000 && (!myDev || !hb.device_id || hb.device_id !== myDev)) {
+                fbStillConcurrent = true;
+                break;
+              }
+            }
+          }
+        }
+      } catch {}
+
+      if (!activeOtherSessions.length && !fbStillConcurrent) {
+        // ✨ THIẾT BỊ PHỤ ĐÃ TẮT -> TỰ ĐỘNG PHỤC HỒI NGUYÊN TRẠNG!
+        await fbPut(`fraud/${payload.code}`, null).catch(() => {});
+        try {
+          await sb('PATCH', 'access_codes', {
+            q: `id=eq.${codeRow.id}`,
+            body: { fraud_triggered_at: null },
+          });
+        } catch {}
+
+        fraudTriggeredAt = null;
+
+        // Báo Admin trên Telegram: Tự phục hồi an toàn
+        try {
+          const cust = await lookupCustomerByCode(payload.code);
+          const who = cust.name ? escTgHtml(cust.name) : 'Khách';
+          await notifyTelegram(
+            `✅ <b>${who}</b> đã đóng thiết bị phụ — Hệ thống tự động phục hồi an toàn!\n` +
+            codeDetailLines(payload.code, payload.package, cust) + '\n' +
+            `Mã truy cập tiếp tục hoạt động bình thường.`
+          );
+        } catch {}
+      } else {
+        const elapsed = Date.now() - new Date(fraudTriggeredAt).getTime();
+
+        if (elapsed >= DESTRUCT_AFTER_MS) {
+          // Hết giờ (20s) — tự huỷ vĩnh viễn, văng TẤT CẢ thiết bị
+          await sb('PATCH', 'access_codes', {
+            q: `id=eq.${codeRow.id}`,
+            body: { is_active: false },
+          }).catch(() => {});
+          await sb('DELETE', 'sessions', { q: `access_code=eq.${encodeURIComponent(payload.code)}` }).catch(() => {});
+          await fbPut(`fraud/${payload.code}/destroyed`, true).catch(() => {});
+          return res.json({ expired: true, fraud_final: true });
+        }
+
+        if (elapsed >= SURPRISE_DELAY_MS) {
+          // 5s-20s: đồng loạt cảnh báo, đếm ngược 15 giây để đọc kịp thông báo
+          const secondsLeft = Math.max(0, Math.ceil((DESTRUCT_AFTER_MS - elapsed) / 1000));
+          const isOriginal = (payload.isOriginal !== false) && (session?.is_original !== false);
+          return res.json({
+            fraud_warning: true,
+            is_original: isOriginal,
+            seconds_left: secondsLeft,
+          });
+        }
+        // elapsed < 5s — vẫn trong "vùng yên lặng", ping như thường, không lộ gì cả
       }
-      // elapsed < 5s — vẫn trong "vùng yên lặng", ping như thường, không lộ gì cả
     }
 
     const nowIso = new Date().toISOString();
@@ -184,7 +249,17 @@ module.exports = async (req, res) => {
           `🚨 <b>${who}</b> đang share mã\n` +
           codeDetailLines(payload.code, payload.package, cust) + '\n' +
           `⚠️ IP gian lận: <code>${escTgHtml(clientIp)}</code>\n` +
-          `Phát hiện 2 thiết bị khác nhau đang cùng truy cập mã song song — mã sẽ tự khoá sau 20 giây.`
+          `Phát hiện 2 thiết bị khác nhau đang cùng truy cập mã song song — mã sẽ tự khoá sau 20 giây.`,
+          {
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  { text: '🔓 Mở khóa ngay (Đặc xá)', callback_data: `unblock_code:${payload.code}` },
+                  { text: '🔍 Tra cứu mã', callback_data: `lookup_code:${codeRow.id}` }
+                ]
+              ]
+            }
+          }
         );
       }
     }

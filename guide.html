@@ -1752,6 +1752,9 @@ function startPing() {
         return;
       }
       hideFraudModal();
+      if (r.recovered) {
+        showToast('✓ Thiết bị phụ đã đóng. Tiếp tục an toàn!');
+      }
 
       if (r.kicked) { stopAll(); alert('⚠ Phiên của bạn đã bị kết thúc bởi admin.'); window.location.href = '/'; return; }
       if (r.expired) {
@@ -1832,6 +1835,16 @@ function stopAll() {
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 let toastT;
 function showToast(msg) { const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2500); }
+
+// 🚪 Instant Leave Beacon (Trụ Cột 3 & 4): Khi đóng tab hoặc chuyển app, beacon giải phóng nhịp tim tức thì (0ms)
+window.addEventListener('pagehide', () => {
+  if (guideToken && !isCompleted && navigator.sendBeacon) {
+    try {
+      const data = JSON.stringify({ action: 'leave', deviceId: getDeviceId() });
+      navigator.sendBeacon('/api/guide/ping', new Blob([data], { type: 'application/json' }));
+    } catch {}
+  }
+});
 </script>
 </body>
 </html>

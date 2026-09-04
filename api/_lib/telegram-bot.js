@@ -191,6 +191,52 @@ async function handleTelegramWebhook(req, res) {
         } catch (err) {
           await replyTelegram(chatId, `❌ Lỗi tra cứu: ${err.message}`);
         }
+      // Xử lý nút đặc xá / mở khóa khẩn cấp 1-chạm (Trụ Cột 7: Break-Glass & Instant Amnesty)
+      if (data.startsWith('unblock_code:')) {
+        const rawCode = data.split(':')[1];
+        if (!rawCode) return res.status(200).json({ ok: true });
+        const upperCode = rawCode.trim().toUpperCase();
+
+        await answerCallbackQuery(callbackId, '⚡ Đang thực hiện lệnh đặc xá...');
+
+        try {
+          const { fbPut } = require('./utils');
+          const extend30m = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+
+          // 1. Phục hồi access_codes trong Supabase
+          await sb('PATCH', 'access_codes', {
+            q: `code=eq.${encodeURIComponent(upperCode)}`,
+            body: {
+              is_active: true,
+              fraud_triggered_at: null,
+              expires_at: extend30m,
+            },
+          }).catch(() => {});
+
+          // 2. Xóa triệt để bẫy gian lận trên Firebase
+          await fbPut(`fraud/${upperCode}`, null).catch(() => {});
+          await fbPut(`fraud/${upperCode}/destroyed`, null).catch(() => {});
+
+          // 3. Dọn các session cũ để khách vào lại sạch sẽ
+          await sb('DELETE', 'sessions', {
+            q: `access_code=eq.${encodeURIComponent(upperCode)}`,
+          }).catch(() => {});
+
+          const lines = [
+            `🔓 <b>LỆNH ĐẶC XÁ THÀNH CÔNG (1-CHẠM)</b>`,
+            DIVIDER,
+            `🔑 <b>Mã:</b> <code>${escHtml(upperCode)}</code>`,
+            `⚡ Trạng thái: <b>Đã kích hoạt lại</b>`,
+            `⏱ Thời hạn mới: <b>+30 phút</b>`,
+            `🛡️ Bẫy gian lận: <b>Đã gỡ bỏ an toàn</b>`,
+            DIVIDER,
+            `👉 Khách hàng có thể tiếp tục thao tác ngay lúc này.`
+          ];
+
+          await replyTelegram(chatId, lines.join('\n'));
+        } catch (err) {
+          await replyTelegram(chatId, `❌ Lỗi đặc xá: ${err.message}`);
+        }
         return res.status(200).json({ ok: true });
       }
 
