@@ -541,12 +541,26 @@ const APPSTORE_DEFAULT = {
 };
 
 async function getAppConfig(key) {
+  // 1. Thu doc tu app_config (neu co table)
   try {
     const rows = await sb('GET', 'app_config', {
       q: `key=eq.${encodeURIComponent(key)}&select=value&limit=1`,
     });
-    return rows?.[0]?.value || null;
-  } catch { return null; }
+    if (rows?.[0]?.value !== undefined && rows?.[0]?.value !== null) {
+      return rows[0].value;
+    }
+  } catch {}
+
+  // 2. Fallback sang tokens table (luon san sang trong Supabase)
+  try {
+    const rows = await sb('GET', 'tokens', {
+      q: `device_id=eq.CONFIG:${encodeURIComponent(key)}&limit=1`,
+    });
+    if (rows?.[0]?.app_transaction) {
+      return JSON.parse(rows[0].app_transaction);
+    }
+  } catch {}
+  return null;
 }
 
 async function getAppstoreConfig() {
@@ -573,19 +587,48 @@ async function getEmergencyConfig() {
   return { ...EMERGENCY_DEFAULT };
 }
 
-// Ghi (upsert) 1 key vào app_config. Merge với giá trị cũ để không xoá mất field
-// khác trong cùng row — ví dụ admin chỉ đổi password, không nên xoá ipa_url.
+// Ghi (upsert) 1 key vào app_config & fallback tokens table.
 async function setAppConfig(key, fields) {
   const existing = (await getAppConfig(key)) || {};
   const merged = { ...existing, ...fields };
-  // Supabase upsert: on_conflict=key (PK) BẮT BUỘC phải nằm trong query string,
-  // Prefer:resolution=merge-duplicates chỉ nói "upsert" chứ không tự biết cột nào
-  // là khoá xung đột — thiếu on_conflict thì Postgres báo lỗi 21000/no unique constraint.
-  await sb('POST', 'app_config', {
-    q: 'on_conflict=key',
-    body: { key, value: merged },
-    prefer: 'resolution=merge-duplicates,return=minimal',
-  });
+
+  // 1. Thu ghi app_config neu table ton tai
+  try {
+    await sb('POST', 'app_config', {
+      q: 'on_conflict=key',
+      body: { key, value: merged },
+      prefer: 'resolution=merge-duplicates,return=minimal',
+    });
+  } catch {}
+
+  // 2. Ghi vao tokens table dam bao 100% persist ke ca khi thieu app_config
+  try {
+    const tokenRows = await sb('GET', 'tokens', {
+      q: `device_id=eq.CONFIG:${encodeURIComponent(key)}&limit=1`,
+    }).catch(() => []);
+
+    if (tokenRows && tokenRows.length > 0) {
+      await sb('PATCH', 'tokens', {
+        q: `device_id=eq.CONFIG:${encodeURIComponent(key)}`,
+        body: {
+          app_transaction: JSON.stringify(merged),
+          nonce: String(merged.active ?? ''),
+        },
+      });
+    } else {
+      await sb('POST', 'tokens', {
+        body: {
+          fetch_token: 'CONFIG_' + key.toUpperCase(),
+          device_id: 'CONFIG:' + key,
+          nonce: String(merged.active ?? ''),
+          app_transaction: JSON.stringify(merged),
+        },
+      });
+    }
+  } catch (err) {
+    console.warn('[setAppConfig tokens fallback warning]:', err.message);
+  }
+
   return merged;
 }
 

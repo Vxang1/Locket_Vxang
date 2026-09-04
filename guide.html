@@ -887,16 +887,16 @@ function checkInApp() {
       devModeChecked = true;
 
       const pollDev = () => {
-        fetch('https://xwuan-access-e9d5e-default-rtdb.firebaseio.com/appstore/dev_mode.json', { cache: 'no-store' })
-          .then(r => r.ok ? r.json() : Promise.reject())
-          .then(val => {
-            if (val === true || val === false) window.syncDevMode(val);
+        fetch('/api/guide/validate?action=dev_mode', { cache: 'no-store' })
+          .then(r => r.json())
+          .then(data => {
+            if (data && typeof data.dev_mode === 'boolean') window.syncDevMode(data.dev_mode);
           })
           .catch(() => {
-            fetch('/api/guide/validate?action=dev_mode')
-              .then(r => r.json())
-              .then(data => {
-                if (data && typeof data.dev_mode === 'boolean') window.syncDevMode(data.dev_mode);
+            fetch('https://xwuan-access-e9d5e-default-rtdb.firebaseio.com/appstore/dev_mode.json', { cache: 'no-store' })
+              .then(r => r.ok ? r.json() : null)
+              .then(val => {
+                if (val === true || val === false) window.syncDevMode(val);
               })
               .catch(() => {});
           });
