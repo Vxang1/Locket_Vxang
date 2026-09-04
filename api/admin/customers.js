@@ -40,9 +40,13 @@ module.exports = async (req, res) => {
     if (req.method === 'POST' && action === 'appstore_update') {
       const body = req.body || {};
       const fields = {};
-      for (const k of ['email', 'password', 'ipa_url', 'video_shadowrocket', 'video_locket']) {
+      for (const k of ['email', 'password', 'ipa_url', 'video_shadowrocket', 'video_locket', 'scraper_url', 'scraper_url_backup']) {
         if (body[k] !== undefined) fields[k] = String(body[k] || '').trim();
       }
+      if (body.scraper_url_active !== undefined) fields.scraper_url_active = !!body.scraper_url_active;
+      if (body.scraper_url_backup_active !== undefined) fields.scraper_url_backup_active = !!body.scraper_url_backup_active;
+      const { fbPut } = require('../_lib/utils');
+      await fbPut('appstore', fields);
       const merged = await setAppConfig('appstore', fields);
       return res.json({ ok: true, config: merged });
     }

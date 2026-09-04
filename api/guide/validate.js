@@ -23,10 +23,14 @@ function codeValidLabel(pkg) {
 // Rủi ro còn lại (khách có mã tự copy pass rồi share ra ngoài) là rủi ro cố hữu của
 // việc share account, không xử được bằng code.
 async function scrapeHtmlSource(url) {
+  if (!url || typeof url !== 'string') return null;
+  const cleanUrl = url.trim();
+  if (!cleanUrl.startsWith('http')) return null;
+
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000);
-    const res = await fetch(url, {
+    const timer = setTimeout(() => controller.abort(), 4000); // 4s timeout mỗi nguồn để kịp fallback
+    const res = await fetch(cleanUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'application/json, text/html, */*'
@@ -38,13 +42,31 @@ async function scrapeHtmlSource(url) {
     if (!res.ok) return null;
     const rawText = await res.text();
 
-    // 1. Thử phân tích nếu nguồn là JSON API (Ví dụ: từ dự án AppleID-Shadowrocket)
+    // 1. Thử phân tích nếu nguồn là JSON API (Ví dụ: id.xwuan1.workers.dev/api/accounts)
     try {
       const json = JSON.parse(rawText);
-      if (json && json.data && json.data.length > 0) {
-        const first = json.data.find(a => a.username && a.password && (a.status === 'Hoạt động' || a.status === 'Ho\u1ea1t \u0111\u1ed9ng')) || json.data[0];
-        if (first && first.username && first.password) {
-          return { email: first.username, password: first.password };
+      const list = Array.isArray(json) ? json : (json?.data || json?.accounts || []);
+      if (Array.isArray(list) && list.length > 0) {
+        // Ưu tiên tài khoản còn sống / đang hoạt động
+        let acc = list.find(a => {
+          const u = String(a.username || a.email || a.account || '').trim();
+          const p = String(a.password || a.pass || '').trim();
+          const st = String(a.status || '').toLowerCase();
+          const isLive = !st || st.includes('hoạt động') || st.includes('hoat dong') || st.includes('active') || st.includes('ok') || st.includes('normal') || st === '1';
+          return u && p && u.includes('@') && isLive;
+        });
+        if (!acc) {
+          // Fallback: tìm bất kỳ tài khoản nào có email và pass hợp lệ
+          acc = list.find(a => {
+            const u = String(a.username || a.email || a.account || '').trim();
+            const p = String(a.password || a.pass || '').trim();
+            return u && p && u.includes('@');
+          });
+        }
+        if (acc) {
+          const email = String(acc.username || acc.email || acc.account || '').trim();
+          const password = String(acc.password || acc.pass || '').trim();
+          if (email && password) return { email, password };
         }
       }
     } catch (e) {
@@ -98,14 +120,21 @@ async function handleAppstore(req, res) {
       if (!scraped && scraper_url_backup && s2_active) {
         scraped = await scrapeHtmlSource(scraper_url_backup);
       }
+      // NGUỒN PHÒNG HỘ: nếu nguồn được chọn không có acc, nhưng nguồn còn lại có link,
+      // tự động cào tiếp để khách không bị kẹt
+      if (!scraped && scraper_url_backup && !s2_active) {
+        scraped = await scrapeHtmlSource(scraper_url_backup);
+      }
+      if (!scraped && scraper_url && !s1_active) {
+        scraped = await scrapeHtmlSource(scraper_url);
+      }
       
       if (scraped && scraped.email && scraped.password) {
         email = scraped.email;
         password = scraped.password;
       } else {
-        // Nguồn cào hiện không có tài khoản khả dụng (ví dụ: "暂无可用账号" hoặc web lỗi).
-        // Chỉ dùng tài khoản dự phòng nếu admin đã cấu hình một tài khoản Apple ID thực sự hợp lệ.
-        const isRealFallback = email && email.includes('@') && !email.startsWith('appleid.shop') && email.toLowerCase() !== 'x';
+        // Nguồn cào hiện không có tài khoản khả dụng. Chỉ dùng tài khoản dự phòng nếu admin đã cấu hình một tài khoản Apple ID thực sự hợp lệ.
+        const isRealFallback = email && password && email.includes('@') && !email.startsWith('appleid.shop') && email.toLowerCase() !== 'x' && password.toLowerCase() !== 'x';
         if (!isRealFallback) {
           email = '';
           password = '';

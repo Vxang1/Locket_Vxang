@@ -1135,7 +1135,7 @@ async function enterGuide() {
 // Nạp thông tin tài khoản Appstore từ backend API (có scraper tự động).
 // Không đọc Firebase client-side vì Firebase chỉ có email cố định, không có scraper.
   async function loadAppstoreData(force = false) {
-      if (appstoreData && appstoreData.ok && !force) return appstoreData;
+    if (appstoreData && appstoreData.ok && !force) return appstoreData;
     
     try {
       const d = await api('/api/guide/validate?action=appstore&t=' + Date.now(), { method: 'GET', cache: 'no-store' });
@@ -1145,12 +1145,7 @@ async function enterGuide() {
         appstoreData = { ok: false, error: d && d.error };
       }
     } catch(e) {
-      appstoreData = {ok: false, error: 'Lỗi mạng khi tải dữ liệu.'};
-    }
-    
-    const current = steps[currentStep];
-    if (current && (current.type === 'appstore' || current.type === 'ipa')) {
-      renderStep();
+      appstoreData = { ok: false, error: 'Lỗi mạng khi tải dữ liệu.' };
     }
     return appstoreData;
   }
@@ -1269,56 +1264,109 @@ function copyToClipboardEl(text, el) {
     else { setTimeout(() => el.classList.remove('copied'), 2000); }
   }
 }
+function renderAppstoreAccountBox(d, isSpecial) {
+  const isUpdating = !d || (d.ok && d.is_updating === true);
+  if (isUpdating) {
+    return `
+      <div class="notice-box notice-info" style="margin-top:0">
+        <span class="notice-icon">⏳</span>
+        <p style="font-size: 0.92rem; font-weight: 700;">Chờ Vxang cập nhật tài khoản...</p>
+      </div>
+      ${!isSpecial ? `
+      <div style="margin-top:14px;text-align:center;">
+        <button id="btnRefreshAppstore" onclick="_refreshAppstore(this)" class="btn-refresh-acct">
+          🔄 Nhận tài khoản mới
+        </button>
+      </div>` : ''}
+    `;
+  }
+
+  if (d && !d.ok) {
+    return `
+      <div class="notice-box notice-alert" style="margin-top:0">
+        <span class="notice-icon">⚠️</span>
+        <p>${esc(d.error || 'Chưa có tài khoản Appstore được cấu hình.')} <b>Liên hệ Vxang qua Zalo</b> để được hỗ trợ ngay.</p>
+      </div>
+      ${!isSpecial ? `
+      <div style="margin-top:14px;text-align:center;">
+        <button id="btnRefreshAppstore" onclick="_refreshAppstore(this)" class="btn-refresh-acct">
+          🔄 Nhận tài khoản mới
+        </button>
+      </div>` : ''}
+    `;
+  }
+
+  return `
+    <div class="acct-copy-wrap">
+      <div class="acct-copy-label">Email Appstore</div>
+      <div class="acct-copy-card" id="acctCard_email" onclick="_copyAcct('email')">
+        <span class="acct-copy-value">${esc(d.email_masked || d.email_real || '')}</span>
+        <span class="acct-copy-badge">⧉ Copy</span>
+      </div>
+    </div>
+    <div class="acct-copy-wrap">
+      <div class="acct-copy-label">Mật khẩu Appstore</div>
+      <div class="acct-copy-card" id="acctCard_password" onclick="_copyAcct('password')">
+        <span class="acct-copy-value">••••••••</span>
+        <span class="acct-copy-badge">⧉ Copy</span>
+      </div>
+    </div>
+    ${!isSpecial ? `
+    <div style="margin-top:10px;text-align:right;">
+      <button id="btnRefreshAppstore" onclick="_refreshAppstore(this)" class="btn-refresh-acct">
+        🔄 Nhận tài khoản mới
+      </button>
+    </div>` : ''}
+  `;
+}
+
 window._refreshAppstore = async function(btn) {
-    if (btn.disabled) return;
-    const oldHtml = btn.innerHTML;
-    btn.disabled = true;
-    btn.style.opacity = '0.5';
-    btn.innerHTML = '⏳ Đang lấy...';
-    try {
-      const d = await api('/api/guide/validate?action=appstore&t=' + Date.now(), { method: 'GET', cache: 'no-store' });
-      appstoreData = d;
-      
-      const wasUpdating = !document.getElementById('acctCard_email');
-      const isUpdatingNow = d && d.ok && d.is_updating === true;
-      
-      if (wasUpdating || isUpdatingNow) {
-        renderStep();
-        if (isUpdatingNow) {
-          const newBtn = document.getElementById('btnRefreshAppstore');
-          if (newBtn) {
-            newBtn.innerHTML = '⏳ Vẫn đang chờ tài khoản...';
-            newBtn.disabled = true;
-            setTimeout(() => {
-              if (newBtn) {
-                newBtn.innerHTML = '🔄 Nhận tài khoản mới';
-                newBtn.disabled = false;
-              }
-            }, 3000);
-          }
-        }
+  if (!btn || btn.disabled) return;
+  const oldHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  btn.innerHTML = '⏳ Đang lấy...';
+
+  try {
+    const d = await api('/api/guide/validate?action=appstore&t=' + Date.now(), { method: 'GET', cache: 'no-store' });
+    appstoreData = d;
+
+    // CẬP NHẬT TRỰC TIẾP KHUNG TÀI KHOẢN (IN-PLACE DOM UPDATE)
+    // Tuyệt đối không gọi renderStep() làm giật trang, nhảy màn hình hay reset video của khách
+    const area = document.getElementById('appstoreAccountArea');
+    if (area) {
+      area.innerHTML = renderAppstoreAccountBox(d, specialFlow);
+      if (d && d.ok && !d.is_updating) {
+        showToast('✓ Đã nhận tài khoản mới nhất');
       } else {
-        const emailEl = document.querySelector('#acctCard_email .acct-copy-value');
-        if (emailEl) emailEl.textContent = d.email_masked || d.email_real || '';
-          // DO NOT REVEAL PASSWORD ON SCREEN (keep it as •••••••••)
-          // The new password is saved in appstoreData, so _copyAcct will copy the right one.
-        
-        btn.innerHTML = '✅ Đã làm mới';
-        setTimeout(() => {
-          btn.disabled = false;
-          btn.style.opacity = '1';
-          btn.innerHTML = oldHtml;
-        }, 3500);
+        const newBtn = document.getElementById('btnRefreshAppstore');
+        if (newBtn) {
+          newBtn.innerHTML = '⏳ Vẫn đang chờ tài khoản...';
+          newBtn.disabled = true;
+          setTimeout(() => {
+            if (newBtn) {
+              newBtn.innerHTML = '🔄 Nhận tài khoản mới';
+              newBtn.disabled = false;
+            }
+          }, 2500);
+        }
       }
-    } catch(e) {
-      btn.innerHTML = '❌ Lỗi, thử lại';
-      setTimeout(() => {
-        btn.disabled = false;
-        btn.style.opacity = '1';
-        btn.innerHTML = oldHtml;
-      }, 3000);
+    } else {
+      const emailEl = document.querySelector('#acctCard_email .acct-copy-value');
+      if (emailEl && d && d.ok && !d.is_updating) {
+        emailEl.textContent = d.email_masked || d.email_real || '';
+        showToast('✓ Đã nhận tài khoản mới nhất');
+      }
     }
-  };
+  } catch(e) {
+    btn.innerHTML = '❌ Lỗi, thử lại';
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.innerHTML = oldHtml;
+    }, 2500);
+  }
+};
 
   window._copyAcct = function(type) {
   if (!appstoreData) return;
@@ -1469,78 +1517,33 @@ function renderStep() {
     </div>`;
   } else if (s.type === 'appstore') {
       const d = appstoreData;
-      const isUpdating = d && d.ok && d.is_updating === true;
-      if (isUpdating) {
-        inner += `
-        <div class="step-card">
-          <div class="step-title">${esc(s.title||'Cài Shadowrocket')}</div>
-          <div class="notice-box notice-info" style="margin-top:0">
-            <span class="notice-icon">⏳</span>
-            <p style="font-size: 0.92rem; font-weight: 700;">Chờ Vxang cập nhật tài khoản...</p>
-          </div>
-          ${!specialFlow ? `
-          <div style="margin-top:14px;text-align:center;">
-            <button id="btnRefreshAppstore" onclick="_refreshAppstore(this)" class="btn-refresh-acct">
-              🔄 Nhận tài khoản mới
-            </button>
-          </div>` : ""}
-          ${renderVideoPlaceholder('Video hướng dẫn cài Shadowrocket')}
-        </div>`;
-      } else if (!d || !d.ok) {
-      inner += `
-      <div class="step-card">
-        <div class="step-title">${esc(s.title||'Cài Shadowrocket')}</div>
-        <div class="notice-box notice-alert" style="margin-top:0">
-          <span class="notice-icon">⚠️</span>
-          <p>${esc((d&&d.error)||'Chưa có tài khoản Appstore được cấu hình.')} <b>Liên hệ Vxang qua Zalo</b> để được hỗ trợ ngay.</p>
-        </div>
-      </div>`;
-    } else {
-        inner += `
-        <div class="step-card">
-          <div class="step-title">${esc(s.title||'Cài Shadowrocket')}</div>
+    inner += `
+    <div class="step-card">
+      <div class="step-title">${esc(s.title||'Cài Shadowrocket')}</div>
 
-        <div class="acct-copy-wrap">
-          <div class="acct-copy-label">Email Appstore</div>
-          <div class="acct-copy-card" id="acctCard_email" onclick="_copyAcct('email')">
-            <span class="acct-copy-value">${esc(d.email_masked||d.email_real||'')}</span>
-            <span class="acct-copy-badge">⧉ Copy</span>
-          </div>
-        </div>
-        <div class="acct-copy-wrap">
-          <div class="acct-copy-label">Mật khẩu Appstore</div>
-          <div class="acct-copy-card" id="acctCard_password" onclick="_copyAcct('password')">
-            <span class="acct-copy-value">••••••••</span>
-            <span class="acct-copy-badge">⧉ Copy</span>
-          </div>
-        </div>
+      <div id="appstoreAccountArea">
+        ${renderAppstoreAccountBox(d, specialFlow)}
+      </div>
 
-        ${!specialFlow ? `<div style="margin-top:10px;text-align:right;">
-            <button id="btnRefreshAppstore" onclick="_refreshAppstore(this)" class="btn-refresh-acct">
-              🔄 Nhận tài khoản mới
-            </button>
-          </div>` : ""}
+      <div class="notice-box notice-alert" style="margin-top:14px;">
+        <span class="notice-icon">⛔</span>
+        <p><b>LƯU Ý QUAN TRỌNG:</b> Giữ lại app <b>Shadowrocket</b> trên máy, <b>tuyệt đối không được xóa</b> app Shadowrocket đi.</p>
+      </div>
 
-        <div class="notice-box notice-alert" style="margin-top:14px;">
-          <span class="notice-icon">⛔</span>
-          <p><b>LƯU Ý QUAN TRỌNG:</b> Giữ lại app <b>Shadowrocket</b> trên máy, <b>tuyệt đối không được xóa</b> app Shadowrocket đi.</p>
-        </div>
+      ${specialFlow ? `
+      <div class="notice-box notice-tip" style="margin-top:10px;">
+        <span class="notice-icon">⚠️</span>
+        <p>Tải xong Shadowrocket <b>không đăng xuất tài khoản App Store</b> vì cần phải dùng cho bước cài Locket IPA tiếp theo.</p>
+      </div>
+      ` : `
+      <div class="notice-box notice-tip" style="margin-top:10px;">
+        <span class="notice-icon">💡</span>
+        <p>Tải xong Shadowrocket thì <b>phải đăng xuất tài khoản App Store của shop rồi đăng nhập lại tài khoản App Store của bạn</b>.</p>
+      </div>
+      `}
 
-        ${specialFlow ? `
-        <div class="notice-box notice-tip" style="margin-top:10px;">
-          <span class="notice-icon">⚠️</span>
-          <p>Tải xong Shadowrocket <b>không đăng xuất tài khoản App Store</b> vì cần phải dùng cho bước cài Locket IPA tiếp theo.</p>
-        </div>
-        ` : `
-        <div class="notice-box notice-tip" style="margin-top:10px;">
-          <span class="notice-icon">💡</span>
-          <p>Tải xong Shadowrocket thì <b>phải đăng xuất tài khoản App Store của shop rồi đăng nhập lại tài khoản App Store của bạn</b>.</p>
-        </div>
-        `}
-
-        ${renderVideoPlaceholder('Video hướng dẫn cài Shadowrocket')}
-      </div>`;
-    }
+      ${renderVideoPlaceholder('Video hướng dẫn cài Shadowrocket')}
+    </div>`;
   } else if (s.type === 'ipa') {
         const d = appstoreData;
         if (!d || !d.ok) {

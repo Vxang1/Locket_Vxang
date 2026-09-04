@@ -30,7 +30,7 @@ async function fbPut(path, data) {
   }
 
   async function fbGet(path) {
-  const url = `${FIREBASE_DB_URL}/${path.replace(/^\//, '')}.json`;
+    const url = `${FIREBASE_DB_URL}/${path.replace(/^\//, '')}.json?_t=${Date.now()}`;
   // Timeout 4s để không treo serverless function khi Firebase chậm/hang.
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 4000);
