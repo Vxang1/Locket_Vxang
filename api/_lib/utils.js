@@ -251,13 +251,13 @@ function escTgHtml(s) {
   return String(s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 }
 
-// Lấy id + tên + loại khách + mã KH + username Locket + duration từ mã truy cập, để thông
-// báo Telegram gọi được tên khách, cho admin tra cứu tiếp bằng mã KH, luôn kèm username
-// copy được, và hiển thị đúng giá theo thời hạn (duration).
-// Trả { id, name, type, customerCode, locketUsername, duration } — luôn trả object, mọi lỗi
+// Lấy id + tên + mã KH + duration từ mã truy cập, để thông
+// báo Telegram gọi được tên khách, cho admin tra cứu tiếp bằng mã KH,
+// và hiển thị đúng giá theo thời hạn (duration).
+// Trả { id, name, type, customerCode, duration, package, specialFlow } — luôn trả object, mọi lỗi
 // bị nuốt (thiếu tên vẫn phải gửi được thông báo, không được chặn luồng khách hàng).
 async function lookupCustomerByCode(code) {
-  const empty = { id: null, name: null, type: 'moi', customerCode: null, locketUsername: null, duration: 'perm', package: '30k', specialFlow: false };
+  const empty = { id: null, name: null, type: 'moi', customerCode: null, duration: 'perm', package: '30k', specialFlow: false };
   try {
     const rows = await sb('GET', 'access_codes', {
       q: `code=eq.${encodeURIComponent(code)}&select=customer_id`,
@@ -266,7 +266,7 @@ async function lookupCustomerByCode(code) {
     if (!customerId) return empty;
 
     const custs = await sb('GET', 'customers', {
-      q: `id=eq.${customerId}&select=id,name,customer_code,package,locket_username,duration,special_flow`,
+      q: `id=eq.${customerId}&select=id,name,customer_code,package,duration,special_flow`,
     });
     const cust = custs?.[0];
     if (!cust) return { ...empty, id: customerId };
@@ -277,7 +277,6 @@ async function lookupCustomerByCode(code) {
       type: 'moi',
       package: cust.package || '30k',
       customerCode: cust.customer_code || null,
-      locketUsername: cust.locket_username || null,
       duration: cust.duration || 'perm',
       specialFlow: !!cust.special_flow,
     };
@@ -354,8 +353,7 @@ function dnsPrivateUrl(row) {
 // (2026-07-28) — lọc y như guide.html để bản ghi cũ còn sót trong DB không làm
 // lệch danh sách. DNS ('choice') là bước cuối của gói 5s/15s/180.
 //
-// Gói vĩnh viễn (2026-08-09): '150'/'180' KHÔNG có bước username — khách tự cài IPA
-// hạ cấp nên không cần tác động server Locket. Hai bước mới:
+// Gói vĩnh viễn: Hai bước cấu hình:
 //   'appstore' = cài Shadowrocket bằng tài khoản Appstore chung
 //   'ipa'      = cài Locket hạ cấp qua OTA (itms-services + plist sinh động)
 // MẢNG NÀY PHẢI KHỚP TỪNG PHẦN TỬ với DEFAULT_STEPS_* trong guide.html — hai bên là
@@ -402,7 +400,6 @@ const DEFAULT_STEP_FLOW_SPECIAL = {
 // Nhãn ngắn để hiện trên thẻ phiên live. Các type có ý nghĩa cố định thì dùng nhãn
 // cố định (ngắn, admin quen mắt); type nội dung tự do thì lấy title admin đã đặt.
 const STEP_TYPE_LABELS = {
-  username: 'Nhập Username',
   vpn:      'Cài đặt VPN',
   choice:   'Cài đặt DNS',
   appstore: 'Cài Shadowrocket',
@@ -434,33 +431,15 @@ function buildStepFlow(pkg, dbSteps, specialFlow) {
 }
 
 // Đối chiếu flow đầy đủ với total_steps mà chính phiên đó báo lên.
-// Vì sao dùng total_steps chứ không dùng "khách đã có locket_username":
-// khách vừa nhập username xong là ping lưu ngay locket_username, nhưng phiên ĐANG
-// CHẠY vẫn còn bước username trong danh sách → suy từ locket_username sẽ cắt nhãn
-// đầu và làm lệch toàn bộ tên bước ngay giữa lúc khách đang làm. total_steps là số
-// bước thật của phiên đó, không đổi giữa phiên.
-// Trả null khi không khớp (admin tự thêm/bớt bước trong DB giữa lúc khách đang làm)
-// để client fallback về "Bước n" thay vì hiện tên sai.
 function alignStepFlow(flow, totalSteps) {
   if (!Array.isArray(flow) || typeof totalSteps !== 'number') return null;
   if (totalSteps === flow.length) return flow;
-  // Khách bảo hành đã có username sẵn → guide lọc bỏ bước đầu, phiên còn ít hơn 1 bước.
-  if (totalSteps === flow.length - 1 && flow[0] === STEP_TYPE_LABELS.username) return flow.slice(1);
   return null;
 }
 
-// Khối chi tiết dùng chung cho mọi tin nhắn nói về 1 mã truy cập. Cố tình dùng cùng
-// bố cục (dải phân cách + emoji + <code>) với phần tra cứu của bot trong
-// telegram-bot.js để chủ dự án đọc quen mắt; mã KH để trong <code> cho bấm-copy
-// nhanh rồi gõ lại vào bot khi cần xem chi tiết.
-// Emoji theo gói: gói vĩnh viễn dùng 💎 để phân biệt ngay trên Telegram, khỏi phải
-// nhớ '150'/'180' là tiền hay là số giây.
-// Dòng "Gói" hiển thị label thời hạn cụ thể (ví dụ "6 tháng - 50k") thay vì giá
-// phẳng cũ — lấy từ PRICING theo duration của khách. Gói vĩnh viễn thêm tag "· vĩnh viễn".
-
+// Khối chi tiết dùng chung cho mọi tin nhắn nói về 1 mã truy cập.
 function codeDetailLines(code, pkg, cust) {
   const p = normalizePackage(pkg);
-  const uname = cust?.locketUsername;
   const duration = cust?.duration || null;
   const priceLbl = duration ? getPriceLabel(p, duration) : null;
   const permTag = isPermPackage(p) ? ' · vĩnh viễn' : '';
@@ -471,10 +450,6 @@ function codeDetailLines(code, pkg, cust) {
     `🆔 Mã KH: <code>${escTgHtml(cust?.customerCode || '—')}</code>`,
     `🔑 Mã truy cập: <code>${escTgHtml(code)}</code>`,
   ];
-  // Nếu khách đã có Username thì hiển thị rõ ràng trên thông báo Telegram
-  if (uname) {
-    lines.push(`👤 Username: <code>${escTgHtml(uname)}</code>`);
-  }
   lines.push(`${PKG_EMOJI[p] || '⭐'} Gói: <b>${escTgHtml(pkgDisplay)}</b>${permTag}`);
   return lines.join('\n');
 }

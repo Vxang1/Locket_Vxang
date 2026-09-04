@@ -34,14 +34,12 @@ CREATE TABLE IF NOT EXISTS public.customers (
     service_status TEXT NOT NULL DEFAULT 'pending_gold',
     deposit_note TEXT DEFAULT 'Chờ thu tiền',
     special_flow BOOLEAN DEFAULT false,
-    locket_username TEXT,
     activated_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
 );
 
 CREATE INDEX IF NOT EXISTS idx_customers_code ON public.customers(customer_code);
 CREATE INDEX IF NOT EXISTS idx_customers_phone ON public.customers(phone);
-CREATE INDEX IF NOT EXISTS idx_customers_username ON public.customers(locket_username);
 CREATE INDEX IF NOT EXISTS idx_customers_created_at ON public.customers(created_at DESC);
 
 -- 3. BẢNG MÃ TRUY CẬP (ACCESS_CODES)

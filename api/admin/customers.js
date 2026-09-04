@@ -323,7 +323,7 @@ module.exports = async (req, res) => {
     if (req.method === 'PATCH' && (action === 'update' || !action)) {
       const targetId = id || req.body?.id;
       if (!targetId) return res.status(400).json({ error: 'Missing id' });
-      const { name, contact, phone, social_platform, social_link, notes, service_status, locket_username, package: pkg, duration, special_flow, deposit_note } = req.body || {};
+      const { name, contact, phone, social_platform, social_link, notes, service_status, package: pkg, duration, special_flow, deposit_note } = req.body || {};
       let finalPhone = phone;
       let finalPlatform = social_platform;
       let finalLink = social_link;
@@ -378,7 +378,6 @@ module.exports = async (req, res) => {
       if (finalLink !== undefined)            updateBody.social_link = finalLink || null;
       if (notes !== undefined)           updateBody.notes = notes || null;
       if (service_status !== undefined)  updateBody.service_status = service_status;
-      if (locket_username !== undefined) updateBody.locket_username = locket_username || null;
       if (pkg !== undefined)             updateBody.package = normalizePackage(pkg);
       if (duration !== undefined && ['3m', '6m', '1y', 'perm'].includes(duration)) updateBody.duration = duration;
       if (special_flow !== undefined)    updateBody.special_flow = !!special_flow;

@@ -190,7 +190,6 @@ async function handleTelegramWebhook(req, res) {
             `🔑 <b>Mã:</b> <code>${escHtml(codeData.code)}</code>`,
             `📦 <b>Gói:</b> <code>${escHtml(pkg)}</code>`,
             `👤 <b>Khách hàng:</b> <code>${escHtml(customer.customer_code || '-')}</code> (${escHtml(customer.name || 'Chưa có tên')})`,
-            `👤 <b>Username:</b> <code>${escHtml(customer.locket_username || '-')}</code>`,
             `📞 <b>SĐT:</b> <code>${escHtml(customer.phone || '-')}</code>`,
             `📊 <b>Trạng thái:</b> <b>${escHtml(customer.service_status || '-')}</b>`
           ];
@@ -278,7 +277,7 @@ async function handleTelegramWebhook(req, res) {
         DIVIDER,
         '⚡ <b>Hệ thống Quản lý Khách hàng:</b>\n',
         '1️⃣ <b>Tra cứu thông tin CRM:</b>',
-        '👉 Gõ mã khách hàng <code>KH-xxxxxxx</code>, mã truy cập <code>VX-xxxxxx</code>, SĐT, hoặc Username Locket để xem thông tin.\n',
+        '👉 Gõ mã khách hàng <code>KH-xxxxxxx</code>, mã truy cập <code>VX-xxxxxx</code> hoặc SĐT để xem thông tin.\n',
         '2️⃣ <b>Thống kê hệ thống:</b>',
         '👉 Gõ <code>/stats</code> để xem thống kê tổng quan về khách hàng và gói dịch vụ.'
       ];
@@ -326,7 +325,7 @@ async function handleTelegramWebhook(req, res) {
         '❌ <b>Không tìm thấy thông tin</b>\n' +
         DIVIDER + '\n' +
         `Không tìm thấy dữ liệu cho <code>${escHtml(text)}</code>.\n\n` +
-        '👉 <i>Vui lòng nhập đúng mã KH (vd: <code>KH-GE2Y4CX8</code>), mã truy cập (<code>VX-123456</code>), SĐT hoặc Username Locket.</i>'
+        '👉 <i>Vui lòng nhập đúng mã KH (vd: <code>KH-GE2Y4CX8</code>), mã truy cập (<code>VX-123456</code>) hoặc SĐT.</i>'
       );
       return res.status(200).json({ ok: true });
     }
@@ -387,7 +386,6 @@ async function handleTelegramWebhook(req, res) {
         `👤 <b>${escHtml(customer.name || '(chưa có tên)')}</b>`,
         DIVIDER,
         `🆔 Mã KH: <code>${escHtml(customer.customer_code)}</code>`,
-        `👤 <b>Username Locket:</b> <code>${escHtml(customer.locket_username || '-')}</code>`,
         `📞 SĐT: <code>${escHtml(customer.phone || '-')}</code>`,
         `🔗 Profile: <code>${escHtml(customer.social_link || '-')}</code>`,
         `${pkgEmoji} Gói: <b>${pkg}</b>`,
@@ -397,7 +395,6 @@ async function handleTelegramWebhook(req, res) {
       lines.push(
         `👤 <b>${escHtml(customer.name || '(chưa có tên)')}</b>`,
         `🆔 Mã KH: <code>${escHtml(customer.customer_code)}</code>`,
-        `👤 <b>Username Locket:</b> <code>${escHtml(customer.locket_username || '-')}</code>`,
         `📞 SĐT: <code>${escHtml(customer.phone || '-')}</code>`,
         `🔗 Profile: <code>${escHtml(customer.social_link || '-')}</code>`,
         `${pkgEmoji} Gói: <b>${pkg}</b>`,
@@ -452,7 +449,6 @@ async function findCustomerInCrm(queryText) {
   const orParts = [
     `customer_code.ilike.*${esc}*`,
     `customer_code.ilike.*${escClean}*`,
-    `locket_username.ilike.*${esc}*`,
     `name.ilike.*${esc}*`,
     `phone.ilike.*${esc}*`
   ];
@@ -524,12 +520,10 @@ async function findCustomerInCrm(queryText) {
       const memMatch = allCusts.find(c => {
         const cc = (c.customer_code || '').toLowerCase();
         const nm = (c.name || '').toLowerCase();
-        const un = (c.locket_username || '').toLowerCase();
         const ph = (c.phone || '').replace(/[^0-9]/g, '');
         return cc.includes(qLower) ||
                (qClean.length >= 3 && cc.includes(qClean)) ||
                nm.includes(qLower) ||
-               un.includes(qLower) ||
                (cleanPhone.length >= 6 && ph.includes(cleanPhone));
       });
       if (memMatch) {

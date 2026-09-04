@@ -698,9 +698,8 @@ module.exports = async (req, res) => {
     const exp = Math.floor(new Date(expiresAt).getTime() / 1000);
     const custInfo = await getCustomerInfo();
     const pkg = normalizePackage(custInfo?.package || codeRow.package || '30k');
-    const skipUsernameStep = true;
     const specialFlow = !!custInfo?.specialFlow;
-    const guideToken = signJWT({ role: 'guide', code: upperCode, sessionToken, package: pkg, skipUsernameStep, specialFlow, isOriginal, exp });
+    const guideToken = signJWT({ role: 'guide', code: upperCode, sessionToken, package: pkg, specialFlow, isOriginal, exp });
 
     res.json({ token: guideToken, expires_at: expiresAt, package: pkg });
   } catch (e) { res.status(500).json({ error: e.message }); }

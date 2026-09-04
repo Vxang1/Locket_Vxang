@@ -488,14 +488,6 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
 .info-label{font-size:.7rem;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px;}
 .info-val{font-size:.88rem;font-weight:700;color:var(--ink);word-break:break-all;}
 .info-val a{color:var(--ink);text-decoration:underline;}
-.btn-copy-username{display:inline-flex;align-items:center;gap:6px;background:var(--gold-bg);
-  border:2px solid var(--ink);border-radius:var(--radius-sm);padding:5px 10px;
-  color:var(--ink);font-weight:800;font-size:.86rem;font-family:'JetBrains Mono',monospace;
-  cursor:pointer;transition:transform .12s,box-shadow .12s;box-shadow:var(--shadow-sm);}
-.btn-copy-username:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:var(--gold);}
-.btn-copy-username:active{transform:scale(.97);}
-.btn-copy-username.copied{background:var(--green-bg);color:var(--green);}
-.btn-copy-username .copy-icon{font-size:.78rem;opacity:.8;}
 .codes-title{font-size:.74rem;font-weight:900;color:var(--ink);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
 .code-row{background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);
   padding:11px 13px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;gap:8px;box-shadow:var(--shadow-sm);}
@@ -582,7 +574,6 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
   .gs-btn{padding:9px 12px;font-size:.86rem;}
   .btn-copy-r{padding:9px 14px;font-size:.8rem;}
   .btn-expire{padding:8px 12px;font-size:.76rem;}
-  .btn-copy-username{padding:9px 13px;}
   .m-card{padding:12px 14px;}
   .m-card-top>div:first-child{min-width:0;}
   .m-card-name{overflow-wrap:anywhere;}
@@ -1238,7 +1229,6 @@ window.addEventListener('DOMContentLoaded', () => {
     <div class="modal-head"><div class="modal-title" style="font-size:.95rem">✏️ Chỉnh sửa khách hàng</div><button class="modal-close" onclick="closeEditCust()">✕</button></div>
     <div class="modal-body" style="display:flex;flex-direction:column;gap:10px;padding:16px 24px 0">
       <div class="field-sm"><label>Tên khách *</label><input type="text" id="eN" placeholder="Tên khách hàng"/></div>
-      <div class="field-sm"><label>Username Locket</label><input type="text" id="eUn" placeholder="VD: vxang1" autocapitalize="off" autocorrect="off" spellcheck="false"/></div>
       <div class="field-sm">
         <label>Gói dịch vụ</label>
         <div class="pkg-choice-grid">
@@ -2213,8 +2203,7 @@ window.loadSessions=async function(){
       const pkgIsFast=s.package==='15s'||s.package==='180';
       const pkgLbl=(isPermPkg(s.package)?'💎 ':pkgIsFast?'⏱ ':'⚡ ')+pkgLabel(s.package);
       const pkgTag=`<span class="sc-pkg ${pkgIsFast?'p15':'p5'}">${pkgLbl}</span>`;
-      const userTag=s.locket_username?`<span class="sc-user">@${esc(s.locket_username)}</span>`:'';
-      card.innerHTML=`<div class="sc-name">${esc(s.customer_name)}</div><div class="sc-code">${esc(s.access_code)} · ${esc(s.customer_code)}</div><div class="sc-tags">${statusTag}${pkgTag}${userTag}</div><div class="sc-meta">📱 ${esc(s.customer_phone)}<br>🕒 ${new Date(s.started_at).toLocaleTimeString('vi-VN')}</div>${stepHtml}<div class="sc-timer ${isCrit?'crit':isWarn?'warn':''}">⏱ Còn: ${rem?fmtTime(rem):'—'}</div><button class="btn-kick" onclick="kickSession('${esc(s.id)}','${esc(s.access_code)}')">⚡ Kick</button>`;
+      card.innerHTML=`<div class="sc-name">${esc(s.customer_name)}</div><div class="sc-code">${esc(s.access_code)} · ${esc(s.customer_code)}</div><div class="sc-tags">${statusTag}${pkgTag}</div><div class="sc-meta">📱 ${esc(s.customer_phone)}<br>🕒 ${new Date(s.started_at).toLocaleTimeString('vi-VN')}</div>${stepHtml}<div class="sc-timer ${isCrit?'crit':isWarn?'warn':''}">⏱ Còn: ${rem?fmtTime(rem):'—'}</div><button class="btn-kick" onclick="kickSession('${esc(s.id)}','${esc(s.access_code)}')">⚡ Kick</button>`;
       grid.appendChild(card);
     });
     document.getElementById('statSessions').textContent=sessions.length;
@@ -2707,7 +2696,6 @@ window.openCustDetail=async function(id){
 
     document.getElementById('dInfoGrid').innerHTML=`
       <div class="info-item"><div class="info-label">Mã khách hàng</div><div class="info-val" style="color:var(--p1);font-weight:800">${esc(c.customer_code)}</div></div>
-      <div class="info-item"><div class="info-label">Username Locket</div><div class="info-val">${c.locket_username?`<button class="btn-copy-username" onclick="copyUsernameDetail('${esc(c.locket_username).replace(/'/g,"\\'")}',this)">🔖 ${esc(c.locket_username)} <span class="copy-icon">⧉</span></button>`:'<span style="color:var(--muted);font-weight:600">— Chưa có —</span>'}</div></div>
       <div class="info-item"><div class="info-label">Số điện thoại</div><div class="info-val">${esc(c.phone||'—')}</div></div>
       <div class="info-item"><div class="info-label">Nền tảng</div><div class="info-val">${PI[c.social_platform]||'💬'} ${esc(c.social_platform||'—')}</div></div>
       <div class="info-item"><div class="info-label">Link</div><div class="info-val">${c.social_link?`<a href="${esc(c.social_link)}" target="_blank">${esc(c.social_link)}</a>`:'—'}</div></div>
@@ -2792,7 +2780,6 @@ window.openCustDetail=async function(id){
 window.openEditCust=function(){
   const cust=allCustomers.find(c=>c.id===currentCustomerId);if(!cust)return;
   document.getElementById('eN').value=cust.name||'';
-  document.getElementById('eUn').value=cust.locket_username||'';
   const eContactEl = document.getElementById('eContact');
   if (eContactEl) eContactEl.value = cust.phone || cust.social_link || '';
   document.getElementById('eNo').value=cust.notes||'';
@@ -2822,7 +2809,6 @@ window.saveEditCust=async function(){
 
   const body={
     name,
-    locket_username:document.getElementById('eUn').value.trim(),
     contact: (document.getElementById('eContact')?.value || '').trim(),
     phone: parseContactInput(document.getElementById('eContact')?.value || '').phone,
     social_platform: parseContactInput(document.getElementById('eContact')?.value || '').social_platform,
@@ -2892,18 +2878,6 @@ window.copyNewCodeMsg=function(){
     if(btn){btn.textContent='✓ Đã sao chép!';btn.classList.add('copied');}
     showToast('✓ Đã sao chép nội dung','green');
     setTimeout(()=>{if(btn){btn.textContent='📋 Sao chép nội dung';btn.classList.remove('copied');}},2500);
-  }).catch(()=>showToast('⚠ Không copy được','red'));
-};
-window.copyUsernameDetail=function(username,btn){
-  if(!username)return;
-  navigator.clipboard.writeText(username).then(()=>{
-    if(btn){
-      const orig=btn.innerHTML;
-      btn.innerHTML='✓ Đã sao chép!';
-      btn.classList.add('copied');
-      showToast('✓ Đã sao chép username','green');
-      setTimeout(()=>{btn.innerHTML=orig;btn.classList.remove('copied');},2000);
-    }
   }).catch(()=>showToast('⚠ Không copy được','red'));
 };
 window.deleteCurrentCustomer=async function(){

@@ -205,28 +205,6 @@ body::after {
   padding:3px 12px;font-family:'Space Grotesk',sans-serif;box-shadow:1px 1px 0 var(--ink);
 }
 
-/* USERNAME STEP */
-.field-label-u{display:block;font-size:.76rem;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:.04em;margin-bottom:7px;}
-.username-input{
-  width:100%;background:#FFFFFF;border:var(--border-ink);border-radius:var(--radius-sm);
-  padding:13px 16px;color:var(--ink);font-family:'Be Vietnam Pro',sans-serif;
-  font-size:1rem;font-weight:700;outline:none;transition:all .15s ease;margin-bottom:16px;
-}
-.username-input::placeholder{color:var(--muted);font-weight:500;}
-.username-input:focus{border-color:var(--ink);box-shadow:0 0 0 3px var(--gold);}
-
-.username-img-placeholder{
-  width:100%;max-width:220px;aspect-ratio:1/1;margin:0 auto;border-radius:var(--radius);
-  background:var(--bg-warm);border:var(--border-ink);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-  box-shadow:var(--shadow-sm);position:relative;overflow:hidden;
-}
-.username-img-placeholder img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;}
-.img-ph-fallback{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;position:relative;z-index:1;}
-.img-ph-icon{font-size:2.2rem;opacity:.6;}
-.img-ph-text{font-size:.76rem;color:var(--charcoal);text-align:center;line-height:1.5;font-weight:700;padding:0 16px;}
-.img-caption{text-align:center;font-size:.82rem;color:var(--charcoal);line-height:1.6;margin:12px 0 18px;font-weight:600;}
-.img-caption b{color:var(--ink);}
 
 /* RETRO NOTEBOOK VIDEO PLACEHOLDER */
 .video-placeholder-box{
@@ -667,8 +645,6 @@ let guideToken = sessionStorage.getItem('xwGuideToken') || null;
 let steps = [], currentStep = 0;
 let expiresAt = null, pingInterval, timerInterval;
 let step3Choice = 'dns'; // luôn là 'dns' — giữ field để tương thích DB cũ; mặc định 'dns' để Hoàn thành không bị kẹt nếu reload ở bước Gold
-let usernameValue = '';
-let usernameLocked = false;
 let goldInjected = sessionStorage.getItem('xwGoldInjected') === 'true';
 let goldExpiryVal = sessionStorage.getItem('xwGoldExpiry') || '';
 let pkgType = '5s'; // '5s' | '15s' | '150' | '180' — nhận từ /api/guide/steps
@@ -704,18 +680,7 @@ function updateNavBar() {
     if (!s || !btnNext || !navHint) return;
     const isLast = currentStep === steps.length - 1;
   
-    if (s.type === 'username') {
-      btnNext.onclick = goNext;
-      if (usernameValue) {
-        btnNext.disabled = false; btnNext.textContent = 'Tiếp theo →'; btnNext.style.opacity = '';
-        navHint.innerHTML = '✅&nbsp;<b>Đã nhập Username! Bấm Tiếp theo để sang bước tiếp theo</b>';
-        navHint.classList.add('hint-complete');
-      } else {
-        btnNext.disabled = true; btnNext.textContent = 'Nhập username trước →'; btnNext.style.opacity = '.45';
-        navHint.innerHTML = '<span class="hint-arrow">👆</span>&nbsp;Nhập Username Locket của bạn rồi bấm <b>Tiếp theo</b> nhé!';
-        navHint.classList.remove('hint-complete');
-      }
-    } else if (s.type === 'appstore' && (!appstoreData || !appstoreData.ok || appstoreData.is_updating)) {
+    if (s.type === 'appstore' && (!appstoreData || !appstoreData.ok || appstoreData.is_updating)) {
       btnNext.disabled = true; btnNext.textContent = 'Đợi cập nhật'; btnNext.style.opacity = '.45';
       navHint.innerHTML = '⏳&nbsp;<b>Đang đợi Vxang cập nhật tài khoản...</b>';
       navHint.classList.remove('hint-complete');
@@ -751,13 +716,6 @@ function updateNavBar() {
   }
 }
 
-function onUsernameInput() {
-  const inputEl = document.getElementById('usernameInput');
-  const val = inputEl ? inputEl.value.trim() : '';
-  usernameValue = val;
-  saveGuideState();
-  updateNavBar();
-}
 
 const DEFAULT_STEPS_30K = [
   { id:'d0',order_num:1,type:'appstore',title:'Cài Shadowrocket' },
@@ -978,8 +936,8 @@ function fallbackCopy(text, btn) {
   }
 }
 
-// Áp dụng response { steps, package, locket_username, special_flow } từ /api/guide/steps:
-// chọn bộ DEFAULT_STEPS theo gói khi rỗng, bỏ bước username nếu khách đã có locket_username.
+// Áp dụng response { steps, package, special_flow } từ /api/guide/steps:
+// chọn bộ DEFAULT_STEPS theo gói khi rỗng.
 function applyStepsResponse(r) {
   const PKG_KEYS = ['30k','40k','5s','15s','150','180'];
   pkgType = PKG_KEYS.includes(r?.package) ? r.package : '30k';
@@ -990,28 +948,7 @@ function applyStepsResponse(r) {
     ? r.steps
     : defaultStepsForPkg(pkgType, specialFlow);
 
-  const hasUsername = !!(r?.locket_username && String(r.locket_username).trim());
-  const shouldSkipUsername = !!(r?.skip_username_step || hasUsername);
-
-  if (hasUsername) {
-    usernameValue = String(r.locket_username).trim();
-    usernameLocked = true;
-    sessionStorage.setItem('xwUsernameLocked', 'true');
-    sessionStorage.setItem('xwGuideUsername', usernameValue);
-  } else {
-    // Khách CHƯA có username -> Mở khóa hoàn toàn cho khách tự do nhập
-    usernameValue = '';
-    usernameLocked = false;
-    sessionStorage.removeItem('xwUsernameLocked');
-    sessionStorage.removeItem('xwGuideUsername');
-  }
-
-  // Khách khi có username rồi (của các gói 50 60 80 100) khi tạo lại mã bảo hành -> Bỏ bước username
-  if (shouldSkipUsername) {
-    list = list.filter(s => s.type !== 'username' && s.step_type !== 'username');
-  }
-
-  steps = list;
+  steps = (list || []).filter(s => s.type !== 'username' && s.step_type !== 'username');
 }
 
 window.addEventListener('load', async () => {
@@ -1107,10 +1044,6 @@ async function enterGuide() {
   try {
     sessionStorage.removeItem('xwGuideStep');
     sessionStorage.removeItem('xwGuideChoice');
-    sessionStorage.removeItem('xwGuideUsername');
-    sessionStorage.removeItem('xwUsernameLocked');
-    usernameValue = '';
-    usernameLocked = false;
 
     const { token, expires_at } = await api('/api/guide/validate', { method: 'POST', body: JSON.stringify({ code, device_id: getDeviceId() }) });
     guideToken = token;
@@ -1428,47 +1361,7 @@ function renderStep() {
     </div>`;
   }
 
-  if (s.type === 'username') {
-    const isLocked = usernameLocked && !!usernameValue;
-    inner += `
-    <div class="step-card">
-      <div class="step-title">${esc(s.title||'Nhập Username Locket của bạn')}</div>
-      <div class="step-content" style="margin-bottom:16px">${isLocked ? 'Tài khoản Locket của bạn đã được lưu cố định. Bấm <b>Tiếp theo</b> để làm các bước cài đặt nhé!' : 'Nhập <b>chính xác chữ hoa/thường</b> Username Locket của bạn, sau đó bấm <b>Tiếp theo</b> để sang bước cài đặt nhé!'}</div>
-
-      <label class="field-label-u">Username Locket của bạn</label>
-      ${isLocked ? `
-        <div style="position:relative;margin-bottom:4px;">
-          <input type="text" class="username-input" id="usernameInput"
-            value="${esc(usernameValue||'')}" disabled
-            style="background:var(--bg-warm);color:var(--ink);font-weight:800;cursor:not-allowed;border:2px solid var(--ink);opacity:.95;padding-right:38px;box-shadow:inset 1px 1px 0 rgba(0,0,0,0.06);" />
-          <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:1.05rem;">🔒</span>
-        </div>
-        <div style="font-size:.76rem;color:var(--muted);margin-bottom:12px;line-height:1.45;">
-          🔒 <i>Username đã được cố định cho tài khoản này (Liên hệ Vxang qua Zalo nếu cần đổi).</i>
-        </div>
-      ` : `
-        <input type="text" class="username-input" id="usernameInput" placeholder="Ví dụ: vxang1..."
-          autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
-          value="${esc(usernameValue||'')}"
-          oninput="onUsernameInput()" />
-      `}
-
-      <div class="notice-box notice-tip" style="margin-top:14px;">
-        <span class="notice-icon">💡</span>
-        <p>Làm theo <b>đầy đủ các bước cài đặt</b> tiếp theo. Sau khi hoàn thành, bạn chỉ cần <b>nhắn tin / alo lại cho Vxang</b> để được hỗ trợ kích hoạt Gold ngay nhé! ⚡</p>
-      </div>
-
-      <div class="username-img-placeholder" style="margin-top:18px;">
-        <img src="/images/username.jpeg" alt="Vị trí Username trong app Locket"
-          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="img-ph-fallback" style="display:none">
-          <div class="img-ph-icon">🖼️</div>
-          <div class="img-ph-text">Ảnh minh họa vị trí Username<br><span style="opacity:.65">(sẽ cập nhật)</span></div>
-        </div>
-      </div>
-      <div class="img-caption">👆 Username của bạn nằm ở đây trong app Locket<br><b>Ví dụ: vxang1</b></div>
-    </div>`;
-  } else if (s.type === 'text' || s.type === 'callout') {
+  if (s.type === 'text' || s.type === 'callout') {
     inner += `<div class="step-card"><div class="step-title">${esc(s.title||'')}</div><div class="step-content">${esc(s.content || '')}</div></div>`;
   } else if (s.type === 'image') {
     inner += `<div class="step-card">${s.title?`<div class="step-title">${esc(s.title)}</div>`:''}${s.image_url?`<div class="step-img-wrap"><img src="${esc(s.image_url)}" alt="${esc(s.caption||'')}" loading="lazy"></div>`:''}${s.content?`<div class="step-content">${esc(s.content)}</div>`:''}</div>`;
@@ -1616,13 +1509,11 @@ function renderStep() {
 
 function sendStepPing() {
   const body = { currentStep, totalSteps: steps.length, step3Choice, deviceId: getDeviceId() };
-  if (usernameValue) body.username = usernameValue;
   api('/api/guide/ping', { method: 'POST', body: JSON.stringify(body) }).catch(()=>{});
 }
 function saveGuideState() {
   sessionStorage.setItem('xwGuideStep', currentStep);
   sessionStorage.setItem('xwGuideChoice', step3Choice || '');
-  sessionStorage.setItem('xwGuideUsername', usernameValue || '');
 }
 // QUAN TRỌNG: không xóa key sau khi đọc — phải giữ liên tục để chịu được
 // MỌI số lần reload (tab bị kill ngầm, mất mạng, chuyển app rồi quay lại...),
@@ -1630,13 +1521,11 @@ function saveGuideState() {
 function restoreGuideState() {
   const savedStep     = sessionStorage.getItem('xwGuideStep');
   const savedChoice    = sessionStorage.getItem('xwGuideChoice');
-  const savedUsername  = sessionStorage.getItem('xwGuideUsername');
   if (savedStep !== null) {
     const n = parseInt(savedStep);
     if (!isNaN(n) && n < steps.length) currentStep = n;
   }
   if (savedChoice) step3Choice = savedChoice;
-  if (savedUsername) usernameValue = savedUsername;
 }
 
 function closeConfirm() {
@@ -1831,8 +1720,6 @@ function stopAll() {
   sessionStorage.removeItem('xwGuideExpires');
   sessionStorage.removeItem('xwGuideStep');
   sessionStorage.removeItem('xwGuideChoice');
-  sessionStorage.removeItem('xwGuideUsername');
-  sessionStorage.removeItem('xwGuideUsernameCopied');
   sessionStorage.removeItem('xwGoldInjected');
   sessionStorage.removeItem('xwGoldExpiry');
 }

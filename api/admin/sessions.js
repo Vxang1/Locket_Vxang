@@ -125,7 +125,7 @@ module.exports = async (req, res) => {
     if (custIds.length) {
       try {
         custs = await sb('GET', 'customers', {
-          q: `id=in.(${custIds.map(c => `"${c}"`).join(',')})&select=id,name,phone,customer_code,package,locket_username,special_flow`,
+          q: `id=in.(${custIds.map(c => `"${c}"`).join(',')})&select=id,name,phone,customer_code,package,special_flow`,
         }).catch(() => []) || [];
       } catch {
         custs = [];
@@ -152,7 +152,6 @@ module.exports = async (req, res) => {
         customer_name:  cust?.name || 'Khách chưa rõ',
         customer_phone: cust?.phone || '-',
         customer_code:  cust?.customer_code || '-',
-        locket_username: cust?.locket_username || null,
         current_step:   s.current_step ?? null,
         total_steps:    s.total_steps ?? null,
         step_choice:    s.step_choice ?? null,

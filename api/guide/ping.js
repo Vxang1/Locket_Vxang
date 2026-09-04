@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
   const payload = await requireGuide(req, res);
   if (!payload) return;
 
-  // Parse body sớm (nhận currentStep, totalSteps, step3Choice, deviceId, username).
+  // Parse body sớm (nhận currentStep, totalSteps, step3Choice, deviceId).
   let body = {};
   try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); } catch {}
 
@@ -289,28 +289,6 @@ module.exports = async (req, res) => {
             `👣 <b>${name}</b> đang làm bước ${newStep + 1}/${body.totalSteps} (${escTgHtml(label)}) — ${escTgHtml(pkgLabel)}`
           );
         } catch {}
-      }
-    }
-
-    // 💾 Lưu username (chỉ lưu khi chưa có)
-    if (body.username && typeof body.username === 'string') {
-      const username = body.username.trim();
-      if (username) {
-        const codeRows = await sb('GET', 'access_codes', {
-          q: `code=eq.${encodeURIComponent(payload.code)}&select=customer_id`,
-        });
-        const customerId = codeRows?.[0]?.customer_id;
-        if (customerId) {
-          const custs = await sb('GET', 'customers', {
-            q: `id=eq.${customerId}&select=locket_username`,
-          });
-          if (!custs?.[0]?.locket_username) {
-            await sb('PATCH', 'customers', {
-              q: `id=eq.${customerId}`,
-              body: { locket_username: username },
-            });
-          }
-        }
       }
     }
 

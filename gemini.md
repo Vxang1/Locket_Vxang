@@ -76,7 +76,7 @@
    - Bước 4: Cài đặt DNS 15s
    - Bước 5: Lên Locket Gold
 
-*Lưu ý Username:* Nếu khách đã có `locket_username`, hệ thống tự động bỏ qua bước nhập username.
+*Lưu ý:* Hệ thống kích hoạt 100% trên thiết bị qua Shadowrocket/DNS/VPN/IPA, không có và không yêu cầu hệ thống Username Locket.
 
 ---
 
