@@ -1,11 +1,11 @@
 # ⚡ BẢN THIẾT KẾ KỸ THUẬT BẤT BIẾN: LOCKET_VXANG
-### CODED VERSION: LOCKET_VXANG (CYBER TECH ULTRA EDITION)
+### CODED VERSION: LOCKET_VXANG (RETRO NOTEBOOK / NEO-BRUTALIST EDITION)
 
 > **Thư mục làm việc của dự án:** `C:\Users\ADMIN\Downloads\Locket_Vxang`  
 > **Tên hệ thống & Thương hiệu:** `Locket_Vxang`  
 > **Kiến trúc:** Static HTML5/ES Modules + 11 Vercel Serverless Functions (Node.js CommonJS) + Supabase PostgreSQL (PostgREST REST API) + Firebase Realtime Database.  
 > **Môi trường & Ngôn ngữ:** Node.js 24.x, Vanilla JS (ES2024), PostgREST REST API, HTML5 Canvas/PWA, CSS3 Custom Properties.  
-> **Phong cách:** High-Tech / Cyberpunk Glassmorphism / Dark Modern Tech (Dark Space #07090e, Neon Cyan #00f0ff, Electric Violet #8b5cf6, Matrix Emerald #10b981).  
+> **Phong cách:** Retro Notebook / Neo-Brutalist (Paper Cream #FDF6E3, Paper Warm #F5ECD7, Ink Black #1A1A1A, Highlight Gold #F5C842, Alert Coral #FF6B6B, Matrix Forest #2E7D32, Hard Shadow 4px 4px 0 #1A1A1A, 20px Grid Paper Lines).  
 > **Thiết bị mục tiêu:** 100% Mobile iPhone (iOS) qua trình duyệt Safari thuần.  
 > **Đặc trưng khách hàng:** CHỈ CÓ KHÁCH MỚI — KHÔNG PHÂN LOẠI KHÁCH BẢO HÀNH.
 

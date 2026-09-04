@@ -169,6 +169,22 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
       - Thang đo chất lượng giải pháp (Quality Pyramid A -> E) và quy trình tự đánh giá (Self-Review Checklist).
       - Cam kết giữ vững các nguyên tắc kiến trúc: Zero-build, 11 Serverless functions, Supabase PostgREST native.
 
+13. **🎨 TOÀN DIỆN TÁI THIẾT KẾ GIAO DIỆN SANG RETRO NOTEBOOK / NEO-BRUTALIST (2026-09-05 00:10):**
+    - **Nguồn cảm hứng & Đặc tả:** Triển khai theo [design_prompt.md](file:///c:/Users/ADMIN/Downloads/design_prompt.md) — Phong cách sổ tay ghi chép cổ điển kết hợp Modern Neo-Brutalist đậm chất công nghệ thủ công:
+      - Nền giấy kem Paper Cream (`#FDF6E3`), bề mặt giấy ấm Paper Warm (`#F5ECD7`).
+      - Lưới ô ly sổ tay 20px x 20px vẽ bằng CSS linear-gradient (`rgba(210, 190, 160, 0.3) 1px, transparent 1px`).
+      - Viền mực đen sắc nét Ink Black 2px solid `#1A1A1A` với góc bo chuẩn 6px - 10px (không nhọn gắt, không quá tròn bo).
+      - Đổ bóng xúc giác cứng không làm mờ Hard Neo-Brutalist box-shadow (`4px 4px 0 #1A1A1A`, `--shadow-sm: 2px 2px 0 #1A1A1A`, 0px blur). Phản hồi tương tác vật lý sống động: hover nhấc lên (`translate(-1px, -1px)` bóng 5px), active lún xuống (`translate(2px, 2px)` bóng 1px).
+      - Màu nhấn Highlight Gold bút dạ quang (`#F5C842`), cảnh báo Alert Coral (`#FF6B6B`), xanh lá kiểm tra (`#2E7D32`), xanh dương liên kết (`#1976D2`).
+      - Phông chữ chuẩn hóa: `Be Vietnam Pro` (nội dung/tiêu đề tiếng Việt hoàn mỹ), `Space Grotesk` (thương hiệu, nhãn, số liệu), `JetBrains Mono` (mã code, thông số kỹ thuật).
+    - **Triển khai đồng bộ trên toàn bộ 4 trang HTML:**
+      - `index.html`: Giao diện thẻ vào nhanh phong cách phong bì/sổ tay với băng dính washi tape phản quang, nút Neo-Brutalist nổi bật, modal mở Safari chuẩn hóa.
+      - `dns.html`: Trang cài đặt cấu hình DNS riêng với thẻ washi tape hướng dẫn 2 bước trực quan, nút tải profile `.mobileconfig` màu vàng gold bóng cứng.
+      - `guide.html`: Thanh điều hướng notebook, chip đếm ngược thời gian, thanh tiến trình step indicator, khung video retro, thẻ sao chép tài khoản App Store, màn hình hoàn tất 3 bước, các modal (chào mừng, bẫy gian lận, xác nhận).
+      - `admin.html`: Trang đăng nhập phong cách bìa sổ tay với băng keo washi dán góc, thanh tab danh mục thiết kế như các tab bìa folder index nhô cao (`.tab.active` nền vàng viền đen gắn liền khung), thẻ thống kê stat-card, CRM table bảng giấy kẻ viền đen, danh sách thẻ mobile `.m-card`, 5 modal quản trị và hệ thống thông báo toast.
+    - **Service Worker:** Nâng cấp cache Service Worker trong `sw.js` lên phiên bản `vxang-admin-v12`.
+    - **Cam kết kỹ thuật:** Giữ nguyên vẹn 100% logic JavaScript, DOM IDs, hệ thống Vercel Serverless Functions, PostgREST API và cơ chế bẫy chống gian lận heartbeat 4s.
+
 ---
 
 ## 🎯 NEXT STEPS

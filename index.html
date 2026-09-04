@@ -9,25 +9,38 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      --bg: #07090e;
-      --bg-surface: #0f172a;
-      --bg-card: rgba(15, 23, 42, 0.82);
-      --border: rgba(0, 240, 255, 0.18);
-      --border-glow: 0 0 16px rgba(0, 240, 255, 0.25);
-      --p1: #00f0ff;
-      --p2: #8b5cf6;
-      --accent: #10b981;
-      --text: #f8fafc;
-      --text-dim: #94a3b8;
-      --muted: #64748b;
-      --radius: 18px;
-      --radius-sm: 12px;
+      --bg: #FDF6E3;
+      --bg-warm: #F5ECD7;
+      --card-bg: #FFFFFF;
+      --ink: #1A1A1A;
+      --charcoal: #333333;
+      --muted: #888888;
+      --gold: #F5C842;
+      --gold-hover: #D4A31C;
+      --coral: #FF6B6B;
+      --coral-hover: #DC3C3C;
+      --green: #4CAF50;
+      --grid-line: rgba(210, 190, 160, 0.3);
+      --border-ink: 2px solid #1A1A1A;
+      --shadow-base: 4px 4px 0 #1A1A1A;
+      --shadow-sm: 2px 2px 0 #1A1A1A;
+      --shadow-hover: 5px 5px 0 #1A1A1A;
+      --shadow-active: 1px 1px 0 #1A1A1A;
+      --radius: 10px;
+      --radius-sm: 6px;
+      --radius-lg: 14px;
       --tap: 46px;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body.cyber-theme {
-      background: var(--bg);
-      color: var(--text);
+    
+    body.retro-theme {
+      background-color: var(--bg);
+      background-image: 
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+      background-size: 20px 20px;
+      background-attachment: fixed;
+      color: var(--ink);
       font-family: 'Be Vietnam Pro', sans-serif;
       min-height: 100vh;
       min-height: 100dvh;
@@ -36,46 +49,24 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* Hiệu ứng nền Cyber Grid & Glow */
-    .bg-grid {
+    /* Paper Noise Texture */
+    body.retro-theme::after {
+      content: '';
       position: fixed;
       inset: 0;
-      background-image: 
-        linear-gradient(to right, rgba(0, 240, 255, 0.04) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
-      background-size: 32px 32px;
-      mask-image: radial-gradient(circle at 50% 30%, black 40%, transparent 80%);
-      -webkit-mask-image: radial-gradient(circle at 50% 30%, black 40%, transparent 80%);
       pointer-events: none;
       z-index: 0;
-    }
-    .bg-glow-orbs {
-      position: fixed;
-      inset: 0;
-      overflow: hidden;
-      pointer-events: none;
-      z-index: 0;
-    }
-    .bg-glow-orbs span {
-      position: absolute;
-      font-size: 1.2rem;
-      opacity: 0.2;
-      animation: floatOrb 8s infinite alternate ease-in-out;
-    }
-    .bg-glow-orbs span:nth-child(1) { top: 12%; left: 10%; animation-duration: 6s; color: var(--p1); }
-    .bg-glow-orbs span:nth-child(2) { top: 25%; right: 12%; animation-duration: 9s; color: var(--p2); }
-    .bg-glow-orbs span:nth-child(3) { bottom: 20%; left: 15%; animation-duration: 7s; color: var(--accent); }
-    .bg-glow-orbs span:nth-child(4) { bottom: 35%; right: 18%; animation-duration: 10s; color: var(--p1); }
-    @keyframes floatOrb {
-      0% { transform: translateY(0) scale(0.9); opacity: 0.15; }
-      100% { transform: translateY(-20px) scale(1.15); opacity: 0.35; }
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 256px 256px;
     }
 
     /* Khung Viewport Mobile */
     .wrap {
       max-width: 460px;
       margin: 0 auto;
-      padding: calc(28px + env(safe-area-inset-top, 0px)) 16px calc(72px + env(safe-area-inset-bottom, 0px));
+      padding: calc(28px + env(safe-area-inset-top, 0px)) 18px calc(72px + env(safe-area-inset-bottom, 0px));
       position: relative;
       z-index: 1;
       display: flex;
@@ -100,21 +91,22 @@
       width: 96px;
       height: 96px;
       border-radius: 50%;
-      border: 2px solid var(--p1);
-      box-shadow: 0 0 24px rgba(0, 240, 255, 0.4), inset 0 0 12px rgba(0, 240, 255, 0.3);
+      border: var(--border-ink);
+      box-shadow: var(--shadow-base);
       object-fit: cover;
       display: block;
+      background: var(--bg-warm);
     }
     .avatar-wrap .badge {
       position: absolute;
       bottom: -2px;
       right: -2px;
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
-      border: 2px solid #07090e;
-      background: #0f172a;
-      box-shadow: 0 0 12px rgba(139, 92, 246, 0.5);
+      border: var(--border-ink);
+      background: var(--gold);
+      box-shadow: var(--shadow-sm);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -127,38 +119,63 @@
     }
     .brand {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.65rem;
+      font-size: 1.7rem;
       font-weight: 900;
-      background: linear-gradient(135deg, var(--p1), var(--p2));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: var(--ink);
       margin-bottom: 6px;
       letter-spacing: -0.02em;
     }
+    .brand span {
+      background: linear-gradient(transparent 55%, var(--gold) 55%);
+      padding: 0 4px;
+      display: inline;
+    }
     .tagline {
-      font-size: 0.8rem;
-      color: var(--text-dim);
+      font-size: 0.82rem;
+      color: var(--charcoal);
       font-weight: 600;
-      letter-spacing: 0.02em;
-      line-height: 1.4;
+      line-height: 1.45;
+    }
+    .tagline-badge {
+      display: inline-block;
+      margin-top: 6px;
+      background: var(--bg-warm);
+      border: 1.5px solid var(--ink);
+      border-radius: var(--radius-sm);
+      padding: 3px 10px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      box-shadow: 2px 2px 0 var(--ink);
     }
 
     /* 2. QUICK ENTRY SECTION */
     .quick-entry {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
+      background: var(--card-bg);
+      border: var(--border-ink);
       border-radius: var(--radius);
       padding: 22px 18px;
-      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 240, 255, 0.06);
+      box-shadow: var(--shadow-base);
+      position: relative;
+    }
+    /* Washi tape decor on top of card */
+    .quick-entry::before {
+      content: '';
+      position: absolute;
+      top: -9px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 18px;
+      background: rgba(245, 200, 66, 0.7);
+      border: 1px dashed rgba(26, 26, 26, 0.4);
+      z-index: 2;
     }
     .entry-label {
       font-family: 'Space Grotesk', sans-serif;
       font-size: 0.82rem;
-      font-weight: 800;
-      color: var(--p1);
-      letter-spacing: 0.06em;
+      font-weight: 900;
+      color: var(--ink);
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       margin-bottom: 12px;
       display: flex;
@@ -174,52 +191,62 @@
       flex: 1;
       min-width: 0;
       height: 48px;
-      background: #0b1120;
-      border: 1.5px solid var(--border);
+      background: #FFFFFF;
+      border: var(--border-ink);
       border-radius: var(--radius-sm);
       padding: 0 14px;
       font-family: 'JetBrains Mono', monospace;
       font-size: 17px !important; /* >= 16px chống iOS auto-zoom trap */
       font-weight: 800;
-      color: var(--p1);
+      color: var(--ink);
       letter-spacing: 0.08em;
       text-align: center;
       outline: none;
-      transition: all 0.2s;
+      transition: all 0.15s ease;
+      box-shadow: inset 1px 1px 0 rgba(0,0,0,0.08);
     }
     .entry-input:focus {
-      border-color: var(--p1);
-      box-shadow: 0 0 14px rgba(0, 240, 255, 0.25);
+      border-color: var(--ink);
+      box-shadow: 0 0 0 3px var(--gold);
     }
     .btn-entry {
       flex-shrink: 0;
       height: 48px;
       padding: 0 18px;
-      background: linear-gradient(135deg, var(--p1), var(--p2));
-      border: none;
+      background: var(--gold);
+      border: var(--border-ink);
       border-radius: var(--radius-sm);
-      color: #030712;
+      color: var(--ink);
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.86rem;
+      font-size: 0.88rem;
       font-weight: 900;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.02em;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       white-space: nowrap;
-      box-shadow: 0 4px 0 #4c1d95, 0 0 16px rgba(0, 240, 255, 0.3);
-      transition: all 0.15s;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.15s ease;
+    }
+    .btn-entry:hover {
+      background: var(--gold-hover);
+      box-shadow: var(--shadow-base);
+      transform: translate(-1px, -1px);
     }
     .btn-entry:active {
-      transform: translateY(2px);
-      box-shadow: 0 2px 0 #4c1d95;
+      transform: translate(2px, 2px);
+      box-shadow: var(--shadow-active);
     }
     .error-box {
       margin-top: 10px;
       font-size: 0.8rem;
       font-weight: 700;
-      color: #ef4444;
+      color: #b91c1c;
+      background: #fff1f2;
+      border: 1.5px solid #f87171;
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
       display: none;
       text-align: center;
     }
@@ -231,23 +258,27 @@
       gap: 12px;
     }
     .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border-radius: var(--radius-sm);
+      background: var(--card-bg);
+      border: var(--border-ink);
+      border-radius: var(--radius);
       padding: 14px 12px;
       text-decoration: none;
-      color: var(--text);
+      color: var(--ink);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       gap: 10px;
-      transition: all 0.2s;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.15s ease;
+    }
+    .card:hover {
+      background: #FFFFFF;
+      box-shadow: var(--shadow-base);
+      transform: translate(-2px, -2px);
     }
     .card:active {
-      transform: scale(0.98);
-      border-color: var(--p1);
+      transform: translate(2px, 2px);
+      box-shadow: var(--shadow-active);
     }
     .card-row {
       display: flex;
@@ -257,45 +288,52 @@
     .card-icon {
       width: 38px;
       height: 38px;
-      border-radius: 10px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--ink);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 1.15rem;
       flex-shrink: 0;
+      box-shadow: 2px 2px 0 var(--ink);
     }
-    .cyber-cyan {
-      background: rgba(0, 240, 255, 0.12);
-      border: 1px solid rgba(0, 240, 255, 0.28);
-      color: var(--p1);
+    .icon-gold {
+      background: var(--gold);
+      color: var(--ink);
     }
-    .cyber-violet {
-      background: rgba(139, 92, 246, 0.14);
-      border: 1px solid rgba(139, 92, 246, 0.3);
-      color: #c4b5fd;
+    .icon-coral {
+      background: var(--coral);
+      color: #FFFFFF;
     }
     .card-title {
       font-family: 'Space Grotesk', sans-serif;
       font-size: 0.85rem;
       font-weight: 800;
-      color: var(--text);
+      color: var(--ink);
       line-height: 1.2;
     }
     .card-sub {
-      font-size: 0.7rem;
+      font-size: 0.72rem;
       color: var(--muted);
       margin-top: 2px;
     }
     .card-arrow {
-      font-size: 0.74rem;
+      font-size: 0.76rem;
       font-weight: 800;
-      color: var(--p1);
+      color: var(--ink);
       align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: var(--bg-warm);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--ink);
     }
 
     /* 4. FOOTER */
     .footer-copy {
-      font-size: 0.72rem;
+      font-size: 0.74rem;
       color: var(--muted);
       text-align: center;
       line-height: 1.5;
@@ -308,22 +346,27 @@
       position: fixed;
       inset: 0;
       z-index: 99999;
-      background: rgba(7, 9, 14, 0.95);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: rgba(26, 26, 26, 0.7);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
       align-items: center;
       justify-content: center;
       padding: 20px;
     }
     .modal-box {
-      background: #0f172a;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
+      background: #FFFFFF;
+      border: 2.5px solid var(--ink);
+      border-radius: var(--radius-lg);
       padding: 28px 20px;
       max-width: 390px;
       width: 100%;
       text-align: center;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 240, 255, 0.12);
+      box-shadow: 6px 6px 0 var(--ink);
+      animation: popIn .3s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(.92) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
     }
     .modal-icon {
       font-size: 2.8rem;
@@ -331,62 +374,71 @@
     }
     .modal-title {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.25rem;
+      font-size: 1.3rem;
       font-weight: 900;
-      color: var(--p1);
+      color: var(--ink);
       margin-bottom: 12px;
     }
     .modal-msg-box {
-      font-size: 0.86rem;
-      color: var(--text-dim);
+      font-size: 0.88rem;
+      color: var(--charcoal);
       line-height: 1.55;
       margin-bottom: 14px;
       text-align: left;
     }
     .modal-guide-box {
-      background: rgba(0, 240, 255, 0.05);
-      border: 1px solid rgba(0, 240, 255, 0.15);
-      border-radius: 10px;
+      background: var(--bg-warm);
+      border: 1.5px solid var(--ink);
+      border-radius: var(--radius);
       padding: 12px;
-      font-size: 0.8rem;
-      color: var(--text);
+      font-size: 0.82rem;
+      color: var(--ink);
       text-align: left;
       line-height: 1.55;
       margin-bottom: 18px;
+      box-shadow: 2px 2px 0 var(--ink);
     }
     .guide-lead {
       font-weight: 800;
-      color: var(--p1);
+      color: var(--ink);
       margin-bottom: 6px;
     }
     .btn-modal-action {
       width: 100%;
-      min-height: 46px;
-      background: linear-gradient(135deg, var(--p1), var(--p2));
-      border: none;
-      border-radius: 10px;
-      color: #030712;
+      min-height: 48px;
+      background: var(--gold);
+      border: var(--border-ink);
+      border-radius: var(--radius);
+      color: var(--ink);
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.88rem;
+      font-size: 0.9rem;
       font-weight: 900;
       cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.15s ease;
+    }
+    .btn-modal-action:hover {
+      background: var(--gold-hover);
+      box-shadow: var(--shadow-base);
+      transform: translate(-1px, -1px);
+    }
+    .btn-modal-action:active {
+      transform: translate(2px, 2px);
+      box-shadow: var(--shadow-active);
     }
   </style>
 </head>
-<body class="cyber-theme">
-  <!-- Hiệu ứng nền Cyber Grid & Orbs -->
-  <div class="bg-grid"></div>
-  <div class="bg-glow-orbs"><span>✦</span><span>⚡</span><span>💠</span><span>💫</span></div>
-
+<body class="retro-theme">
   <div class="wrap">
     <!-- 1. HERO SECTION -->
     <div class="hero">
       <div class="avatar-wrap">
-        <img class="hero-avatar" src="images/avatar.png" alt="Vxang" onerror="this.style.background='linear-gradient(135deg,#00f0ff,#8b5cf6)'"/>
-        <div class="badge"><img src="images/locket.png" alt="Locket" onerror="this.style.background='#0f172a'"/></div>
+        <img class="hero-avatar" src="images/avatar.png" alt="Vxang" onerror="this.style.background='#F5ECD7'"/>
+        <div class="badge"><img src="images/locket.png" alt="Locket" onerror="this.style.background='#F5C842'"/></div>
       </div>
-      <div class="brand">Locket_Vxang ✦ Cyber VIP</div>
-      <div class="tagline">✦ Locket Gold Vĩnh Viễn · Chuẩn iOS Safari · Siêu Ổn Định ✦</div>
+      <div class="brand">Locket_Vxang <span>⚡ VIP</span></div>
+      <div class="tagline">Locket Gold Vĩnh Viễn · Chuẩn iOS Safari · Siêu Ổn Định</div>
+      <div class="tagline-badge">📓 SỔ TAY HƯỚNG DẪN KÍCH HOẠT</div>
     </div>
 
     <!-- 2. QUICK ENTRY SECTION (Ô NHẬP VÀ NÚT CÙNG 1 DÒNG) -->
@@ -397,7 +449,7 @@
           autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"
           oninput="this.value=this.value.toUpperCase()"
           onkeydown="if(event.key==='Enter')goGuide()"/>
-        <button class="btn-entry" id="btnSubmit" onclick="goGuide()">→ VÀO GUIDE</button>
+        <button class="btn-entry" id="btnSubmit" onclick="goGuide()">VÀO GUIDE ➔</button>
       </div>
       <div id="errMsg" class="error-box"></div>
     </div>
@@ -406,29 +458,29 @@
     <div class="card-grid">
       <a class="card" href="https://t.me/locket_vxang" target="_blank">
         <div class="card-row">
-          <div class="card-icon cyber-cyan">🌐</div>
+          <div class="card-icon icon-gold">🌐</div>
           <div>
             <div class="card-title">Dịch vụ khác</div>
             <div class="card-sub">Khám phá thêm</div>
           </div>
         </div>
-        <span class="card-arrow">→ Xem ngay</span>
+        <span class="card-arrow">Xem ngay ➔</span>
       </a>
 
       <a class="card" href="https://zalo.me/0822307662" target="_blank">
         <div class="card-row">
-          <div class="card-icon cyber-violet">💬</div>
+          <div class="card-icon icon-coral">💬</div>
           <div>
             <div class="card-title">Nhắn Hỗ Trợ</div>
             <div class="card-sub">Zalo · Phản hồi ngay</div>
           </div>
         </div>
-        <span class="card-arrow">→ Zalo Admin</span>
+        <span class="card-arrow">Zalo Admin ➔</span>
       </a>
     </div>
 
     <!-- 4. FOOTER -->
-    <footer class="footer-copy">© 2026 Locket_Vxang · Cyber Security &amp; Permanent Gold ⚡</footer>
+    <footer class="footer-copy">© 2026 Locket_Vxang · Retro Neo-Brutalist Edition ⚡</footer>
   </div>
 
   <!-- 5. IN-APP BROWSER & NON-IOS BLOCKING MODAL -->

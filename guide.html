@@ -12,362 +12,369 @@
 <link rel="dns-prefetch" href="https://apple.dns.nextdns.io"/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800;900&family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet"/>
 <style>
-:root{
-  --bg:#07090e;--bg-surface:#0f172a;--card:rgba(15,23,42,0.92);--border:rgba(0,240,255,0.18);
-  --border-glow:0 0 16px rgba(0,240,255,0.25);
-  --p1:#00f0ff;--p2:#8b5cf6;--accent:#10b981;
-  --text:#f8fafc;--muted:#94a3b8;--warning:#f59e0b;
-  --red:#ef4444;--green:#10b981;--radius:18px;
+:root {
+  --bg: #FDF6E3;
+  --bg-warm: #F5ECD7;
+  --card: #FFFFFF;
+  --ink: #1A1A1A;
+  --charcoal: #333333;
+  --muted: #888888;
+  --gold: #F5C842;
+  --gold-hover: #D4A31C;
+  --coral: #FF6B6B;
+  --coral-hover: #DC3C3C;
+  --green: #4CAF50;
+  --border: #1A1A1A;
+  --border-ink: 2px solid #1A1A1A;
+  --shadow-base: 4px 4px 0 #1A1A1A;
+  --shadow-sm: 2px 2px 0 #1A1A1A;
+  --shadow-active: 1px 1px 0 #1A1A1A;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-lg: 14px;
+  --grid-line: rgba(210, 190, 160, 0.3);
+  --topbar-h: 48px;
+  --navbar-h: 72px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
-body{overscroll-behavior:none;background:var(--bg);color:var(--text);font-family:'Be Vietnam Pro',sans-serif;
-  font-size:15px;line-height:1.7;font-weight:500;-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100vh;}
-.bg-dots{position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:
-    linear-gradient(to right, rgba(0, 240, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
-  background-size:32px 32px;}
-.bg-decos{position:fixed;inset:0;z-index:0;pointer-events:none;font-size:1.8rem;opacity:.06;}
-.bg-decos span:nth-child(1){position:absolute;top:8%;left:5%;animation:floatDeco 7s ease-in-out infinite 0s;}
-.bg-decos span:nth-child(2){position:absolute;top:12%;right:6%;animation:floatDeco 7s ease-in-out infinite 2s;}
-.bg-decos span:nth-child(3){position:absolute;bottom:18%;left:8%;animation:floatDeco 7s ease-in-out infinite 4s;}
-.bg-decos span:nth-child(4){position:absolute;bottom:22%;right:9%;animation:floatDeco 7s ease-in-out infinite 1s;}
-@keyframes floatDeco{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
-@keyframes popIn{from{opacity:0;transform:scale(.88) translateY(8px);}to{opacity:1;transform:scale(1) translateY(0);}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+body{
+  overscroll-behavior:none;
+  background-color:var(--bg);
+  background-image: 
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size:20px 20px;
+  background-attachment:fixed;
+  color:var(--ink);
+  font-family:'Be Vietnam Pro',sans-serif;
+  font-size:15px;line-height:1.7;font-weight:500;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;min-height:100vh;
+  position:relative;
+}
+body::after {
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat:repeat;background-size:256px 256px;
+}
+
+@keyframes popIn{from{opacity:0;transform:scale(.92) translateY(8px);}to{opacity:1;transform:scale(1) translateY(0);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 @keyframes spin{to{transform:rotate(360deg);}}
 
 /* ─── SCREENS ─────────────────────────────────── */
 .screen{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;
-  padding:20px;background:var(--bg);}
+  padding:20px;background:var(--bg);
+  background-image: 
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size:20px 20px;
+}
 .screen.hidden{display:none;}
 
 /* ─── ENTRY BOX ───────────────────────────────── */
 .entry-box{
-  background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);
-  padding:36px 28px;width:100%;max-width:420px;
-  box-shadow:0 0 36px rgba(0,240,255,0.18);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  animation:popIn .55s cubic-bezier(.34,1.56,.64,1) both;
+  background:var(--card);border:var(--border-ink);border-radius:var(--radius);
+  padding:36px 26px;width:100%;max-width:420px;
+  box-shadow:var(--shadow-base);
+  animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both;
   position:relative;z-index:1;
 }
-.back-link{display:inline-flex;align-items:center;gap:5px;color:var(--muted);
-  font-size:.8rem;font-weight:600;text-decoration:none;margin-bottom:20px;transition:color .2s;}
-.back-link:hover{color:var(--p1);}
-.entry-brand{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.75rem;
-  background:linear-gradient(135deg,var(--p1),var(--p2));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
-.entry-sub{font-size:.82rem;color:var(--muted);margin-bottom:24px;line-height:1.55;}
-.field-label{display:block;font-family:'Be Vietnam Pro',sans-serif;font-weight:700;
-  font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;}
-.field-input{
-  width:100%;background:rgba(7,9,14,0.7);border:1.5px solid var(--border);border-radius:12px;
-  padding:13px 16px;color:var(--text);font-family:'JetBrains Mono',monospace;
-  font-size:1.05rem;font-weight:700;outline:none;letter-spacing:.07em;
-  text-transform:uppercase;transition:border-color .2s,box-shadow .2s;margin-bottom:12px;
+.entry-box::before {
+  content:'';position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+  width:75px;height:16px;background:rgba(245, 200, 66, 0.7);
+  border:1px dashed rgba(26,26,26,0.4);
 }
-.field-input::placeholder{color:var(--muted);text-transform:none;font-size:.85rem;font-weight:500;letter-spacing:0;}
-.field-input:focus{border-color:var(--p1);box-shadow:0 0 0 3px rgba(0,240,255,0.2);}
+.back-link{display:inline-flex;align-items:center;gap:5px;color:var(--charcoal);
+  font-size:.82rem;font-weight:700;text-decoration:none;margin-bottom:18px;transition:color .15s;}
+.back-link:hover{color:var(--ink);text-decoration:underline;}
+.entry-brand{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.75rem;
+  color:var(--ink);margin-bottom:6px;}
+.entry-brand span {
+  background:linear-gradient(transparent 55%, var(--gold) 55%);
+  padding:0 4px;display:inline;
+}
+.entry-sub{font-size:.84rem;color:var(--charcoal);margin-bottom:24px;line-height:1.55;}
+.field-label{display:block;font-family:'Space Grotesk',sans-serif;font-weight:900;
+  font-size:.76rem;color:var(--ink);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;}
+.field-input{
+  width:100%;background:#FFFFFF;border:var(--border-ink);border-radius:var(--radius-sm);
+  padding:13px 16px;color:var(--ink);font-family:'JetBrains Mono',monospace;
+  font-size:1.05rem;font-weight:800;outline:none;letter-spacing:.07em;
+  text-transform:uppercase;transition:all .15s ease;margin-bottom:12px;
+  box-shadow:inset 1px 1px 0 rgba(0,0,0,0.06);
+}
+.field-input::placeholder{color:var(--muted);text-transform:none;font-size:.88rem;font-weight:500;letter-spacing:0;}
+.field-input:focus{border-color:var(--ink);box-shadow:0 0 0 3px var(--gold);}
 .err-msg{
-  background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:10px;
-  padding:10px 14px;font-size:.82rem;color:var(--red);line-height:1.55;display:none;margin-bottom:12px;
+  background:#FFF0F0;border:1.5px solid var(--coral);border-radius:var(--radius-sm);
+  padding:10px 14px;font-size:.84rem;color:#C62828;line-height:1.5;display:none;margin-bottom:14px;font-weight:700;
 }
 .btn-primary{
-  width:100%;padding:15px;border:none;border-radius:14px;
-  background:linear-gradient(135deg,var(--p1),var(--p2));color:#07090e;
-  font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:900;letter-spacing:.03em;
-  cursor:pointer;transition:all .18s;
-  box-shadow:0 0 24px rgba(0,240,255,0.25);
+  width:100%;padding:15px;border:var(--border-ink);border-radius:var(--radius-sm);
+  background:var(--gold);color:var(--ink);
+  font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:900;letter-spacing:.02em;
+  cursor:pointer;transition:all .15s ease;
+  box-shadow:var(--shadow-base);
 }
-.btn-primary:hover{opacity:.92;box-shadow:0 0 32px rgba(0,240,255,0.4);}
-.btn-primary:active{transform:translateY(2px);}
+.btn-primary:hover{background:var(--gold-hover);box-shadow:5px 5px 0 #1A1A1A;transform:translate(-1px,-1px);}
+.btn-primary:active{transform:translate(2px,2px);box-shadow:var(--shadow-active);}
 .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
 
 /* ─── LOADING ─────────────────────────────────── */
 .loading-box{text-align:center;}
-.spin{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--p1);
+.spin{width:44px;height:44px;border:3px solid var(--bg-warm);border-top-color:var(--ink);
   border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
-.loading-text{font-size:.82rem;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
+.loading-text{font-size:.86rem;color:var(--ink);font-weight:800;letter-spacing:.04em;text-transform:uppercase;font-family:'Space Grotesk',sans-serif;}
 
 /* ─── COMPLETE ────────────────────────────────── */
-/* .screen dùng chung padding:20px cho các màn canh giữa (entry/loading). Riêng màn
-   này banner hero cố tình bo góc 0 0 22px 22px để DÁN SÁT đỉnh máy, nên 20px của
-   .screen + 16px của .complete-wrap cộng lại thành một dải nền ~36px phía trên
-   banner — đúng "khoảng trắng bên trên" khách thấy sau khi bấm hoàn thành, và đẩy
-   luôn thẻ bước 3 (vào nhóm Zalo) xuống dưới màn hình. Bỏ hẳn padding-top ở cả hai
-   để hero chạm đỉnh, phần dưới vẫn giữ padding ngang/đáy như cũ. */
-#completeScreen{overflow-y:auto;align-items:flex-start;padding:0 20px 20px;}
+#completeScreen{overflow-y:auto;align-items:flex-start;padding:0 16px 24px;}
 .complete-wrap{width:100%;max-width:440px;margin:0 auto;padding:0 0 32px;}
 @keyframes bounce{0%,100%{transform:scale(1);}50%{transform:scale(1.15);}}
-.complete-ico{font-size:56px;margin-bottom:16px;animation:bounce .6s ease;}
-.complete-title{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.7rem;
-  background:linear-gradient(135deg,var(--p1),var(--p2));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px;}
-.complete-sub{font-size:.85rem;color:var(--muted);line-height:1.7;margin-bottom:24px;}
+.complete-ico{font-size:52px;margin-bottom:12px;animation:bounce .6s ease;}
+.complete-title{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.65rem;
+  color:var(--ink);margin-bottom:8px;}
+.complete-sub{font-size:.86rem;color:var(--charcoal);line-height:1.65;margin-bottom:24px;}
 .btn-home{
-  display:inline-block;padding:13px 30px;border-radius:12px;
-  background:linear-gradient(135deg,var(--p1),var(--p2));color:#07090e;
+  display:inline-block;padding:13px 28px;border-radius:var(--radius-sm);
+  background:var(--bg-warm);color:var(--ink);border:var(--border-ink);
   font-family:'Space Grotesk',sans-serif;font-size:.9rem;font-weight:900;text-decoration:none;
-  box-shadow:0 0 20px rgba(0,240,255,0.25);transition:all .18s;
+  box-shadow:var(--shadow-sm);transition:all .15s ease;
 }
-.btn-home:hover{opacity:.92;box-shadow:0 0 28px rgba(0,240,255,0.4);}
-.btn-home:active{transform:translateY(2px);}
+.btn-home:hover{background:#FFFFFF;box-shadow:var(--shadow-base);transform:translate(-1px,-1px);}
+.btn-home:active{transform:translate(2px,2px);box-shadow:var(--shadow-active);}
 
 /* ─── GUIDE UI ────────────────────────────────── */
 #guideUI{display:none;position:relative;z-index:1;min-height:100vh;}
 
 .topbar{
   position:relative;z-index:20;
-  background:rgba(7,9,14,0.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-  border-bottom:1.5px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;padding:12px 20px;gap:12px;
+  background:var(--bg);
+  border-bottom:var(--border-ink);
+  display:flex;align-items:center;justify-content:space-between;padding:12px 18px;gap:12px;
 }
-.topbar-logo{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.05rem;
-  background:linear-gradient(135deg,var(--p1),var(--p2));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.topbar-logo{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.1rem;
+  color:var(--ink);}
+.topbar-logo span {
+  background:linear-gradient(transparent 55%, var(--gold) 55%);
+  padding:0 4px;display:inline;
+}
 .timer-chip{
-  background:rgba(15,23,42,0.85);border:1.5px solid var(--border);border-radius:20px;
-  padding:6px 14px;font-size:.78rem;color:var(--p1);font-weight:800;font-family:'JetBrains Mono',monospace;white-space:nowrap;
+  background:#FFFFFF;border:1.5px solid var(--ink);border-radius:var(--radius-sm);
+  padding:5px 12px;font-size:.8rem;color:var(--ink);font-weight:800;font-family:'JetBrains Mono',monospace;
+  white-space:nowrap;box-shadow:2px 2px 0 var(--ink);
 }
-.timer-chip.warn{color:var(--warning);border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.08);}
-.timer-chip.crit{color:var(--red);border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.08);animation:timerFlash .8s infinite;}
+.timer-chip.warn{background:#FFF8E1;border-color:var(--gold);color:#B8891A;}
+.timer-chip.crit{background:#FFF0F0;border-color:var(--coral);color:#C62828;animation:timerFlash .8s infinite;}
 @keyframes timerFlash{50%{opacity:.4;}}
 
-/* Chừa chỗ cho topbar (fixed) + nav-bar (fixed) theo CHIỀU CAO THẬT do JS đo được
-   (--topbar-h / --navbar-h, xem syncBarHeights ở cuối file). Trước đây là số cứng
-   64px/104px nên máy bé bị chừa dư một khoảng trống, còn khi nav-hint đổi sang chữ
-   dài/2 dòng thì lại bị thiếu, che mất cuối nội dung. Số trong var() chỉ là fallback
-   cho lần vẽ đầu trước khi JS chạy. */
-.guide-content{padding:calc(var(--topbar-h,48px) + 8px) 14px calc(var(--navbar-h,72px) + 12px);max-width:580px;margin:0 auto;}
-
-/* MOBILE — thu nhỏ topbar + nav-bar để đỡ chật vùng giữa */
-@media(max-width:640px){
-  .topbar{padding:8px 14px;gap:6px;}
-  .topbar-logo{font-size:.85rem;}
-  .timer-chip{padding:4px 10px;font-size:.7rem;border-radius:12px;}
-  .nav-hint{padding:3px 8px;font-size:.64rem;}
-  .nav-hint.hint-complete{font-size:.64rem;}
-  .btn-nav{padding:10px 12px;font-size:.84rem;}
-  .btn-complete{font-size:.84rem;}
-}
-
-/* MÁY NHỎ (≤400px: iPhone SE/8/12 mini, Android 5") */
-@media(max-width:400px){
-  .topbar{padding:5px 10px;gap:5px;}
-  .topbar-logo{font-size:.74rem;}
-  .timer-chip{padding:2px 7px;font-size:.62rem;border-radius:10px;border-width:1px;}
-  .nav-bar{padding:3px 8px 5px;gap:3px;}
-  .nav-hint{padding:2px 6px;font-size:.58rem;border-radius:10px;}
-  .nav-hint.hint-complete{font-size:.58rem;}
-  .btn-nav{padding:7px 8px;font-size:.76rem;border-radius:8px;}
-  .btn-complete{font-size:.78rem;}
-  .guide-content{padding-left:8px;padding-right:8px;}
-}
-
-/* MÀN THẤP (≤680px chiều cao) */
-@media(max-height:680px){
-  .topbar{padding:4px 10px;}
-  .timer-chip{padding:2px 8px;font-size:.62rem;}
-  .nav-bar{padding:3px 10px 5px;gap:2px;}
-  .nav-hint{padding:2px 8px;font-size:.6rem;}
-  .btn-nav{padding:7px 10px;font-size:.76rem;}
-}
+.guide-content{padding:calc(var(--topbar-h,48px) + 12px) 14px calc(var(--navbar-h,72px) + 14px);max-width:580px;margin:0 auto;}
 
 /* STEP CARD */
 .step-card{
-  background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);
-  padding:28px 24px;margin-bottom:16px;
-  box-shadow:0 2px 16px rgba(124,58,237,.06);
-  animation:fadeUp .4s ease;
+  background:var(--card);border:var(--border-ink);border-radius:var(--radius);
+  padding:26px 22px;margin-bottom:16px;
+  box-shadow:var(--shadow-base);
+  animation:fadeUp .35s ease;
+  position:relative;
 }
 .step-title{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.25rem;
-  color:var(--p1);margin-bottom:14px;line-height:1.25;}
-.step-content{font-size:.9rem;color:var(--text);line-height:1.8;white-space:pre-wrap;}
+  color:var(--ink);margin-bottom:12px;line-height:1.3;}
+.step-content{font-size:.92rem;color:var(--charcoal);line-height:1.75;white-space:pre-wrap;}
 
-.notice-box{background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.25);border-left:3px solid var(--red);border-radius:12px;padding:11px 14px;display:flex;align-items:flex-start;gap:8px;margin-top:12px;}
-.notice-box p{font-size:.82rem;color:var(--text);line-height:1.6;}
-.notice-box b{color:var(--red);font-weight:700;}
+.notice-box{
+  background:#FFF0F0;border:1.5px solid var(--coral);border-left:4px solid var(--coral);
+  border-radius:var(--radius-sm);padding:11px 14px;display:flex;align-items:flex-start;gap:8px;margin-top:14px;
+}
+.notice-box p{font-size:.84rem;color:#7A1616;line-height:1.6;font-weight:600;}
+.notice-box b{color:#C62828;font-weight:800;}
 
 /* STEP INDICATOR */
 .step-indicator{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
-.step-indicator-bar{flex:1;height:5px;background:var(--border);border-radius:99px;overflow:hidden;}
-.step-indicator-fill{height:100%;background:linear-gradient(90deg,var(--p1),var(--p2));border-radius:99px;transition:width .4s ease;}
-.step-indicator-label{font-size:.72rem;font-weight:800;color:var(--p1);white-space:nowrap;background:rgba(0,240,255,.08);border:1px solid rgba(0,240,255,.2);border-radius:20px;padding:3px 11px;font-family:'Space Grotesk',sans-serif;}
+.step-indicator-bar{flex:1;height:8px;background:var(--bg-warm);border:1.5px solid var(--ink);border-radius:99px;overflow:hidden;}
+.step-indicator-fill{height:100%;background:var(--gold);border-radius:99px;transition:width .4s ease;}
+.step-indicator-label{
+  font-size:.74rem;font-weight:900;color:var(--ink);white-space:nowrap;
+  background:var(--bg-warm);border:1.5px solid var(--ink);border-radius:99px;
+  padding:3px 12px;font-family:'Space Grotesk',sans-serif;box-shadow:1px 1px 0 var(--ink);
+}
 
 /* USERNAME STEP */
-.field-label-u{display:block;font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;}
-.username-input{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;
-  padding:13px 16px;color:var(--p1);font-family:'Be Vietnam Pro',sans-serif;
-  font-size:1rem;font-weight:700;outline:none;transition:border-color .2s,box-shadow .2s;margin-bottom:16px;}
+.field-label-u{display:block;font-size:.76rem;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:.04em;margin-bottom:7px;}
+.username-input{
+  width:100%;background:#FFFFFF;border:var(--border-ink);border-radius:var(--radius-sm);
+  padding:13px 16px;color:var(--ink);font-family:'Be Vietnam Pro',sans-serif;
+  font-size:1rem;font-weight:700;outline:none;transition:all .15s ease;margin-bottom:16px;
+}
 .username-input::placeholder{color:var(--muted);font-weight:500;}
-.username-input:focus{border-color:var(--p1);box-shadow:0 0 0 3px rgba(0,240,255,.2);}
+.username-input:focus{border-color:var(--ink);box-shadow:0 0 0 3px var(--gold);}
 
 .username-img-placeholder{
-  width:100%;max-width:220px;aspect-ratio:1/1;margin:0 auto;border-radius:16px;
-  background:linear-gradient(150deg,#0a1526,#07090e);
-  border:1.5px solid var(--border);
+  width:100%;max-width:220px;aspect-ratio:1/1;margin:0 auto;border-radius:var(--radius);
+  background:var(--bg-warm);border:var(--border-ink);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-  box-shadow:0 0 20px rgba(0,240,255,.12);
-  position:relative;overflow:hidden;
+  box-shadow:var(--shadow-sm);position:relative;overflow:hidden;
 }
 .username-img-placeholder img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;}
 .img-ph-fallback{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;position:relative;z-index:1;}
-.img-ph-icon{font-size:2.2rem;opacity:.5;}
-.img-ph-text{font-size:.74rem;color:rgba(255,255,255,.45);text-align:center;line-height:1.5;font-weight:600;padding:0 16px;}
-.img-caption{text-align:center;font-size:.8rem;color:var(--muted);line-height:1.6;margin:12px 0 18px;font-weight:600;}
-.img-caption b{color:var(--p1);}
+.img-ph-icon{font-size:2.2rem;opacity:.6;}
+.img-ph-text{font-size:.76rem;color:var(--charcoal);text-align:center;line-height:1.5;font-weight:700;padding:0 16px;}
+.img-caption{text-align:center;font-size:.82rem;color:var(--charcoal);line-height:1.6;margin:12px 0 18px;font-weight:600;}
+.img-caption b{color:var(--ink);}
 
 /* VIDEO */
 .video-wrap{margin:16px 0 0;}
-.video-shell{position:relative;width:100%;max-width:280px;margin:0 auto;border-radius:16px;overflow:hidden;border:1.5px solid var(--border);box-shadow:0 0 24px rgba(0,240,255,.15);background:#07090e;}
+.video-shell{
+  position:relative;width:100%;max-width:280px;margin:0 auto;border-radius:var(--radius);
+  overflow:hidden;border:var(--border-ink);box-shadow:var(--shadow-base);background:#000;
+}
 .video-shell::before{content:'';display:block;padding-top:177.78%;}
 .video-shell iframe,.video-shell video{position:absolute;inset:0;width:100%;height:100%;border:none;}
 .video-shell video{object-fit:contain;background:#000;}
-.btn-download{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:none;border-radius:14px;margin-top:16px;background:linear-gradient(135deg,var(--p1),var(--p2));color:#07090e;font-family:'Space Grotesk',sans-serif;font-size:.92rem;font-weight:900;letter-spacing:.02em;cursor:pointer;text-decoration:none;box-shadow:0 0 20px rgba(0,240,255,0.25);transition:all .18s;}
-.btn-download:hover{opacity:.92;box-shadow:0 0 28px rgba(0,240,255,0.4);}
-.btn-download:active{transform:translateY(2px);}
-.btn-inject-gold{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:none;border-radius:14px;margin-top:14px;background:linear-gradient(135deg,var(--p1),var(--p2));color:#07090e;font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:900;letter-spacing:.02em;cursor:pointer;text-decoration:none;box-shadow:0 0 20px rgba(0,240,255,0.25);transition:all .18s;}
-.btn-inject-gold:hover{filter:brightness(1.05);}
-.btn-inject-gold:active{transform:translateY(2px);}
-.btn-inject-gold:disabled{background:rgba(15,23,42,0.8);color:var(--muted);border:1px solid var(--border);box-shadow:none;cursor:not-allowed;}
-.btn-link{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border:1.5px solid var(--border);border-radius:14px;margin-top:12px;background:rgba(15,23,42,0.6);color:var(--p1);font-family:'Space Grotesk',sans-serif;font-size:.9rem;font-weight:900;letter-spacing:.02em;cursor:pointer;text-decoration:none;transition:all .18s;}
-.btn-link:hover{border-color:var(--p1);background:rgba(0,240,255,0.08);box-shadow:0 0 14px rgba(0,240,255,0.2);}
+
+.btn-download, .btn-inject-gold{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;
+  border:var(--border-ink);border-radius:var(--radius-sm);margin-top:16px;
+  background:var(--gold);color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.95rem;
+  font-weight:900;letter-spacing:.02em;cursor:pointer;text-decoration:none;
+  box-shadow:var(--shadow-base);transition:all .15s ease;
+}
+.btn-download:hover, .btn-inject-gold:hover{
+  background:var(--gold-hover);box-shadow:5px 5px 0 #1A1A1A;transform:translate(-1px,-1px);
+}
+.btn-download:active, .btn-inject-gold:active{
+  transform:translate(2px,2px);box-shadow:var(--shadow-active);
+}
+.btn-inject-gold:disabled{
+  background:var(--bg-warm);color:var(--muted);box-shadow:none;cursor:not-allowed;transform:none;
+}
+.btn-link{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;
+  border:var(--border-ink);border-radius:var(--radius-sm);margin-top:12px;
+  background:var(--bg-warm);color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.9rem;
+  font-weight:900;letter-spacing:.02em;cursor:pointer;text-decoration:none;
+  box-shadow:var(--shadow-sm);transition:all .15s ease;
+}
+.btn-link:hover{background:#FFFFFF;box-shadow:var(--shadow-base);transform:translate(-1px,-1px);}
+.btn-link:active{transform:translate(2px,2px);box-shadow:var(--shadow-active);}
 
 /* APPSTORE / IPA COPY CARD */
 .acct-copy-wrap{margin:16px 0 8px;}
-.acct-copy-label{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;}
-.acct-copy-card{display:flex;align-items:center;justify-content:space-between;gap:10px;
-  background:rgba(15,23,42,0.8);border:1.5px solid var(--border);border-radius:13px;
-  padding:12px 15px;cursor:pointer;transition:background .18s,border-color .18s;user-select:none;}
-.acct-copy-card:active{background:rgba(0,240,255,0.08);}
-.acct-copy-card.copied{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.35);}
-.acct-copy-value{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:1rem;color:var(--p1);word-break:break-all;}
-.acct-copy-badge{flex-shrink:0;font-size:.72rem;font-weight:900;padding:4px 10px;border-radius:20px;
-  background:rgba(0,240,255,.12);border:1px solid rgba(0,240,255,.25);color:var(--p1);font-family:'Space Grotesk',sans-serif;transition:all .18s;white-space:nowrap;}
-.acct-copy-card.copied .acct-copy-badge{background:rgba(16,185,129,.18);border-color:rgba(16,185,129,.4);color:#10b981;}
-.acct-copy-hint{font-size:.72rem;color:var(--muted);margin-top:5px;text-align:center;}
-.video-caption{text-align:center;font-size:.8rem;color:var(--muted);line-height:1.5;margin:10px 0 4px;font-weight:600;}
-.video-caption b{color:var(--p1);}
+.acct-copy-label{font-size:.74rem;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.acct-copy-card{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:#FFFFFF;border:var(--border-ink);border-radius:var(--radius-sm);
+  padding:12px 14px;cursor:pointer;transition:all .15s ease;user-select:none;
+  box-shadow:var(--shadow-sm);
+}
+.acct-copy-card:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow-base);}
+.acct-copy-card:active{transform:translate(2px,2px);box-shadow:var(--shadow-active);}
+.acct-copy-card.copied{background:#F0FFF0;border-color:var(--green);}
+.acct-copy-value{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:1.05rem;color:var(--ink);word-break:break-all;}
+.acct-copy-badge{
+  flex-shrink:0;font-size:.74rem;font-weight:900;padding:4px 10px;border-radius:6px;
+  background:var(--gold);border:1.5px solid var(--ink);color:var(--ink);
+  font-family:'Space Grotesk',sans-serif;transition:all .15s ease;white-space:nowrap;
+  box-shadow:1px 1px 0 var(--ink);
+}
+.acct-copy-card.copied .acct-copy-badge{background:var(--green);color:#FFFFFF;border-color:var(--ink);}
+.acct-copy-hint{font-size:.76rem;color:var(--muted);margin-top:6px;text-align:center;font-weight:600;}
+.video-caption{text-align:center;font-size:.82rem;color:var(--charcoal);line-height:1.5;margin:10px 0 4px;font-weight:600;}
+.video-caption b{color:var(--ink);}
 
 /* NAV BAR */
 .nav-bar{
   position:fixed;bottom:0;left:50%;transform:translateX(-50%);z-index:20;
-  background:rgba(15,23,42,0.96);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-  border-top:1.5px solid var(--border);
+  background:#FFFFFF;border-top:var(--border-ink);
   padding:7px 16px 10px;
   display:flex;flex-direction:column;gap:5px;
   width:100%;max-width:580px;
-  border-radius:18px 18px 0 0;
-  box-shadow:0 -4px 24px rgba(0,240,255,0.14);
+  border-radius:14px 14px 0 0;
+  box-shadow:0 -4px 0 rgba(26,26,26,0.1);
 }
 @media(max-width:640px){
   .nav-bar{left:0;transform:none;max-width:100%;border-radius:0;padding:6px 12px 9px;gap:4px;}
 }
 .nav-hint{
   text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  font-family:'Space Grotesk',sans-serif;font-size:.68rem;font-weight:800;color:var(--p1);letter-spacing:.02em;
-  background:rgba(0,240,255,0.06);
-  border:1px solid rgba(0,240,255,0.2);
-  border-radius:10px;padding:4px 10px;line-height:1.3;
-  animation:hintPop .4s cubic-bezier(.34,1.56,.64,1) both;
+  font-family:'Space Grotesk',sans-serif;font-size:.72rem;font-weight:800;color:var(--ink);letter-spacing:.02em;
+  background:var(--bg-warm);border:1.5px solid var(--ink);
+  border-radius:var(--radius-sm);padding:4px 10px;line-height:1.3;
+  box-shadow:1px 1px 0 var(--ink);
 }
-.nav-hint .hint-arrow{display:inline-block;animation:hintBounce 1.2s ease-in-out infinite;}
-@keyframes hintBounce{0%,100%{transform:translateY(0);}50%{transform:translateY(2px);}}
-@keyframes hintPop{from{opacity:0;transform:scale(.92);}to{opacity:1;transform:scale(1);}}
 .nav-hint.hint-complete{
-  background:rgba(16,185,129,0.12);
-  border-color:rgba(16,185,129,0.35);color:var(--green);
-  font-size:.68rem;
+  background:#F0FFF0;border-color:var(--green);color:#2E7D32;
 }
 
 .nav-btns{display:flex;align-items:center;gap:6px;}
 .btn-nav{
-  flex:1;padding:12px 16px;border-radius:12px;
-  font-family:'Space Grotesk',sans-serif;font-size:.92rem;font-weight:900;letter-spacing:.02em;
-  cursor:pointer;transition:all .18s;border:none;
+  flex:1;padding:12px 16px;border-radius:var(--radius-sm);
+  font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:900;letter-spacing:.02em;
+  cursor:pointer;transition:all .15s ease;border:var(--border-ink);
 }
 .btn-complete{
-  background:linear-gradient(135deg,var(--p1),var(--p2));color:#07090e;
-  box-shadow:0 0 20px rgba(0,240,255,0.3);font-size:.92rem;font-weight:900;
-  animation:navPulseCyber 1.8s ease-in-out infinite;
-  border:none;letter-spacing:.02em;
+  background:var(--gold);color:var(--ink);
+  box-shadow:var(--shadow-base);font-size:.95rem;font-weight:900;
+  border:var(--border-ink);letter-spacing:.02em;
 }
-@keyframes navPulseCyber{
-  0%,100%{box-shadow:0 0 20px rgba(0,240,255,0.3);}
-  50%{box-shadow:0 0 32px rgba(0,240,255,0.55), 0 0 14px rgba(139,92,246,0.4);}
-}
-.btn-complete:hover{opacity:.95;}
-.btn-complete:active{transform:translateY(2px);box-shadow:0 0 14px rgba(0,240,255,0.3);animation:none;}
-.btn-complete:disabled{animation:none;background:rgba(15,23,42,0.8);color:var(--muted);border:1px solid var(--border);box-shadow:none;opacity:.45;cursor:not-allowed;}
-
-/* PC layout */
-@media(min-width:640px){
-  .topbar{padding:10px 24px;}
-  .guide-content{padding:calc(var(--topbar-h,52px) + 16px) 20px calc(var(--navbar-h,72px) + 20px);max-width:620px;}
-  .step-card{padding:26px 26px;}
-  .entry-box{padding:36px 32px;}
-  .video-shell{max-width:300px;}
-  .nav-bar{padding:6px 18px 8px;gap:5px;}
-  .btn-nav{padding:10px 16px;font-size:.88rem;}
-  .nav-hint{font-size:.7rem;padding:4px 14px;}
-}
+.btn-complete:hover{background:var(--gold-hover);box-shadow:5px 5px 0 #1A1A1A;transform:translate(-1px,-1px);}
+.btn-complete:active{transform:translate(2px,2px);box-shadow:var(--shadow-active);}
+.btn-complete:disabled{background:var(--bg-warm);color:var(--muted);box-shadow:none;opacity:.5;cursor:not-allowed;transform:none;}
 
 /* TOAST */
 .toast{
   position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);
-  background:var(--p1);color:#07090e;border-radius:30px;
-  padding:10px 22px;font-size:.82rem;font-weight:800;font-family:'Space Grotesk',sans-serif;
-  opacity:0;transition:.3s;pointer-events:none;z-index:50;white-space:nowrap;box-shadow:0 0 20px rgba(0,240,255,0.35);
+  background:var(--gold);color:var(--ink);border:var(--border-ink);border-radius:var(--radius-sm);
+  padding:10px 22px;font-size:.85rem;font-weight:800;font-family:'Space Grotesk',sans-serif;
+  opacity:0;transition:.3s;pointer-events:none;z-index:50;white-space:nowrap;box-shadow:var(--shadow-base);
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
 /* CONFIRM MODAL */
 .confirm-overlay{
   display:none;position:fixed;inset:0;z-index:60;
-  background:rgba(7,9,14,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  background:rgba(26,26,26,0.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
   align-items:center;justify-content:center;padding:24px;
 }
 .confirm-overlay.show{display:flex;}
 .confirm-box{
-  background:var(--card);border-radius:20px;padding:28px 24px;
+  background:var(--card);border-radius:var(--radius-lg);padding:28px 24px;
   width:100%;max-width:340px;text-align:center;
-  border:1.5px solid var(--border);
-  box-shadow:0 0 40px rgba(0,240,255,0.2);
+  border:2.5px solid var(--ink);
+  box-shadow:6px 6px 0 var(--ink);
   animation:popIn .35s cubic-bezier(.34,1.56,.64,1) both;
 }
 .confirm-icon{font-size:2.8rem;margin-bottom:12px;}
-.confirm-title{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.15rem;color:var(--text);margin-bottom:8px;}
-.confirm-sub{font-size:.82rem;color:var(--muted);line-height:1.65;margin-bottom:20px;}
+.confirm-title{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.25rem;color:var(--ink);margin-bottom:8px;}
+.confirm-sub{font-size:.86rem;color:var(--charcoal);line-height:1.65;margin-bottom:20px;}
 .confirm-btns{display:flex;gap:10px;}
 .confirm-cancel{
-  flex:1;padding:12px;border-radius:12px;border:1.5px solid var(--border);
-  background:rgba(15,23,42,0.7);color:var(--muted);font-family:'Space Grotesk',sans-serif;
-  font-size:.88rem;font-weight:900;cursor:pointer;transition:all .18s;
+  flex:1;padding:12px;border-radius:var(--radius-sm);border:var(--border-ink);
+  background:var(--bg-warm);color:var(--charcoal);font-family:'Space Grotesk',sans-serif;
+  font-size:.88rem;font-weight:900;cursor:pointer;transition:all .15s ease;
+  box-shadow:var(--shadow-sm);
 }
-.confirm-cancel:hover{border-color:var(--red);color:var(--red);}
+.confirm-cancel:hover{background:#FFFFFF;}
 .confirm-ok{
-  flex:2;padding:12px;border-radius:12px;border:none;
-  background:linear-gradient(135deg,var(--p1),var(--p2));color:#07090e;
+  flex:2;padding:12px;border-radius:var(--radius-sm);border:var(--border-ink);
+  background:var(--gold);color:var(--ink);
   font-family:'Space Grotesk',sans-serif;font-size:.9rem;font-weight:900;
-  cursor:pointer;transition:all .18s;
-  box-shadow:0 0 18px rgba(0,240,255,0.3);
+  cursor:pointer;transition:all .15s ease;
+  box-shadow:var(--shadow-sm);
 }
-.confirm-ok:hover{opacity:.92;box-shadow:0 0 24px rgba(0,240,255,0.45);}
-.confirm-ok:active{transform:translateY(2px);}
+.confirm-ok:hover{background:var(--gold-hover);box-shadow:var(--shadow-base);transform:translate(-1px,-1px);}
+.confirm-ok:active{transform:translate(2px,2px);box-shadow:var(--shadow-active);}
 
 @media(max-width:640px){
   .entry-box{padding:28px 20px;}
   .step-card{padding:20px 16px;}
-  /* CHỈ đổi padding ngang. Trước đây block này set cả 4 chiều (74px/125px) và vì nằm
-     sau nên ghi đè padding dọc động ở trên — máy bé lại bị chừa dư đúng như cũ.
-     Chiều dọc luôn để --topbar-h/--navbar-h quyết định. */
   .guide-content{padding-left:12px;padding-right:12px;}
 }
 </style>
 
 <!-- PWA & iOS Home Screen Support -->
-<meta name="theme-color" content="#f5f4ff" />
+<meta name="theme-color" content="#FDF6E3" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Locket Vxang" />
@@ -394,41 +401,39 @@ window.addEventListener('DOMContentLoaded', () => {
 </script>
 </head>
 <body>
-<div class="bg-dots"></div>
-<div class="bg-decos"><span>✨</span><span>💫</span><span>⭐</span><span>🌟</span></div>
 
 <!-- ENTRY SCREEN -->
 <div class="screen" id="entryScreen">
   <div class="entry-box">
     <a href="/" class="back-link">← Quay về trang chủ</a>
-    <div class="entry-brand">📖 Guide Locket Gold</div>
+    <div class="entry-brand">📓 Guide <span>Locket Gold</span></div>
     <div class="entry-sub">Nhập mã do Vxang cấp sau khi thanh toán.<br>Mã có hiệu lực 30 phút kể từ khi xác thực.</div>
     <label class="field-label">Mã truy cập</label>
     <input type="text" class="field-input" id="codeInput" placeholder="VD: XW-A3K7P2" maxlength="20"
       oninput="this.value=this.value.toUpperCase()"
       onkeydown="if(event.key==='Enter')enterGuide()"/>
     <div class="err-msg" id="errMsg"></div>
-    <button class="btn-primary" id="enterBtn" onclick="enterGuide()">→ Xác thực &amp; Vào Guide</button>
+    <button class="btn-primary" id="enterBtn" onclick="enterGuide()">Xác thực &amp; Vào Guide ➔</button>
   </div>
 </div>
 
 <!-- IN-APP BROWSER BLOCKING MODAL -->
-<div id="inappBlockModal" style="display:none;position:fixed;inset:0;z-index:999999;background:rgba(7,9,14,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:20px;overflow-y:auto;align-items:center;justify-content:center;">
-  <div style="max-width:400px;width:100%;background:#0f172a;border-radius:24px;padding:28px 22px;box-shadow:0 20px 60px rgba(0,0,0,.85), 0 0 35px rgba(0,240,255,.18);text-align:center;border:1.5px solid rgba(0,240,255,.3);animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both;color:#f8fafc;">
-    <div style="font-size:44px;margin-bottom:10px;filter:drop-shadow(0 0 14px rgba(0,240,255,.4));">🧭</div>
-    <div style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.3rem;color:#00f0ff;margin-bottom:12px;line-height:1.35;letter-spacing:-0.01em;text-shadow:0 0 16px rgba(0,240,255,.3);" id="inappTitle">Bắt Buộc Mở Bằng Safari</div>
+<div id="inappBlockModal" style="display:none;position:fixed;inset:0;z-index:999999;background:rgba(26,26,26,.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);padding:20px;overflow-y:auto;align-items:center;justify-content:center;">
+  <div style="max-width:400px;width:100%;background:#FFFFFF;border-radius:14px;padding:28px 22px;box-shadow:6px 6px 0 #1A1A1A;text-align:center;border:2.5px solid #1A1A1A;animation:popIn .35s cubic-bezier(.34,1.56,.64,1) both;color:#1A1A1A;">
+    <div style="font-size:44px;margin-bottom:10px;">🧭</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.3rem;color:#1A1A1A;margin-bottom:12px;line-height:1.35;letter-spacing:-0.01em;" id="inappTitle">Bắt Buộc Mở Bằng Safari</div>
     
-    <div style="background:rgba(239,68,68,.12);border:1.5px solid rgba(239,68,68,.35);border-radius:14px;padding:12px 14px;margin-bottom:14px;text-align:left;font-size:.84rem;color:#fca5a5;line-height:1.55;font-weight:600;" id="inappMsg">
-      ⛔ <b style="color:#fecaca;">Trình duyệt ứng dụng này (Zalo/Messenger/FB) không thể tải cấu hình Locket Gold</b>. Bạn bắt buộc phải chuyển sang ứng dụng <b style="color:#fff;">Safari</b> của iPhone!
+    <div style="background:#FFF0F0;border:1.5px solid #FF6B6B;border-radius:10px;padding:12px 14px;margin-bottom:14px;text-align:left;font-size:.86rem;color:#C62828;line-height:1.55;font-weight:600;" id="inappMsg">
+      ⛔ <b>Trình duyệt ứng dụng này (Zalo/Messenger/FB) không thể tải cấu hình Locket Gold</b>. Bạn bắt buộc phải chuyển sang ứng dụng <b>Safari</b> của iPhone!
     </div>
 
-    <div style="background:rgba(0,240,255,.05);border:1px solid rgba(0,240,255,.15);border-radius:16px;padding:14px 16px;text-align:left;font-size:.84rem;color:#cbd5e1;line-height:1.65;font-weight:500;margin-bottom:18px;" id="inappGuide">
-      <div style="font-weight:800;color:#00f0ff;margin-bottom:6px;font-family:'Space Grotesk',sans-serif;">👉 Cách mở trên Safari:</div>
-      <div><b>Cách 1:</b> Bấm dấu <b style="color:#fff;">(•••)</b> ở góc màn hình ➔ Chọn <b style="color:#00f0ff;">"Mở bằng trình duyệt" (Safari)</b>.</div>
-      <div style="margin-top:6px;"><b>Cách 2:</b> Bấm nút sao chép bên dưới ➔ Mở ứng dụng <b style="color:#fff;">Safari</b> trên iPhone và dán link vào.</div>
+    <div style="background:#F5ECD7;border:1.5px solid #1A1A1A;border-radius:10px;padding:14px 16px;text-align:left;font-size:.84rem;color:#1A1A1A;line-height:1.65;font-weight:500;margin-bottom:18px;box-shadow:2px 2px 0 #1A1A1A;" id="inappGuide">
+      <div style="font-weight:800;color:#1A1A1A;margin-bottom:6px;font-family:'Space Grotesk',sans-serif;">👉 Cách mở trên Safari:</div>
+      <div><b>Cách 1:</b> Bấm dấu <b>(•••)</b> ở góc màn hình ➔ Chọn <b>"Mở bằng trình duyệt" (Safari)</b>.</div>
+      <div style="margin-top:6px;"><b>Cách 2:</b> Bấm nút sao chép bên dưới ➔ Mở ứng dụng <b>Safari</b> trên iPhone và dán link vào.</div>
     </div>
 
-    <button id="btnCopyInapp" onclick="copyCurrentUrl(this)" style="width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#00f0ff,#8b5cf6);color:#030712;font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.92rem;cursor:pointer;box-shadow:0 0 20px rgba(0,240,255,.3);transition:all .18s;letter-spacing:.02em;">
+    <button id="btnCopyInapp" onclick="copyCurrentUrl(this)" style="width:100%;padding:14px;border:2px solid #1A1A1A;border-radius:10px;background:#F5C842;color:#1A1A1A;font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.92rem;cursor:pointer;box-shadow:3px 3px 0 #1A1A1A;transition:all .15s;letter-spacing:.02em;">
       📋 Sao chép liên kết để mở Safari
     </button>
   </div>
@@ -443,27 +448,27 @@ window.addEventListener('DOMContentLoaded', () => {
 <div class="screen hidden" id="completeScreen">
   <div class="complete-wrap">
 
-    <!-- Hero: Cài đặt hoàn tất — Dark Tech Cyberpunk -->
-    <div style="margin:0 0 14px;background:linear-gradient(150deg,#0a1526 0%,#0f172a 60%,#1e1b4b 100%);border:1.5px solid var(--border);border-top:none;border-radius:0 0 22px 22px;padding:22px 20px 18px;text-align:center;box-shadow:0 0 35px rgba(0,240,255,.2);">
+    <!-- Hero: Cài đặt hoàn tất — Retro Stationery -->
+    <div style="margin:0 0 14px;background:var(--bg-warm);border:var(--border-ink);border-top:none;border-radius:0 0 16px 16px;padding:22px 20px 18px;text-align:center;box-shadow:var(--shadow-base);">
       <div style="font-size:36px;display:inline-block;margin-bottom:6px;animation:bounce .6s ease">⚡</div>
-      <div style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.35rem;color:#fff;margin-bottom:4px;letter-spacing:.02em">Cài đặt hoàn tất</div>
-      <div style="font-size:.78rem;color:var(--muted);line-height:1.6;margin-bottom:12px">Trong quá trình sử dụng, Vxang hỗ trợ <b style="color:var(--p1)">cài lại và bảo hành thiết bị</b>. 🚀</div>
-      <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(0,240,255,.12);border:1.5px solid rgba(0,240,255,.3);border-radius:20px;padding:6px 16px;">
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.35rem;color:var(--ink);margin-bottom:4px;letter-spacing:.02em">Cài đặt hoàn tất</div>
+      <div style="font-size:.82rem;color:var(--charcoal);line-height:1.6;margin-bottom:12px">Trong quá trình sử dụng, Vxang hỗ trợ <b>cài lại và bảo hành thiết bị</b>. 🚀</div>
+      <div style="display:inline-flex;align-items:center;gap:7px;background:var(--gold);border:1.5px solid var(--ink);border-radius:20px;padding:6px 16px;box-shadow:2px 2px 0 var(--ink);">
         <span style="font-size:.95rem">🎉</span>
-        <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.84rem;color:var(--p1)">KÍCH HOẠT THÀNH CÔNG!</span>
+        <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.84rem;color:var(--ink)">KÍCH HOẠT THÀNH CÔNG!</span>
       </div>
     </div>
 
     <!-- Subtitle -->
-    <div style="text-align:center;font-size:.78rem;color:var(--muted);font-weight:700;margin-bottom:12px;padding:0 16px">Còn <b style="color:var(--p1)">3 bước nhỏ</b> bên dưới để kết nối &amp; nhận hỗ trợ 👇</div>
+    <div style="text-align:center;font-size:.82rem;color:var(--charcoal);font-weight:700;margin-bottom:12px;padding:0 16px">Còn <b>3 bước nhỏ</b> bên dưới để kết nối &amp; nhận hỗ trợ 👇</div>
 
     <!-- Progress -->
     <div style="padding:0 16px 12px">
-      <div style="display:flex;justify-content:space-between;font-size:.72rem;font-weight:800;color:var(--muted);margin-bottom:6px;font-family:'Space Grotesk',sans-serif;">
-        <span>TIẾN TRÌNH</span><span id="cProgressTxt" style="color:var(--p1)">0 / 3 bước</span>
+      <div style="display:flex;justify-content:space-between;font-size:.76rem;font-weight:900;color:var(--ink);margin-bottom:6px;font-family:'Space Grotesk',sans-serif;">
+        <span>TIẾN TRÌNH</span><span id="cProgressTxt" style="color:var(--ink);background:var(--bg-warm);padding:2px 8px;border-radius:4px;border:1px solid var(--ink)">0 / 3 bước</span>
       </div>
-      <div style="height:5px;background:rgba(0,240,255,.1);border-radius:99px;overflow:hidden">
-        <div id="cProgressFill" style="height:100%;width:0%;background:linear-gradient(90deg,var(--p1),var(--p2));border-radius:99px;transition:width .5s ease"></div>
+      <div style="height:8px;background:var(--bg-warm);border:1.5px solid var(--ink);border-radius:99px;overflow:hidden">
+        <div id="cProgressFill" style="height:100%;width:0%;background:var(--gold);border-radius:99px;transition:width .5s ease"></div>
       </div>
     </div>
 
@@ -471,55 +476,55 @@ window.addEventListener('DOMContentLoaded', () => {
     <div style="padding:0 16px">
 
       <!-- Step 1: Liên hệ Zalo để lên Gold -->
-      <div id="cCard1" style="background:var(--card);border:1.5px solid var(--p1);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:0 0 18px rgba(0,240,255,.15);transition:all .25s">
+      <div id="cCard1" style="background:#FFFFFF;border:var(--border-ink);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow-sm);transition:all .25s">
         <div style="display:flex;gap:10px;align-items:flex-start">
-          <div id="cBadge1" style="width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:900;background:linear-gradient(135deg,var(--p1),var(--p2));color:#07090e;margin-top:1px">1</div>
+          <div id="cBadge1" style="width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:900;background:var(--gold);color:var(--ink);border:1.5px solid var(--ink);margin-top:1px">1</div>
           <div style="flex:1">
-            <div id="cTitle1" style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.92rem;color:var(--text);margin-bottom:3px">💬 Liên hệ Vxang để lên Gold</div>
-            <div id="cDesc1" style="font-size:.78rem;color:var(--muted);line-height:1.55">Nhắn Zalo cho Vxang để được hỗ trợ kiểm tra gói Gold. <b style="color:var(--p1)">Quan trọng!</b></div>
+            <div id="cTitle1" style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.92rem;color:var(--ink);margin-bottom:3px">💬 Liên hệ Vxang để lên Gold</div>
+            <div id="cDesc1" style="font-size:.8rem;color:var(--charcoal);line-height:1.55">Nhắn Zalo cho Vxang để được hỗ trợ kiểm tra gói Gold. <b>Quan trọng!</b></div>
           </div>
         </div>
-        <button id="cBtn1" onclick="cGoZaloGold()" style="width:100%;margin-top:12px;padding:12px;border-radius:12px;font-family:'Space Grotesk',sans-serif;font-size:.85rem;font-weight:900;cursor:pointer;transition:all .18s;background:rgba(0,240,255,.08);color:var(--p1);border:1.5px solid var(--p1);box-shadow:0 0 14px rgba(0,240,255,.2)">💬 Liên hệ Zalo ngay</button>
+        <button id="cBtn1" onclick="cGoZaloGold()" style="width:100%;margin-top:12px;padding:12px;border-radius:var(--radius-sm);font-family:'Space Grotesk',sans-serif;font-size:.88rem;font-weight:900;cursor:pointer;transition:all .15s ease;background:var(--gold);color:var(--ink);border:var(--border-ink);box-shadow:var(--shadow-sm)">💬 Liên hệ Zalo ngay ➔</button>
       </div>
 
       <!-- Step 2: Kết bạn Locket -->
-      <div id="cCard2" style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;transition:all .25s">
+      <div id="cCard2" style="background:#FFFFFF;border:var(--border-ink);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow-sm);transition:all .25s">
         <div style="display:flex;gap:10px;align-items:flex-start">
-          <div id="cBadge2" style="width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:900;background:linear-gradient(135deg,var(--p1),var(--p2));color:#07090e;margin-top:1px">2</div>
+          <div id="cBadge2" style="width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:900;background:var(--bg-warm);color:var(--ink);border:1.5px solid var(--ink);margin-top:1px">2</div>
           <div style="flex:1">
-            <div style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.92rem;color:var(--text);margin-bottom:3px">🤝 Kết bạn Locket @vxang1</div>
-            <div style="font-size:.78rem;color:var(--muted);line-height:1.55">Add shop để nhận thông báo và dễ liên hệ hỗ trợ hơn.</div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.92rem;color:var(--ink);margin-bottom:3px">🤝 Kết bạn Locket @vxang1</div>
+            <div style="font-size:.8rem;color:var(--charcoal);line-height:1.55">Add shop để nhận thông báo và dễ liên hệ hỗ trợ hơn.</div>
           </div>
         </div>
-        <button id="cBtn2" onclick="cGoLocket()" style="width:100%;margin-top:12px;padding:12px;border-radius:12px;font-family:'Space Grotesk',sans-serif;font-size:.85rem;font-weight:900;cursor:pointer;transition:all .18s;background:rgba(239,68,68,.1);color:#f87171;border:1.5px solid rgba(239,68,68,.35)">Kết bạn @vxang1 →</button>
+        <button id="cBtn2" onclick="cGoLocket()" style="width:100%;margin-top:12px;padding:12px;border-radius:var(--radius-sm);font-family:'Space Grotesk',sans-serif;font-size:.88rem;font-weight:900;cursor:pointer;transition:all .15s ease;background:var(--bg-warm);color:var(--ink);border:var(--border-ink);box-shadow:var(--shadow-sm)">Kết bạn @vxang1 ➔</button>
       </div>
 
-      <!-- Step 3: Nhóm Zalo — Dark Cyberpunk Card -->
-      <div id="cCard3" style="background:var(--card);border:1.5px solid rgba(0,240,255,.35);border-radius:var(--radius);padding:16px;margin-bottom:16px;box-shadow:0 0 20px rgba(0,240,255,.1);transition:all .25s">
+      <!-- Step 3: Nhóm Zalo -->
+      <div id="cCard3" style="background:#FFFFFF;border:var(--border-ink);border-radius:var(--radius);padding:16px;margin-bottom:16px;box-shadow:var(--shadow-sm);transition:all .25s">
         <div style="display:flex;gap:10px;align-items:flex-start">
-          <div id="cBadge3" style="width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:900;background:linear-gradient(135deg,var(--p1),var(--p2));color:#07090e;margin-top:1px">3</div>
+          <div id="cBadge3" style="width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:900;background:var(--coral);color:#FFFFFF;border:1.5px solid var(--ink);margin-top:1px">3</div>
           <div style="flex:1">
-            <div style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.92rem;color:var(--text);margin-bottom:3px">📣 Vào nhóm thông báo Locket_Vxang <span style="font-size:.68rem;font-weight:900;color:var(--p1);background:rgba(0,240,255,.15);border:1px solid rgba(0,240,255,.3);border-radius:6px;padding:1px 7px;vertical-align:middle;white-space:nowrap;">ĐỪNG BỎ QUA</span></div>
-            <div style="font-size:.78rem;color:var(--muted);line-height:1.55">Nhận cập nhật sớm nhất — ưu đãi, icon sự kiện, bản vá lỗi. Có lỗi Locket là nhóm báo trước tiên.</div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.92rem;color:var(--ink);margin-bottom:3px">📣 Vào nhóm thông báo Locket_Vxang <span style="font-size:.68rem;font-weight:900;color:var(--ink);background:var(--gold);border:1px solid var(--ink);border-radius:4px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">ĐỪNG BỎ QUA</span></div>
+            <div style="font-size:.8rem;color:var(--charcoal);line-height:1.55">Nhận cập nhật sớm nhất — ưu đãi, icon sự kiện, bản vá lỗi. Có lỗi Locket là nhóm báo trước tiên.</div>
           </div>
         </div>
-        <button id="cBtn3" onclick="cGoZalo()" style="width:100%;margin-top:12px;padding:12px;border-radius:12px;font-family:'Space Grotesk',sans-serif;font-size:.88rem;font-weight:900;cursor:pointer;transition:all .18s;background:linear-gradient(135deg,var(--p1),var(--p2));color:#07090e;border:none;box-shadow:0 0 20px rgba(0,240,255,.25)">📣 Vào nhóm thông báo →</button>
+        <button id="cBtn3" onclick="cGoZalo()" style="width:100%;margin-top:12px;padding:12px;border-radius:var(--radius-sm);font-family:'Space Grotesk',sans-serif;font-size:.88rem;font-weight:900;cursor:pointer;transition:all .15s ease;background:var(--gold);color:var(--ink);border:var(--border-ink);box-shadow:var(--shadow-sm)">📣 Vào nhóm thông báo ➔</button>
       </div>
 
     </div>
 
     <div style="text-align:center;padding:0 16px 28px">
-      <a href="/" style="display:inline-block;padding:12px 28px;border-radius:14px;background:rgba(15,23,42,.8);border:1.5px solid var(--border);color:var(--muted);font-family:'Space Grotesk',sans-serif;font-size:.84rem;font-weight:900;text-decoration:none;transition:all .2s">← Về trang chủ</a>
+      <a href="/" style="display:inline-block;padding:12px 28px;border-radius:var(--radius-sm);background:var(--bg-warm);border:var(--border-ink);color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.84rem;font-weight:900;text-decoration:none;box-shadow:var(--shadow-sm);transition:all .15s ease">← Về trang chủ</a>
     </div>
   </div>
 
   <!-- Popup hoàn tất 3 bước -->
-  <div id="cDoneOverlay" style="display:none;position:fixed;inset:0;background:rgba(7,9,14,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:50;align-items:center;justify-content:center;padding:20px">
-    <div style="background:var(--card);border-radius:20px;padding:28px 22px;text-align:center;max-width:320px;width:100%;border:1.5px solid var(--p1);box-shadow:0 0 40px rgba(0,240,255,.2);animation:popIn .4s cubic-bezier(.34,1.56,.64,1)">
+  <div id="cDoneOverlay" style="display:none;position:fixed;inset:0;background:rgba(26,26,26,0.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:50;align-items:center;justify-content:center;padding:20px">
+    <div style="background:#FFFFFF;border-radius:var(--radius-lg);padding:28px 22px;text-align:center;max-width:320px;width:100%;border:2.5px solid var(--ink);box-shadow:6px 6px 0 var(--ink);animation:popIn .4s cubic-bezier(.34,1.56,.64,1)">
       <div style="font-size:44px;margin-bottom:12px">🎊</div>
-      <div style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.2rem;color:var(--p1);margin-bottom:8px">Hoàn tất rồi!</div>
-      <div style="font-size:.82rem;color:var(--muted);line-height:1.65;margin-bottom:18px">Cảm ơn bạn đã hoàn thành đủ 3 bước. Vxang sẽ liên hệ xác nhận sớm nhé ⚡</div>
-      <button onclick="document.getElementById('cDoneOverlay').style.display='none'" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--p1),var(--p2));color:#07090e;border:none;border-radius:12px;font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.9rem;cursor:pointer;box-shadow:0 0 20px rgba(0,240,255,.25);transition:all .18s">OK, cảm ơn Vxang! 🚀</button>
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.25rem;color:var(--ink);margin-bottom:8px">Hoàn tất rồi!</div>
+      <div style="font-size:.84rem;color:var(--charcoal);line-height:1.65;margin-bottom:18px">Cảm ơn bạn đã hoàn thành đủ 3 bước. Vxang sẽ liên hệ xác nhận sớm nhé ⚡</div>
+      <button onclick="document.getElementById('cDoneOverlay').style.display='none'" style="width:100%;padding:13px;background:var(--gold);color:var(--ink);border:var(--border-ink);border-radius:var(--radius-sm);font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.9rem;cursor:pointer;box-shadow:var(--shadow-sm);transition:all .15s ease">OK, cảm ơn Vxang! 🚀</button>
     </div>
   </div>
 </div>
@@ -528,7 +533,7 @@ window.addEventListener('DOMContentLoaded', () => {
 <div id="guideUI">
   <div id="headerWrap" style="position:fixed;top:0;left:0;right:0;z-index:20;">
     <div class="topbar">
-      <div class="topbar-logo">✦ Locket Gold</div>
+      <div class="topbar-logo">📓 Locket <span>Gold</span></div>
       <div class="timer-chip" id="timerChip">⏱ --:--</div>
     </div>
   </div>
@@ -536,47 +541,45 @@ window.addEventListener('DOMContentLoaded', () => {
   <div class="nav-bar" id="navBar">
     <div class="nav-hint" id="navHint"><span class="hint-arrow">👆</span>&nbsp;Làm theo hướng dẫn rồi bấm <b>Tiếp theo</b>!</div>
     <div class="nav-btns">
-      <button class="btn-nav btn-complete" id="btnNext" disabled style="opacity:.45">Tiếp theo →</button>
+      <button class="btn-nav btn-complete" id="btnNext" disabled style="opacity:.45">Tiếp theo ➔</button>
     </div>
   </div>
 </div>
 
 <!-- Welcome Modal after validation -->
-<div id="welcomeOverlay" style="display:none;position:fixed;inset:0;z-index:70;background:rgba(7,9,14,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--card);border-radius:22px;padding:28px 22px 24px;width:100%;max-width:360px;border:1.5px solid var(--border);box-shadow:0 0 40px rgba(0,240,255,.2);animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both;text-align:center;">
+<div id="welcomeOverlay" style="display:none;position:fixed;inset:0;z-index:70;background:rgba(26,26,26,0.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#FFFFFF;border-radius:var(--radius-lg);padding:28px 22px 24px;width:100%;max-width:360px;border:2.5px solid var(--ink);box-shadow:6px 6px 0 var(--ink);animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both;text-align:center;">
     <div style="font-size:44px;margin-bottom:12px">🌟</div>
-    <div style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.25rem;color:var(--p1);margin-bottom:10px;">Chào bạn! Đọc trước nha ⚡</div>
-    <div style="background:rgba(0,240,255,.05);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:16px;text-align:left;">
-      <div style="font-size:.85rem;color:var(--text);line-height:1.75;font-weight:600;">
+    <div style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.25rem;color:var(--ink);margin-bottom:10px;">Chào bạn! Đọc trước nha ⚡</div>
+    <div style="background:var(--bg-warm);border:1.5px solid var(--ink);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;text-align:left;box-shadow:2px 2px 0 var(--ink);">
+      <div style="font-size:.86rem;color:var(--ink);line-height:1.75;font-weight:600;">
         <div style="margin-bottom:8px;">📖 <b>Đọc kỹ</b> nội dung hướng dẫn trong từng bước &amp; làm theo đúng thứ tự nhé.</div>
         <div style="margin-bottom:8px;">▶️ <b>Vừa xem video vừa làm theo</b> — dễ nắm bắt và không sót bước.</div>
-        <div style="padding:9px 11px;background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.25);border-radius:10px;">⚠️ Có thắc mắc trong lúc làm, <b>liên hệ Vxang qua Zalo</b> để được hỗ trợ ngay.</div>
+        <div style="padding:9px 11px;background:#FFF0F0;border:1.5px solid var(--coral);border-radius:var(--radius-sm);color:#7A1616;">⚠️ Có thắc mắc trong lúc làm, <b>liên hệ Vxang qua Zalo</b> để được hỗ trợ ngay.</div>
       </div>
     </div>
-    <button onclick="document.getElementById('welcomeOverlay').style.display='none'" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--p1),var(--p2));color:#07090e;border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.95rem;cursor:pointer;box-shadow:0 0 20px rgba(0,240,255,.25);transition:all .18s;letter-spacing:.02em;">
+    <button onclick="document.getElementById('welcomeOverlay').style.display='none'" style="width:100%;padding:14px;background:var(--gold);color:var(--ink);border:var(--border-ink);border-radius:var(--radius-sm);font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.95rem;cursor:pointer;box-shadow:var(--shadow-sm);transition:all .15s ease;letter-spacing:.02em;">
       OK, mình hiểu rồi! 🚀
     </button>
   </div>
 </div>
 
-<!-- Fraud Trap Modal — hiện đồng loạt cho mọi thiết bị khi phát hiện gian lận -->
-<div id="fraudOverlay" style="display:none;position:fixed;inset:0;z-index:80;background:rgba(20,5,5,.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;">
-  <div id="fraudCard" style="background:var(--card);border-radius:22px;padding:30px 24px 26px;width:100%;max-width:360px;border:2px solid var(--red);box-shadow:0 12px 56px rgba(220,38,38,.35);animation:fraudPopIn .45s cubic-bezier(.34,1.56,.64,1) both;text-align:center;">
+<!-- Fraud Trap Modal -->
+<div id="fraudOverlay" style="display:none;position:fixed;inset:0;z-index:80;background:rgba(26,26,26,.8);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
+  <div id="fraudCard" style="background:#FFFFFF;border-radius:var(--radius-lg);padding:30px 24px 26px;width:100%;max-width:360px;border:3px solid var(--coral);box-shadow:8px 8px 0 var(--ink);animation:fraudPopIn .45s cubic-bezier(.34,1.56,.64,1) both;text-align:center;">
     <div id="fraudIcon" style="font-size:50px;margin-bottom:12px;animation:fraudShake .5s ease 2">🚨</div>
-    <div id="fraudTitle" style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.15rem;color:var(--red);margin-bottom:10px;line-height:1.4;"></div>
-    <div id="fraudBody" style="background:rgba(220,38,38,.06);border:1.5px solid rgba(220,38,38,.25);border-radius:14px;padding:14px 16px;margin-bottom:18px;text-align:left;">
-      <div id="fraudMsg" style="font-size:.86rem;color:var(--text);line-height:1.75;font-weight:600;"></div>
+    <div id="fraudTitle" style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.2rem;color:var(--coral);margin-bottom:10px;line-height:1.4;"></div>
+    <div id="fraudBody" style="background:#FFF0F0;border:1.5px solid var(--coral);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:18px;text-align:left;">
+      <div id="fraudMsg" style="font-size:.88rem;color:#7A1616;line-height:1.75;font-weight:600;"></div>
     </div>
-    <div style="font-size:.78rem;color:var(--muted);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">Mã sẽ tự khóa trong</div>
-    <div id="fraudCountdown" style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:2.4rem;color:var(--red);line-height:1;">15</div>
+    <div style="font-size:.78rem;color:var(--charcoal);font-weight:800;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">Mã sẽ tự khóa trong</div>
+    <div id="fraudCountdown" style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:2.4rem;color:var(--coral);line-height:1;">15</div>
   </div>
 </div>
 <style>
 @keyframes fraudPopIn{from{opacity:0;transform:scale(.85) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
 @keyframes fraudShake{0%,100%{transform:rotate(0);}25%{transform:rotate(-8deg);}75%{transform:rotate(8deg);}}
-@keyframes fraudPulseBorder{0%,100%{box-shadow:0 12px 56px rgba(220,38,38,.35);}50%{box-shadow:0 12px 56px rgba(220,38,38,.6);}}
-#fraudCard{animation:fraudPopIn .45s cubic-bezier(.34,1.56,.64,1) both, fraudPulseBorder 1.2s ease-in-out infinite;}
-
+#fraudCard{animation:fraudPopIn .45s cubic-bezier(.34,1.56,.64,1) both;}
 </style>
 
 <div class="confirm-overlay" id="confirmOverlay">
@@ -1527,22 +1530,22 @@ function renderStep() {
         ${d.has_ipa ? `<a class="btn-download" href="itms-services://?action=download-manifest&url=${encodeURIComponent(plistUrl)}">⬇ Tải Locket IPA</a>` : `<div class="notice-box" style="margin-top:14px"><span style="font-size:1rem;flex-shrink:0">⚠</span><p>File IPA chưa được cấu hình. <b>Liên hệ Vxang qua Zalo</b> để được gửi link cài trực tiếp.</p></div>`}`;
         if (d.has_ipa) {
           inner += `
-          <div class="notice-box" style="margin-top:14px;background:rgba(239,68,68,.12);border:1.5px solid rgba(239,68,68,.4);color:#b91c1c;">
+          <div class="notice-box" style="margin-top:14px;">
           <span style="font-size:1.25rem;flex-shrink:0">⛔</span>
           <p style="font-size:.88rem;line-height:1.5"><b>LƯU Ý CỰC KỲ QUAN TRỌNG:</b> Tuyệt đối <b>KHÔNG ĐƯỢC XÓA ỨNG DỤNG LOCKET</b> sau khi đã tải/cài đặt xong! Nếu xóa bạn sẽ bị mất bản hạ cấp và không thể tự cài lại được.</p>
         </div>
-        <div class="notice-box" style="margin-top:10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);color:#b91c1c;">
+        <div class="notice-box" style="margin-top:10px;">
           <span style="font-size:1.1rem;flex-shrink:0">💡</span>
           <p style="font-size:.86rem;line-height:1.5">Tải xong Locket thì bạn hãy <b>đăng xuất tài khoản App Store của shop rồi đăng nhập lại tài khoản App Store cá nhân của bạn</b>.</p>
         </div>
         ${(specialFlow && pkgType === '180') ? `
-        <div class="notice-box" style="margin-top:10px;background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.35);color:#b91c1c;">
+        <div class="notice-box" style="margin-top:10px;">
           <span style="font-size:1.15rem;flex-shrink:0">⚠️</span>
           <p style="font-size:.86rem;line-height:1.5"><b>LƯU Ý:</b> Cài xong <b>không vào Locket ngay</b>. Bạn cần kết nối VPN (Mỹ) ở bước tiếp theo rồi mới được mở app!</p>
         </div>
         ` : ''}
 
-        <div style="display:flex;align-items:center;gap:7px;margin-top:18px;margin-bottom:10px;"><span class="video-label" style="background:rgba(124,58,237,.1);color:var(--p1);border-radius:6px;padding:3px 8px;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em">▶ Video hướng dẫn</span></div>
+        <div style="display:flex;align-items:center;gap:7px;margin-top:18px;margin-bottom:10px;"><span class="video-label">▶ Video hướng dẫn</span></div>
         <div class="video-wrap" style="margin-top:0">
           <div class="video-shell">
             <video src="${VIDEO_IPA}" controls playsinline></video>
@@ -1565,12 +1568,12 @@ function renderStep() {
         </div>
       </div>
 
-      <div class="notice-box" style="margin-top:16px;background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.35);color:#b91c1c;">
+      <div class="notice-box" style="margin-top:16px;">
         <span style="font-size:1.25rem;flex-shrink:0">⚠️</span>
         <p style="font-size:.9rem;line-height:1.5"><b>CẢNH BÁO QUAN TRỌNG:</b><br>Đây là <b>bước bắt buộc</b> để kích hoạt Gold.${pkgType==='180'?' Chưa lên Gold thì DNS đã cài ở bước trước <b>sẽ không có tác dụng</b>.':''}</p>
       </div>
 
-      <div style="display:flex;align-items:center;gap:7px;margin-top:18px;margin-bottom:10px;"><span class="video-label" style="background:rgba(124,58,237,.1);color:var(--p1);border-radius:6px;padding:3px 8px;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em">▶ Video hướng dẫn</span></div>
+      <div style="display:flex;align-items:center;gap:7px;margin-top:18px;margin-bottom:10px;"><span class="video-label">▶ Video hướng dẫn</span></div>
       <div class="video-wrap" style="margin-top:0">
         <div class="video-shell">
           <video src="${VIDEO_GOLD}" controls playsinline></video>
@@ -1679,10 +1682,25 @@ function cTick(s){
   const card=document.getElementById('cCard'+s);
   const badge=document.getElementById('cBadge'+s);
   const btn=document.getElementById('cBtn'+s);
-  card.style.border='1.5px solid rgba(16,185,129,.4)';
-  card.style.background='rgba(16,185,129,.08)';
-  badge.textContent='✓';badge.style.background='#10b981';
-  if(btn){btn.style.background='rgba(16,185,129,.15)';btn.style.color='var(--green)';btn.style.border='1.5px solid rgba(16,185,129,.3)';btn.style.boxShadow='none';btn.textContent='✓ Đã xong';btn.onclick=null;btn.style.cursor='default';}
+  if(card){
+    card.style.border='2px solid #2E7D32';
+    card.style.background='#E8F5E9';
+    card.style.boxShadow='3px 3px 0 #1A1A1A';
+  }
+  if(badge){
+    badge.textContent='✓';
+    badge.style.background='#2E7D32';
+    badge.style.color='#FFFFFF';
+  }
+  if(btn){
+    btn.style.background='#C8E6C9';
+    btn.style.color='#1B5E20';
+    btn.style.border='2px solid #2E7D32';
+    btn.style.boxShadow='none';
+    btn.textContent='✓ Đã xong';
+    btn.onclick=null;
+    btn.style.cursor='default';
+  }
   cUpdateProgress();
 }
 
