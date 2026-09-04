@@ -164,7 +164,15 @@ async function handleTelegramWebhook(req, res) {
         await answerCallbackQuery(callbackId, '⏳ Đang tra cứu thông tin...');
         
         try {
-          const codeRows = await sb('GET', 'access_codes', { q: `id=eq.${encodeURIComponent(codeId)}` });
+          let codeRows = [];
+          if (/^\d+$/.test(codeId)) {
+            codeRows = await sb('GET', 'access_codes', { q: `id=eq.${encodeURIComponent(codeId)}` });
+            if (!codeRows || !codeRows.length) {
+              codeRows = await sb('GET', 'access_codes', { q: `code=eq.${encodeURIComponent(codeId)}` });
+            }
+          } else {
+            codeRows = await sb('GET', 'access_codes', { q: `code=eq.${encodeURIComponent(codeId)}` });
+          }
           const codeData = codeRows?.[0];
           
           if (!codeData) {
@@ -191,6 +199,9 @@ async function handleTelegramWebhook(req, res) {
         } catch (err) {
           await replyTelegram(chatId, `❌ Lỗi tra cứu: ${err.message}`);
         }
+        return res.status(200).json({ ok: true });
+      }
+
       // Xử lý nút đặc xá / mở khóa khẩn cấp 1-chạm (Trụ Cột 7: Break-Glass & Instant Amnesty)
       if (data.startsWith('unblock_code:')) {
         const rawCode = data.split(':')[1];

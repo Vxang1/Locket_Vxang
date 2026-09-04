@@ -175,7 +175,7 @@ async function handleAppstore(req, res) {
 // ── GET ?action=ipa_plist — sinh manifest plist OTA động cho iOS itms-services ──
 // Phục vụ trực tiếp từ server Vercel (HTTPS, đúng MIME application/xml, phản hồi 50ms),
 // inject thẳng link download trực tiếp (Dropbox dl=1, Catbox, Archive.org...) vào XML.
-// Giúp iOS hiện popup "Muốn cài đặt Locket_Xwuan" ngay lập tức mà không bị lỗi mạng,
+// Giúp iOS hiện popup "Muốn cài đặt Locket_Vxang" ngay lập tức mà không bị lỗi mạng,
 // không bị GitHub raw rate limit 429, và tải trực tiếp tốc độ cao về iPhone.
 async function handleIpaPlist(req, res) {
   try {
@@ -237,7 +237,7 @@ async function handleIpaPlist(req, res) {
         <key>kind</key>
         <string>software</string>
         <key>title</key>
-        <string>Locket_Xwuan</string>
+        <string>Locket_Vxang</string>
       </dict>
     </dict>
   </array>

@@ -471,9 +471,9 @@ function codeDetailLines(code, pkg, cust) {
     `🆔 Mã KH: <code>${escTgHtml(cust?.customerCode || '—')}</code>`,
     `🔑 Mã truy cập: <code>${escTgHtml(code)}</code>`,
   ];
-  // Gói vĩnh viễn không đi qua bước Username → không hiện dòng rỗng gây tưởng lỗi.
-  if (!isPermPackage(p)) {
-    lines.push(`👤 Username: ${uname ? `<code>${escTgHtml(uname)}</code>` : '(chưa có)'}`);
+  // Nếu khách đã có Username thì hiển thị rõ ràng trên thông báo Telegram
+  if (uname) {
+    lines.push(`👤 Username: <code>${escTgHtml(uname)}</code>`);
   }
   lines.push(`${PKG_EMOJI[p] || '⭐'} Gói: <b>${escTgHtml(pkgDisplay)}</b>${permTag}`);
   return lines.join('\n');

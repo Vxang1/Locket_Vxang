@@ -334,17 +334,15 @@ module.exports = async (req, res) => {
         finalLink = parsed.social_link;
       }
 
-      // Kiểm tra nếu chuyển từ pending_gold → active, cần set warranty_started_at
+      // Kiểm tra nếu chuyển từ pending_gold → active, cần set activated_at
       const [current] = await sb('GET', 'customers', { q: `id=eq.${targetId}&select=*` }) || [];
-        if (!current) return res.status(404).json({ error: 'Customer not found' });
-        let needSetWarrantyStart = false;
-        let warrantyStartVal = null;
-        if (service_status === 'active') {
-          if (current && current.service_status === 'pending_gold' && !current.warranty_started_at) {
-          needSetWarrantyStart = true;
-          const finalPkg = pkg !== undefined ? normalizePackage(pkg) : current.package;
-          const finalDur = duration !== undefined ? duration : current.duration;
-          warrantyStartVal = new Date().toISOString();
+      if (!current) return res.status(404).json({ error: 'Customer not found' });
+      let needSetActivated = false;
+      let activatedVal = null;
+      if (service_status === 'active') {
+        if (current && current.service_status === 'pending_gold' && !current.activated_at) {
+          needSetActivated = true;
+          activatedVal = new Date().toISOString();
         }
       }
 
@@ -385,7 +383,7 @@ module.exports = async (req, res) => {
       if (duration !== undefined && ['3m', '6m', '1y', 'perm'].includes(duration)) updateBody.duration = duration;
       if (special_flow !== undefined)    updateBody.special_flow = !!special_flow;
       if (deposit_note !== undefined)    updateBody.deposit_note = deposit_note || null;
-      if (needSetWarrantyStart && warrantyStartVal) updateBody.warranty_started_at = warrantyStartVal;
+      if (needSetActivated && activatedVal) updateBody.activated_at = activatedVal;
 
       await sb('PATCH', 'customers', { q: `id=eq.${targetId}`, body: updateBody });
 
@@ -509,16 +507,16 @@ module.exports = async (req, res) => {
       const completedCodes = (codes || []).filter(c => c.completed_at).sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
       customer.first_code_completed_at = completedCodes[0]?.completed_at || null;
 
-      // Tự động đồng bộ: Khách gói 150/180 đã có mã completed_at thì tự động chuyển sang 'active'
+      // Tự động đồng bộ: Khách đã có mã completed_at thì tự động chuyển sang 'active'
       const hasCompletedCode = completedCodes.length > 0;
       if (hasCompletedCode && customer.service_status === 'pending_gold' && isPermPackage(customer.package)) {
         customer.service_status = 'active';
-        if (!customer.warranty_started_at) {
-          customer.warranty_started_at = new Date().toISOString();
+        if (!customer.activated_at) {
+          customer.activated_at = new Date().toISOString();
         }
         sb('PATCH', 'customers', {
           q: `id=eq.${id}`,
-          body: { service_status: 'active', warranty_started_at: customer.warranty_started_at }
+          body: { service_status: 'active', activated_at: customer.activated_at }
         }).catch(() => {});
       }
 
@@ -566,10 +564,10 @@ module.exports = async (req, res) => {
       let status = c.service_status;
       if (hasCompleted && status === 'pending_gold' && isPermPackage(c.package)) {
         status = 'active';
-        const startVal = c.warranty_started_at || new Date().toISOString();
+        const startVal = c.activated_at || new Date().toISOString();
         sb('PATCH', 'customers', {
           q: `id=eq.${c.id}`,
-          body: { service_status: 'active', warranty_started_at: startVal }
+          body: { service_status: 'active', activated_at: startVal }
         }).catch(() => {});
       }
       return { 
