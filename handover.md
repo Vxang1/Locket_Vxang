@@ -159,12 +159,18 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
        - Loại bỏ 100% các bóng 3D cũ (`#5b20c0`, `#047857`, `0 3px 0`, `0 4px 0`) trên toàn bộ hệ thống nút bấm: đổi nút Sao chép Zalo/DNS, Lưu thay đổi khách, Refresh mã, Quản trị DNS sang gradient Neon Cyberpunk viền phát quang (`box-shadow: 0 0 16px rgba(0,240,255,0.25)`).
        - Sửa box nội dung mã mới `.new-code-msg` từ nền trắng `#fff` sang nền tối `rgba(7,9,14,0.7)`.
        - Chuẩn hóa nút Dev Mode `.btn-dev.active-dev` sang phong cách cyber green neon dịu mắt.
-     - **Tăng phiên bản Cache:** Nâng cấp Service Worker trong `sw.js` lên `vxang-admin-v11`.
+       - **Tăng phiên bản Cache:** Nâng cấp Service Worker trong `sw.js` lên `vxang-admin-v11`.
+
+12. **🧠 TÍCH HỢP & RÀNG BUỘC PHƯƠNG PHÁP LUẬN SUPER DEEP WRITER (SDW 4.0 - PROJECT PROMETHEUS) (2026-09-04 23:55):**
+    - Đồng bộ toàn bộ tài liệu đặc tả [super_deep_writer_prompt.md](file:///c:/Users/ADMIN/Downloads/Locket_Vxang/super_deep_writer_prompt.md) vào dự án.
+    - Cập nhật [gemini.md](file:///c:/Users/ADMIN/Downloads/Locket_Vxang/gemini.md) Mục 7 làm quy chuẩn ràng buộc bất biến cho mọi tương tác và quyết định kỹ thuật:
+      - 10 Tiên đề cốt lõi (Core Axioms: AXIOM 1 -> AXIOM 10).
+      - Giao thức thấu hiểu sâu Deep Understanding Protocol (DUP: 8 bước từ Parse đến Reflect).
+      - Thang đo chất lượng giải pháp (Quality Pyramid A -> E) và quy trình tự đánh giá (Self-Review Checklist).
+      - Cam kết giữ vững các nguyên tắc kiến trúc: Zero-build, 11 Serverless functions, Supabase PostgREST native.
 
 ---
 
 ## 🎯 NEXT STEPS
-1. Mở `guide.html` và kiểm tra toàn bộ luồng: nút Tiếp theo, thanh Topbar, Bottom Nav, và Màn hình Hoàn tất đã đồng bộ dark cyberpunk tech 100%.
-2. Mở `admin.html` và kiểm tra các modal (Sửa thông tin khách, Chi tiết link DNS, Sao chép tin Zalo/DNS, Tạo mã mới): font chữ và nút bấm hiển thị sắc nét, đồng nhất.
-
-
+1. Mọi tính năng, bản vá và module tương lai bắt buộc tuân thủ đồng thời cả 5 Nguyên Tắc Bất Biến của `Locket_Vxang` và 10 Tiên Đề của `Super Deep Writer`.
+2. Kiểm tra các chức năng trên hệ thống khi có yêu cầu mới.
