@@ -367,18 +367,19 @@ module.exports = async (req, res) => {
     if (req.method === 'GET' && req.query?.action === 'warmup') {
       res.setHeader('Cache-Control', 'no-store');
       try {
+        const { fbGet, FIREBASE_DB_URL, getAppConfig } = require('../_lib/utils');
+        const fbData = await fbGet('appstore');
+        const dbConfig = await getAppConfig('appstore');
         const cfg = await getAppstoreConfig();
         const s1 = cfg.scraper_url ? await scrapeHtmlSource(cfg.scraper_url) : null;
         const s2 = cfg.scraper_url_backup ? await scrapeHtmlSource(cfg.scraper_url_backup) : null;
         return res.json({
           ok: true,
           warm: true,
-          cfg: {
-            scraper_url: cfg.scraper_url,
-            scraper_url_active: cfg.scraper_url_active,
-            scraper_url_backup: cfg.scraper_url_backup,
-            scraper_url_backup_active: cfg.scraper_url_backup_active,
-          },
+          env_firebase_url: process.env.FIREBASE_DB_URL || '(default)',
+          fbData,
+          dbConfig,
+          cfg,
           s1,
           s2
         });
