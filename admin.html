@@ -261,7 +261,8 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
 }
 
 .page{max-width:1280px;margin:0 auto;padding:24px 24px 72px;}
-.tab-content{display:none;}.tab-content.active{display:block;animation:fadeIn .15s ease;}
+.tab-content{display:none;}
+.tab-content.active{display:block;animation:fadeUp .25s cubic-bezier(0.16, 1, 0.3, 1);will-change:transform,opacity;}
 .section-title{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.5rem;color:var(--ink);margin-bottom:3px;}
 .section-sub{font-size:.8rem;color:var(--muted);font-weight:600;letter-spacing:.02em;margin-bottom:22px;}
 
@@ -2331,7 +2332,9 @@ window.switchTab=function(name){
   }
   if(name==='appstore') loadAppstoreAdmin();
   if(name==='emergency') loadEmergencyAdmin();
-  window.scrollTo({ top: 0, behavior: 'instant' });
+  if (window.scrollY > 80) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 };
 
 // Biến cuộn chuột dọc thành cuộn ngang trên thanh tab desktop, triệt tiêu rung lắc dọc
