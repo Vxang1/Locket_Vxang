@@ -1,5 +1,5 @@
 'use strict';
-const { sb, requireGuide, allowMethods, expireCodeAndNotify, notifyTelegram, escTgHtml, lookupCustomerByCode, buildStepFlow, alignStepFlow, PACKAGES } = require('../_lib/utils');
+const { sb, requireGuide, allowMethods, expireCodeAndNotify, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, buildStepFlow, alignStepFlow, PACKAGES, fbGet, fbPut } = require('../_lib/utils');
 
 const SURPRISE_DELAY_MS  = 5  * 1000; // 5s đầu im lặng — tạo bất ngờ
 const DESTRUCT_AFTER_MS  = 20 * 1000; // tổng 20s kể từ lúc phát hiện thì tự huỷ hẳn (5s im lặng + 15s đọc thông báo)
@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
   const payload = await requireGuide(req, res);
   if (!payload) return;
 
-  // Parse body sớm (giữ pattern cũ dù hiện chỉ còn dùng currentStep/step3Choice/username).
+  // Parse body sớm (nhận currentStep, totalSteps, step3Choice, deviceId, username).
   let body = {};
   try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); } catch {}
 
@@ -31,13 +31,15 @@ module.exports = async (req, res) => {
             session_token: payload.sessionToken,
             current_step: typeof body.currentStep === 'number' ? body.currentStep : 0,
             last_ping: new Date().toISOString(),
-            is_kicked: false
+            is_kicked: false,
+            is_original: payload.isOriginal !== false,
+            device_id: body.deviceId || null,
           },
           prefer: 'return=representation'
         });
-        session = newSess || { access_code: payload.code, session_token: payload.sessionToken, is_kicked: false };
+        session = newSess || { access_code: payload.code, session_token: payload.sessionToken, is_kicked: false, is_original: payload.isOriginal !== false };
       } catch {
-        session = { access_code: payload.code, session_token: payload.sessionToken, is_kicked: false };
+        session = { access_code: payload.code, session_token: payload.sessionToken, is_kicked: false, is_original: payload.isOriginal !== false };
       }
     }
     if (session.is_kicked) return res.json({ kicked: true });
@@ -45,46 +47,57 @@ module.exports = async (req, res) => {
     const codeRow = codes?.[0];
     if (!codeRow || !codeRow.is_active) return res.json({ expired: true });
 
-    // ⌛ Mã quá 30 phút mà khách chưa bấm hoàn thành. Trước đây ping bỏ qua trường hợp
-    // này (chỉ xét is_active) nên mã hết hạn vẫn ping tiếp; giờ khoá mã + báo Telegram
-    // đúng 1 lần rồi văng khách, khớp với validate.js (đã chặn mã hết hạn từ đầu).
-    // Đây là đường nhanh: đa số mã hết hạn được phát hiện ngay ở ping kế tiếp.
+    // ⌛ Mã quá 30 phút mà khách chưa bấm hoàn thành
     if (codeRow.expires_at && new Date(codeRow.expires_at) < new Date()) {
       await expireCodeAndNotify(codeRow);
       await sb('DELETE', 'sessions', { q: `access_code=eq.${encodeURIComponent(payload.code)}` });
       return res.json({ expired: true });
     }
 
-    // 🚨 Kiểm tra trạng thái "bẫy" — dùng chung cho mọi thiết bị của mã này
-    if (codeRow.fraud_triggered_at) {
-      const elapsed = Date.now() - new Date(codeRow.fraud_triggered_at).getTime();
+    // 🚨 Kiểm tra trạng thái "bẫy" — dùng chung cho mọi thiết bị của mã này (qua Supabase hoặc Firebase)
+    let fraudTriggeredAt = codeRow.fraud_triggered_at;
+    let fbFraud = null;
+    try {
+      fbFraud = await fbGet(`fraud/${payload.code}`);
+      if (fbFraud?.fraud_triggered_at && !fraudTriggeredAt) {
+        fraudTriggeredAt = fbFraud.fraud_triggered_at;
+      }
+    } catch {}
+
+    if (fraudTriggeredAt) {
+      const elapsed = Date.now() - new Date(fraudTriggeredAt).getTime();
 
       if (elapsed >= DESTRUCT_AFTER_MS) {
-        // Hết giờ — tự huỷ vĩnh viễn, văng TẤT CẢ thiết bị
+        // Hết giờ (20s) — tự huỷ vĩnh viễn, văng TẤT CẢ thiết bị
         await sb('PATCH', 'access_codes', {
           q: `id=eq.${codeRow.id}`,
           body: { is_active: false },
-        });
-        await sb('DELETE', 'sessions', { q: `access_code=eq.${encodeURIComponent(payload.code)}` });
+        }).catch(() => {});
+        await sb('DELETE', 'sessions', { q: `access_code=eq.${encodeURIComponent(payload.code)}` }).catch(() => {});
+        await fbPut(`fraud/${payload.code}/destroyed`, true).catch(() => {});
         return res.json({ expired: true, fraud_final: true });
       }
 
       if (elapsed >= SURPRISE_DELAY_MS) {
         // 5s-20s: đồng loạt cảnh báo, đếm ngược 15 giây để đọc kịp thông báo
         const secondsLeft = Math.max(0, Math.ceil((DESTRUCT_AFTER_MS - elapsed) / 1000));
+        const isOriginal = (payload.isOriginal !== false) && (session?.is_original !== false);
         return res.json({
           fraud_warning: true,
-          is_original: session.is_original !== false,
+          is_original: isOriginal,
           seconds_left: secondsLeft,
         });
       }
       // elapsed < 5s — vẫn trong "vùng yên lặng", ping như thường, không lộ gì cả
     }
 
-    const updateData = { last_ping: new Date().toISOString() };
+    const nowIso = new Date().toISOString();
+    const myDeviceId = body.deviceId || session?.device_id || '';
+    const updateData = { last_ping: nowIso };
     if (typeof body.currentStep === 'number') updateData.current_step = body.currentStep;
     if (body.step3Choice) updateData.step_choice = body.step3Choice;
     if (typeof body.totalSteps === 'number') updateData.total_steps = body.totalSteps;
+    if (myDeviceId) updateData.device_id = myDeviceId;
 
     try {
       await sb('PATCH', 'sessions', {
@@ -95,10 +108,85 @@ module.exports = async (req, res) => {
       await sb('PATCH', 'sessions', {
         q: `session_token=eq.${encodeURIComponent(payload.sessionToken)}`,
         body: {
-          last_ping: new Date().toISOString(),
+          last_ping: nowIso,
           ...(typeof body.currentStep === 'number' ? { current_step: body.currentStep } : {})
         },
       }).catch(() => {});
+    }
+
+    // Cập nhật nhịp tim Firebase để theo dõi concurrent realtime
+    await fbPut(`heartbeats/${payload.code}/${payload.sessionToken}`, {
+      device_id: myDeviceId,
+      last_ping: nowIso,
+      is_original: payload.isOriginal !== false && session?.is_original !== false,
+    }).catch(() => {});
+
+    if (payload.isOriginal !== false && session?.is_original !== false && myDeviceId) {
+      await fbPut(`code_ownership/${payload.code}`, {
+        device_id: myDeviceId,
+        last_ping: nowIso,
+      }).catch(() => {});
+    }
+
+    // 🚨 BẪY PHÁT HIỆN GIAN LẬN: Kiểm tra xem có thiết bị khác đang cùng PING song song (< 12s)
+    if (!fraudTriggeredAt) {
+      const threshold12s = new Date(Date.now() - 12 * 1000).toISOString();
+      let otherSessions = [];
+      try {
+        const activeSessions = (await sb('GET', 'sessions', {
+          q: `access_code=eq.${encodeURIComponent(payload.code)}&last_ping=gte.${encodeURIComponent(threshold12s)}`,
+        })) || [];
+        otherSessions = (activeSessions || []).filter(s => {
+          if (!s || s.session_token === payload.sessionToken || s.is_kicked === true) return false;
+          return (myDeviceId && s.device_id) ? (s.device_id !== myDeviceId) : true;
+        });
+      } catch {
+        otherSessions = [];
+      }
+
+      // Kiểm tra thêm qua Firebase heartbeats
+      let fbConcurrent = false;
+      try {
+        const hbs = await fbGet(`heartbeats/${payload.code}`);
+        if (hbs && typeof hbs === 'object') {
+          const nowMs = Date.now();
+          for (const [sTok, hb] of Object.entries(hbs)) {
+            if (sTok !== payload.sessionToken && hb && hb.last_ping) {
+              const diff = nowMs - new Date(hb.last_ping).getTime();
+              if (diff < 12000 && (!myDeviceId || !hb.device_id || hb.device_id !== myDeviceId)) {
+                fbConcurrent = true;
+                break;
+              }
+            }
+          }
+        }
+      } catch {}
+
+      if (otherSessions.length > 0 || fbConcurrent) {
+        // 🚨 KÍCH HOẠT BẪY GIAN LẬN!
+        await fbPut(`fraud/${payload.code}`, {
+          fraud_triggered_at: nowIso,
+          original_device_id: myDeviceId || 'device-1',
+          detected_by: payload.sessionToken,
+        }).catch(() => {});
+
+        try {
+          await sb('PATCH', 'access_codes', {
+            q: `id=eq.${codeRow.id}`,
+            body: { fraud_triggered_at: nowIso },
+          });
+        } catch {}
+
+        const cust = await lookupCustomerByCode(payload.code);
+        const who = cust.name ? escTgHtml(cust.name) : 'Khách';
+        const clientIp = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'Không xác định').split(',')[0].trim();
+        await notifyTelegram(
+          `🚨 <b>${who}</b> đang share mã\n` +
+          codeDetailLines(payload.code, payload.package, cust) + '\n' +
+          `⚠️ IP gian lận: <code>${escTgHtml(clientIp)}</code>\n` +
+          `Phát hiện 2 thiết bị khác nhau đang cùng truy cập mã song song — mã sẽ tự khoá sau 20 giây.`
+        );
+      }
     }
 
     // 👣 Thông báo Telegram khi khách CHUYỂN BƯỚC — ví dụ "khách đang làm bước 2 (cài Locket

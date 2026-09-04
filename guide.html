@@ -1611,7 +1611,7 @@ function renderStep() {
 }
 
 function sendStepPing() {
-  const body = { currentStep, totalSteps: steps.length, step3Choice };
+  const body = { currentStep, totalSteps: steps.length, step3Choice, deviceId: getDeviceId() };
   if (usernameValue) body.username = usernameValue;
   api('/api/guide/ping', { method: 'POST', body: JSON.stringify(body) }).catch(()=>{});
 }
@@ -1744,7 +1744,7 @@ function startPing() {
   pingInterval = setInterval(async () => {
     if (isCompleted) return; // đã hoàn thành rồi, bỏ qua mọi ping còn sót
     try {
-      const r = await api('/api/guide/ping', { method: 'POST', body: JSON.stringify({ currentStep, totalSteps: steps.length, step3Choice }) });
+      const r = await api('/api/guide/ping', { method: 'POST', body: JSON.stringify({ currentStep, totalSteps: steps.length, step3Choice, deviceId: getDeviceId() }) });
       if (isCompleted) return; // double-check sau khi await xong (tránh race condition)
 
       if (r.fraud_warning) {
