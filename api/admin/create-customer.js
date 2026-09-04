@@ -71,7 +71,6 @@ module.exports = async (req, res) => {
       body: {
         customer_id: cust.id,
         code: access_code,
-        package: pkg,
         is_active: true,
       },
       prefer: 'return=minimal',
