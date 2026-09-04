@@ -54,7 +54,7 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
      - Bấm vào bất kỳ mã truy cập nào trong chi tiết khách hàng để bật lại mẫu tin nhắn Zalo kèm nút copy 1-chạm.
      - Kết nối chính xác các API backend: `appstore_get`, `appstore_update`, `sessions` kick.
    - `guide.html`:
-     - Tích hợp đầy đủ các kịch bản bước: Shadowrocket (có nút làm mới tài khoản shop), Locket IPA hạ cấp (kèm video Cloudinary), VPN Hoa Kỳ (kèm video Cloudinary), Cài đặt DNS (tải trực tiếp profile `.mobileconfig` sinh từ Blob), Lên Locket Gold (sao chép module Shadowrocket).
+      - Tích hợp đầy đủ các kịch bản bước: Shadowrocket (có nút làm mới tài khoản shop), Locket IPA hạ cấp, VPN Hoa Kỳ, Cài đặt DNS (tải trực tiếp profile `.mobileconfig` sinh từ Blob), Lên Locket Gold (sao chép module Shadowrocket); toàn bộ video hướng dẫn đồng bộ thành khung placeholder Retro Notebook "Chờ Vxang cập nhật".
      - Màn hình hoàn tất (`#completeScreen`) chuẩn 3 thẻ hành động xác nhận kèm thanh tiến trình 0/3 bước: Chụp màn hình gửi Zalo Vxang, Kết bạn Locket @vxang, Vào nhóm thông báo Zalo.
      - Modal chào mừng (`#welcomeOverlay`), modal bẫy gian lận đếm ngược 15 giây (`#fraudOverlay`), modal xác nhận hoàn tất (`#confirmOverlay`), và modal chặn in-app browser ép mở Safari (`#inappBlockModal`).
 

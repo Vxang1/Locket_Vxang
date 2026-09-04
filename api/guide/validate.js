@@ -86,39 +86,52 @@ async function handleAppstore(req, res) {
     const scraper_url = String(cfg.scraper_url || '').trim();
     const scraper_url_backup = String(cfg.scraper_url_backup || '').trim();
     const special_flow = !!payload.specialFlow;
-      const s1_active = cfg.scraper_url_active !== false;
-      const s2_active = cfg.scraper_url_backup_active !== false;
+    const s1_active = cfg.scraper_url_active !== false;
+    const s2_active = cfg.scraper_url_backup_active !== false;
 
-      // Chỉ dùng nguồn cào tự động cho Flow thường (nếu có cấu hình)
-      if (!special_flow) {
-        let scraped = null;
-        if (scraper_url && s1_active) {
-          scraped = await scrapeHtmlSource(scraper_url);
-        }
-        if (!scraped && scraper_url_backup && s2_active) {
-          scraped = await scrapeHtmlSource(scraper_url_backup);
-        }
-        
-        if (scraped && scraped.email && scraped.password) {
+    // Chỉ dùng nguồn cào tự động cho Flow thường (nếu có cấu hình)
+    if (!special_flow) {
+      let scraped = null;
+      if (scraper_url && s1_active) {
+        scraped = await scrapeHtmlSource(scraper_url);
+      }
+      if (!scraped && scraper_url_backup && s2_active) {
+        scraped = await scrapeHtmlSource(scraper_url_backup);
+      }
+      
+      if (scraped && scraped.email && scraped.password) {
         email = scraped.email;
         password = scraped.password;
+      } else {
+        // Nguồn cào hiện không có tài khoản khả dụng (ví dụ: "暂无可用账号" hoặc web lỗi).
+        // Chỉ dùng tài khoản dự phòng nếu admin đã cấu hình một tài khoản Apple ID thực sự hợp lệ.
+        const isRealFallback = email && email.includes('@') && !email.startsWith('appleid.shop') && email.toLowerCase() !== 'x';
+        if (!isRealFallback) {
+          email = '';
+          password = '';
+        }
       }
     }
 
     const ipa_url = String(cfg.ipa_url || '').trim();
-      const has_ipa = !!ipa_url;
-      if (!email || !password) {
-        return res.json({
-          ok: true,
-          is_updating: true,
-            email_masked: "Đợi Xwuan cập nhật",
-            email_real: "Đợi Xwuan cập nhật",
-            password: "Đợi Xwuan cập nhật",
-          ipa_url,
-          has_ipa,
-          special_flow
-        });
-      }
+    const has_ipa = !!ipa_url;
+
+    // Kiểm tra tính hợp lệ thực tế của tài khoản (loại bỏ placeholder, 'x', rác)
+    const isRealAccount = email && password && email.includes('@') && !email.startsWith('appleid.shop') && email.toLowerCase() !== 'x' && password.toLowerCase() !== 'x';
+
+    if (!isRealAccount) {
+      return res.json({
+        ok: true,
+        is_updating: true,
+        email_masked: "Chờ Vxang cập nhật",
+        email_real: "Chờ Vxang cập nhật",
+        password: "Chờ Vxang cập nhật",
+        ipa_url,
+        has_ipa,
+        special_flow
+      });
+    }
+
     return res.json({
       ok: true,
       email_masked: maskAppstoreEmail(email),

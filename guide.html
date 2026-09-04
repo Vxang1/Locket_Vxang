@@ -6,8 +6,6 @@
 <title>Guide — Locket Gold Vxang</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link rel="preconnect" href="https://res.cloudinary.com" crossorigin/>
-<link rel="dns-prefetch" href="https://res.cloudinary.com"/>
 <link rel="dns-prefetch" href="https://ogchtngdbywmayeluebh.supabase.co"/>
 <link rel="dns-prefetch" href="https://apple.dns.nextdns.io"/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800;900&family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet"/>
@@ -183,12 +181,19 @@ body::after {
   color:var(--ink);margin-bottom:12px;line-height:1.3;}
 .step-content{font-size:.92rem;color:var(--charcoal);line-height:1.75;white-space:pre-wrap;}
 
+/* RETRO NOTEBOOK CALLOUTS & NOTICES */
 .notice-box{
-  background:#FFF0F0;border:1.5px solid var(--coral);border-left:4px solid var(--coral);
-  border-radius:var(--radius-sm);padding:11px 14px;display:flex;align-items:flex-start;gap:8px;margin-top:14px;
+  background:var(--bg-warm);border:var(--border-ink);
+  border-radius:var(--radius-sm);padding:12px 14px;display:flex;align-items:flex-start;gap:10px;margin-top:14px;
+  box-shadow:var(--shadow-sm);box-sizing:border-box;position:relative;
 }
-.notice-box p{font-size:.84rem;color:#7A1616;line-height:1.6;font-weight:600;}
-.notice-box b{color:#C62828;font-weight:800;}
+.notice-box p{font-size:.84rem;color:var(--ink);line-height:1.6;font-weight:600;margin:0;}
+.notice-box b{color:var(--ink);font-weight:900;}
+.notice-box .notice-icon{font-size:1.15rem;flex-shrink:0;line-height:1.2;}
+.notice-box.notice-alert{background:#FFE5E5;border:2px solid var(--ink);box-shadow:var(--shadow-sm);}
+.notice-box.notice-alert b{color:#C62828;}
+.notice-box.notice-tip{background:#FEF8E7;border:2px solid var(--ink);box-shadow:var(--shadow-sm);}
+.notice-box.notice-info{background:var(--bg-warm);border:2px solid var(--ink);box-shadow:var(--shadow-sm);}
 
 /* STEP INDICATOR */
 .step-indicator{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
@@ -223,15 +228,39 @@ body::after {
 .img-caption{text-align:center;font-size:.82rem;color:var(--charcoal);line-height:1.6;margin:12px 0 18px;font-weight:600;}
 .img-caption b{color:var(--ink);}
 
-/* VIDEO */
-.video-wrap{margin:16px 0 0;}
-.video-shell{
-  position:relative;width:100%;max-width:280px;margin:0 auto;border-radius:var(--radius);
-  overflow:hidden;border:var(--border-ink);box-shadow:var(--shadow-base);background:#000;
+/* RETRO NOTEBOOK VIDEO PLACEHOLDER */
+.video-placeholder-box{
+  background:var(--bg-warm);border:2px dashed var(--ink);border-radius:var(--radius);
+  padding:24px 16px;text-align:center;margin-top:6px;box-shadow:var(--shadow-sm);
+  position:relative;box-sizing:border-box;
 }
-.video-shell::before{content:'';display:block;padding-top:177.78%;}
-.video-shell iframe,.video-shell video{position:absolute;inset:0;width:100%;height:100%;border:none;}
-.video-shell video{object-fit:contain;background:#000;}
+.vph-tape{
+  position:absolute;top:-8px;left:50%;transform:translateX(-50%) rotate(-1.2deg);
+  width:70px;height:16px;background:rgba(245, 200, 66, 0.9);
+  border:1px dashed rgba(26,26,26,0.4);box-shadow:1px 1px 2px rgba(0,0,0,0.06);
+}
+.vph-icon{font-size:2.2rem;margin-bottom:6px;line-height:1;}
+.vph-title{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1rem;color:var(--ink);margin-bottom:8px;}
+.vph-badge{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:var(--gold);
+  border:1.5px solid var(--ink);border-radius:99px;font-family:'Space Grotesk',sans-serif;
+  font-size:.82rem;font-weight:900;color:var(--ink);box-shadow:2px 2px 0 var(--ink);margin-bottom:8px;
+}
+.vph-sub{font-size:.8rem;color:var(--charcoal);font-weight:600;line-height:1.55;}
+.video-label{
+  background:var(--bg-warm);color:var(--ink);border:1.5px solid var(--ink);border-radius:6px;
+  padding:3px 8px;font-size:.7rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em;
+  box-shadow:1px 1px 0 var(--ink);
+}
+
+.btn-refresh-acct{
+  display:inline-flex;align-items:center;gap:6px;background:#FFFFFF;border:2px solid var(--ink);
+  border-radius:var(--radius-sm);color:var(--ink);padding:7px 14px;font-family:'Space Grotesk',sans-serif;
+  font-size:.82rem;font-weight:900;cursor:pointer;box-shadow:var(--shadow-sm);
+  transition:transform .12s,box-shadow .12s,background .12s;
+}
+.btn-refresh-acct:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow-base);background:var(--bg-warm);}
+.btn-refresh-acct:active{transform:translate(1px,1px);box-shadow:var(--shadow-active);}
 
 .btn-download, .btn-inject-gold{
   display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;
@@ -652,14 +681,20 @@ let fraudCountdownInterval = null;
 let appstoreData = null;
   let dnsPoolData = null; // cache { ok, dns_url, package, customer_code } hoặc { ok:false, error } — nạp 1 lần cho bước DNS (choice)
 
-// 5 video hướng dẫn = link cứng Cloudinary (2026-08-16). Trước đây lưu trong Firebase
-// appstore node (video_shadowrocket/video_locket) — admin phải tự upload/sửa từng link
-// qua tab Appstore. Chuyển sang link cứng vì video không bao giờ cần đổi per-khách, và
-// gỡ bỏ 2 ô nhập khỏi tab Appstore (giữ chỉ Email + Password). VIDEO_SR/IPA/GOLD dùng
-// cho bước appstore/ipa/gold; 2 video DNS/VPN vẫn nằm trong DEFAULT_STEPS (có video_url).
-const VIDEO_SR   = 'https://res.cloudinary.com/dqkilohx1/video/upload/v1786893944/shadowrocket_vbdbyf.mov';
-const VIDEO_IPA  = 'https://res.cloudinary.com/dqkilohx1/video/upload/v1786893919/locketipa_abds5k.mov';
-const VIDEO_GOLD = 'https://res.cloudinary.com/dqkilohx1/video/upload/v1786893926/thaotaclengold_yiorrz.mov';
+// Video hướng dẫn: dùng placeholder chuẩn Retro Notebook (Chờ Vxang cập nhật), loại bỏ toàn bộ video cũ từ Locket Xwuan Unified
+function renderVideoPlaceholder(label = 'Video hướng dẫn') {
+  return `
+  <div style="display:flex;align-items:center;gap:7px;margin-top:18px;margin-bottom:8px;">
+    <span class="video-label">▶ ${esc(label)}</span>
+  </div>
+  <div class="video-placeholder-box">
+    <div class="vph-tape"></div>
+    <div class="vph-icon">🎬</div>
+    <div class="vph-title">${esc(label)}</div>
+    <div><span class="vph-badge">⏳ Chờ Vxang cập nhật</span></div>
+    <div class="vph-sub">Video thao tác đang được ghi hình mới.<br>Bạn hãy làm theo các bước hướng dẫn cụ thể ở trên nhé!</div>
+  </div>`;
+}
 
 // ── Điều hướng & nav-bar dùng chung cho mọi loại step ──────────
 function updateNavBar() {
@@ -1249,6 +1284,19 @@ window._refreshAppstore = async function(btn) {
       
       if (wasUpdating || isUpdatingNow) {
         renderStep();
+        if (isUpdatingNow) {
+          const newBtn = document.getElementById('btnRefreshAppstore');
+          if (newBtn) {
+            newBtn.innerHTML = '⏳ Vẫn đang chờ tài khoản...';
+            newBtn.disabled = true;
+            setTimeout(() => {
+              if (newBtn) {
+                newBtn.innerHTML = '🔄 Nhận tài khoản mới';
+                newBtn.disabled = false;
+              }
+            }, 3000);
+          }
+        }
       } else {
         const emailEl = document.querySelector('#acctCard_email .acct-copy-value');
         if (emailEl) emailEl.textContent = d.email_masked || d.email_real || '';
@@ -1343,7 +1391,7 @@ function renderStep() {
         <div style="position:relative;margin-bottom:4px;">
           <input type="text" class="username-input" id="usernameInput"
             value="${esc(usernameValue||'')}" disabled
-            style="background:rgba(124,58,237,.05);color:var(--text);font-weight:800;cursor:not-allowed;border:1.5px solid rgba(124,58,237,.35);opacity:.95;padding-right:38px;" />
+            style="background:var(--bg-warm);color:var(--ink);font-weight:800;cursor:not-allowed;border:2px solid var(--ink);opacity:.95;padding-right:38px;box-shadow:inset 1px 1px 0 rgba(0,0,0,0.06);" />
           <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:1.05rem;">🔒</span>
         </div>
         <div style="font-size:.76rem;color:var(--muted);margin-bottom:12px;line-height:1.45;">
@@ -1356,9 +1404,9 @@ function renderStep() {
           oninput="onUsernameInput()" />
       `}
 
-      <div class="notice-box" style="margin-top:14px;background:rgba(124,58,237,.06);border-color:rgba(124,58,237,.2)">
-        <span style="font-size:1.1rem;flex-shrink:0">💡</span>
-        <p>Làm theo <b>đầy đủ các bước cài đặt</b> tiếp theo. Sau khi hoàn thành, bạn chỉ cần <b>nhắn tin / alo lại cho Vxang</b> để được hỗ trợ kích hoạt Gold ngay nhé! 💜</p>
+      <div class="notice-box notice-tip" style="margin-top:14px;">
+        <span class="notice-icon">💡</span>
+        <p>Làm theo <b>đầy đủ các bước cài đặt</b> tiếp theo. Sau khi hoàn thành, bạn chỉ cần <b>nhắn tin / alo lại cho Vxang</b> để được hỗ trợ kích hoạt Gold ngay nhé! ⚡</p>
       </div>
 
       <div class="username-img-placeholder" style="margin-top:18px;">
@@ -1377,7 +1425,6 @@ function renderStep() {
     inner += `<div class="step-card">${s.title?`<div class="step-title">${esc(s.title)}</div>`:''}${s.image_url?`<div class="step-img-wrap"><img src="${esc(s.image_url)}" alt="${esc(s.caption||'')}" loading="lazy"></div>`:''}${s.content?`<div class="step-content">${esc(s.content)}</div>`:''}</div>`;
   } else if (s.type === 'choice') {
     if (!step3Choice) step3Choice = 'dns'; // chỉ còn 1 phiên bản — tự gán, không cần chọn
-    const dnsVideo = s.video_url || 'https://res.cloudinary.com/dqkilohx1/video/upload/v1785147263/IMG_0553_eeelmw.mp4';
     const dp = dnsPoolData;
     if (!dp || !dp.ok) {
       // Pool rỗng hoặc đã đầy 5 khách mà admin chưa tạo link mới — không còn fallback
@@ -1385,8 +1432,8 @@ function renderStep() {
       inner += `
       <div class="step-card">
         <div class="step-title">${esc(s.title||'Cài đặt DNS giữ Gold')}</div>
-        <div class="notice-box" style="margin-top:0">
-          <span style="font-size:1rem;flex-shrink:0">⚠</span>
+        <div class="notice-box notice-alert" style="margin-top:0">
+          <span class="notice-icon">⚠️</span>
           <p>${esc((dp&&dp.error)||'DNS đang được cập nhật')}. <b>Liên hệ Vxang qua Zalo</b> để được hỗ trợ ngay.</p>
         </div>
       </div>`;
@@ -1397,39 +1444,28 @@ function renderStep() {
 
         <a class="btn-download" href="javascript:void(0)" onclick="downloadDnsProfile('${esc(dp.dns_url)}','${esc(pkgType)}','${esc(dp.customer_code||'')}')">⬇ Tải file DNS${(pkgType==='15s'||pkgType==='180')?' 15s':''} về máy</a>
 
-        <div style="display:flex;align-items:center;gap:7px;margin-top:18px;margin-bottom:10px;"><span class="video-label" style="background:rgba(124,58,237,.1);color:var(--p1);border-radius:6px;padding:3px 8px;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em">▶ Video hướng dẫn</span></div>
-        <div class="video-wrap" style="margin-top:0">
-          <div class="video-shell">
-            <video src="${esc(dnsVideo)}" controls playsinline></video>
-          </div>
-        </div>
+        ${renderVideoPlaceholder('Video hướng dẫn cài DNS')}
       </div>`;
     }
   } else if (s.type === 'vpn') {
-    const vpnVideo = s.video_url || 'https://res.cloudinary.com/dqkilohx1/video/upload/v1785059358/IMG_0529_pui47l.mp4';
     inner += `
     <div class="step-card">
       <div class="step-title">${esc(s.title||'Cài đặt VPN (Mỹ)')}</div>
       <div class="step-content" style="margin-bottom:14px">Cài và kết nối VPN vào server <b>Mỹ (US)</b> — bước bắt buộc cho gói 15s để DNS hoạt động ổn định.</div>
 
-      <div class="notice-box" style="margin-bottom:14px;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3)">
-        <span style="font-size:1rem;flex-shrink:0">⛔</span>
+      <div class="notice-box notice-alert" style="margin-bottom:14px;">
+        <span class="notice-icon">⛔</span>
         <p><b>LƯU Ý QUAN TRỌNG:</b> Giữ lại app <b>VPN USA</b> trên máy, <b>tuyệt đối không được xóa</b> app VPN USA đi.</p>
       </div>
 
       ${(specialFlow && pkgType === '180') ? `
-      <div class="notice-box" style="margin-bottom:14px;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3)">
-        <span style="font-size:1.1rem;flex-shrink:0">⚠️</span>
+      <div class="notice-box notice-tip" style="margin-bottom:14px;">
+        <span class="notice-icon">⚠️</span>
         <p><b>LƯU Ý:</b> Hãy <b>bỏ qua bước xóa và cài đặt lại Locket</b> ở trong video.</p>
       </div>
       ` : ''}
 
-      <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;"><span class="video-label" style="background:rgba(124,58,237,.1);color:var(--p1);border-radius:6px;padding:3px 8px;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em">▶ Video hướng dẫn</span></div>
-      <div class="video-wrap" style="margin-top:0">
-        <div class="video-shell">
-          <video src="${esc(vpnVideo)}" controls playsinline></video>
-        </div>
-      </div>
+      ${renderVideoPlaceholder('Video hướng dẫn cài đặt VPN (Mỹ)')}
     </div>`;
   } else if (s.type === 'appstore') {
       const d = appstoreData;
@@ -1438,24 +1474,28 @@ function renderStep() {
         inner += `
         <div class="step-card">
           <div class="step-title">${esc(s.title||'Cài Shadowrocket')}</div>
-          <div class="notice-box" style="margin-top:0">
-            <span style="font-size:1.1rem;flex-shrink:0">⏳</span>
-            <p style="font-size: 0.9rem"><b>Đợi Vxang cập nhật.</b> Vui lòng chờ, hệ thống sẽ tự động hiển thị tài khoản ngay khi có!</p>
+          <div class="notice-box notice-info" style="margin-top:0">
+            <span class="notice-icon">⏳</span>
+            <p style="font-size: 0.9rem"><b>Chờ Vxang cập nhật:</b> Nguồn tài khoản Appstore tạm thời chưa có sẵn hoặc đang được làm mới. Vui lòng bấm <b>"Nhận tài khoản mới"</b> bên dưới để thử lại hoặc nhắn Zalo cho Vxang nhé!</p>
           </div>
+          ${!specialFlow ? `
+          <div style="margin-top:14px;text-align:center;">
+            <button id="btnRefreshAppstore" onclick="_refreshAppstore(this)" class="btn-refresh-acct">
+              🔄 Nhận tài khoản mới
+            </button>
+          </div>` : ""}
+          ${renderVideoPlaceholder('Video hướng dẫn cài Shadowrocket')}
         </div>`;
-        
-        
       } else if (!d || !d.ok) {
       inner += `
       <div class="step-card">
         <div class="step-title">${esc(s.title||'Cài Shadowrocket')}</div>
-        <div class="notice-box" style="margin-top:0">
-          <span style="font-size:1rem;flex-shrink:0">⚠</span>
+        <div class="notice-box notice-alert" style="margin-top:0">
+          <span class="notice-icon">⚠️</span>
           <p>${esc((d&&d.error)||'Chưa có tài khoản Appstore được cấu hình.')} <b>Liên hệ Vxang qua Zalo</b> để được hỗ trợ ngay.</p>
         </div>
       </div>`;
     } else {
-        
         inner += `
         <div class="step-card">
           <div class="step-title">${esc(s.title||'Cài Shadowrocket')}</div>
@@ -1476,35 +1516,29 @@ function renderStep() {
         </div>
 
         ${!specialFlow ? `<div style="margin-top:10px;text-align:right;">
-            <button id="btnRefreshAppstore" onclick="_refreshAppstore(this)" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,240,255,.08);border:1px solid rgba(0,240,255,.25);color:var(--p1);padding:6px 12px;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;transition:all .2s ease;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2 12A10 10 0 0 1 17 3.5L21.5 8M2.5 22v-6h6M22 12A10 10 0 0 1 7 20.5L2.5 16"/></svg>
-              Nhận tài khoản mới
+            <button id="btnRefreshAppstore" onclick="_refreshAppstore(this)" class="btn-refresh-acct">
+              🔄 Nhận tài khoản mới
             </button>
           </div>` : ""}
 
-        <div class="notice-box" style="margin-top:14px;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3)">
-          <span style="font-size:1rem;flex-shrink:0">⛔</span>
+        <div class="notice-box notice-alert" style="margin-top:14px;">
+          <span class="notice-icon">⛔</span>
           <p><b>LƯU Ý QUAN TRỌNG:</b> Giữ lại app <b>Shadowrocket</b> trên máy, <b>tuyệt đối không được xóa</b> app Shadowrocket đi.</p>
         </div>
 
         ${specialFlow ? `
-        <div class="notice-box" style="margin-top:10px;background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.25)">
-          <span style="font-size:1rem;flex-shrink:0">⚠️</span>
+        <div class="notice-box notice-tip" style="margin-top:10px;">
+          <span class="notice-icon">⚠️</span>
           <p>Tải xong Shadowrocket <b>không đăng xuất tài khoản App Store</b> vì cần phải dùng cho bước cài Locket IPA tiếp theo.</p>
         </div>
         ` : `
-        <div class="notice-box" style="margin-top:10px;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3)">
-          <span style="font-size:1rem;flex-shrink:0">💡</span>
+        <div class="notice-box notice-tip" style="margin-top:10px;">
+          <span class="notice-icon">💡</span>
           <p>Tải xong Shadowrocket thì <b>phải đăng xuất tài khoản App Store của shop rồi đăng nhập lại tài khoản App Store của bạn</b>.</p>
         </div>
         `}
 
-        <div style="display:flex;align-items:center;gap:7px;margin-top:18px;margin-bottom:10px;"><span class="video-label" style="background:rgba(124,58,237,.1);color:var(--p1);border-radius:6px;padding:3px 8px;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em">▶ Video hướng dẫn</span></div>
-        <div class="video-wrap" style="margin-top:0">
-          <div class="video-shell">
-            <video src="${VIDEO_SR}" controls playsinline></video>
-          </div>
-        </div>
+        ${renderVideoPlaceholder('Video hướng dẫn cài Shadowrocket')}
       </div>`;
     }
   } else if (s.type === 'ipa') {
@@ -1513,13 +1547,12 @@ function renderStep() {
       inner += `
       <div class="step-card">
         <div class="step-title">${esc(s.title||'Cài Locket hạ cấp')}</div>
-        <div class="notice-box" style="margin-top:0">
-          <span style="font-size:1rem;flex-shrink:0">⚠</span>
+        <div class="notice-box notice-alert" style="margin-top:0">
+          <span class="notice-icon">⚠️</span>
           <p>${esc((d&&d.error)||'Chưa có tài khoản Appstore được cấu hình.')} <b>Liên hệ Vxang qua Zalo</b> để được hỗ trợ ngay.</p>
         </div>
       </div>`;
     } else {
-        
         const plistUrl = (window.location.origin && window.location.origin.startsWith('http'))
         ? (window.location.origin + '/api/guide/validate?action=ipa_plist')
         : 'https://locketvxang.vercel.app/api/guide/validate?action=ipa_plist';
@@ -1527,32 +1560,26 @@ function renderStep() {
       <div class="step-card">
         <div class="step-title">${esc(s.title||'Cài Locket hạ cấp')}</div>
 
-        ${d.has_ipa ? `<a class="btn-download" href="itms-services://?action=download-manifest&url=${encodeURIComponent(plistUrl)}">⬇ Tải Locket IPA</a>` : `<div class="notice-box" style="margin-top:14px"><span style="font-size:1rem;flex-shrink:0">⚠</span><p>File IPA chưa được cấu hình. <b>Liên hệ Vxang qua Zalo</b> để được gửi link cài trực tiếp.</p></div>`}`;
-        if (d.has_ipa) {
-          inner += `
-          <div class="notice-box" style="margin-top:14px;">
-          <span style="font-size:1.25rem;flex-shrink:0">⛔</span>
+        ${d.has_ipa ? `<a class="btn-download" href="itms-services://?action=download-manifest&url=${encodeURIComponent(plistUrl)}">⬇ Tải Locket IPA</a>` : `<div class="notice-box notice-alert" style="margin-top:14px"><span class="notice-icon">⚠️</span><p>File IPA chưa được cấu hình. <b>Liên hệ Vxang qua Zalo</b> để được gửi link cài trực tiếp.</p></div>`}
+        ${d.has_ipa ? `
+        <div class="notice-box notice-alert" style="margin-top:14px;">
+          <span class="notice-icon">⛔</span>
           <p style="font-size:.88rem;line-height:1.5"><b>LƯU Ý CỰC KỲ QUAN TRỌNG:</b> Tuyệt đối <b>KHÔNG ĐƯỢC XÓA ỨNG DỤNG LOCKET</b> sau khi đã tải/cài đặt xong! Nếu xóa bạn sẽ bị mất bản hạ cấp và không thể tự cài lại được.</p>
         </div>
-        <div class="notice-box" style="margin-top:10px;">
-          <span style="font-size:1.1rem;flex-shrink:0">💡</span>
+        <div class="notice-box notice-tip" style="margin-top:10px;">
+          <span class="notice-icon">💡</span>
           <p style="font-size:.86rem;line-height:1.5">Tải xong Locket thì bạn hãy <b>đăng xuất tài khoản App Store của shop rồi đăng nhập lại tài khoản App Store cá nhân của bạn</b>.</p>
         </div>
         ${(specialFlow && pkgType === '180') ? `
-        <div class="notice-box" style="margin-top:10px;">
-          <span style="font-size:1.15rem;flex-shrink:0">⚠️</span>
+        <div class="notice-box notice-tip" style="margin-top:10px;">
+          <span class="notice-icon">⚠️</span>
           <p style="font-size:.86rem;line-height:1.5"><b>LƯU Ý:</b> Cài xong <b>không vào Locket ngay</b>. Bạn cần kết nối VPN (Mỹ) ở bước tiếp theo rồi mới được mở app!</p>
         </div>
         ` : ''}
 
-        <div style="display:flex;align-items:center;gap:7px;margin-top:18px;margin-bottom:10px;"><span class="video-label">▶ Video hướng dẫn</span></div>
-        <div class="video-wrap" style="margin-top:0">
-          <div class="video-shell">
-            <video src="${VIDEO_IPA}" controls playsinline></video>
-            </div>
-          </div>`;
-        }
-        inner += `</div>`;
+        ${renderVideoPlaceholder('Video hướng dẫn cài Locket hạ cấp')}
+        ` : ''}
+      </div>`;
     }
   } else if (s.type === 'gold') {
     const goldConfigUrl = 'https://raw.githubusercontent.com/Vxang19/Locket-IPA/refs/heads/main/modules/Locket_Vxang.module';
@@ -1568,19 +1595,12 @@ function renderStep() {
         </div>
       </div>
 
-      <div class="notice-box" style="margin-top:16px;">
-        <span style="font-size:1.25rem;flex-shrink:0">⚠️</span>
+      <div class="notice-box notice-alert" style="margin-top:16px;">
+        <span class="notice-icon">⚠️</span>
         <p style="font-size:.9rem;line-height:1.5"><b>CẢNH BÁO QUAN TRỌNG:</b><br>Đây là <b>bước bắt buộc</b> để kích hoạt Gold.${pkgType==='180'?' Chưa lên Gold thì DNS đã cài ở bước trước <b>sẽ không có tác dụng</b>.':''}</p>
       </div>
 
-      <div style="display:flex;align-items:center;gap:7px;margin-top:18px;margin-bottom:10px;"><span class="video-label">▶ Video hướng dẫn</span></div>
-      <div class="video-wrap" style="margin-top:0">
-        <div class="video-shell">
-          <video src="${VIDEO_GOLD}" controls playsinline></video>
-        </div>
-      </div>
-
-      
+      ${renderVideoPlaceholder('Video hướng dẫn lên Locket Gold')}
     </div>`;
   }
 
