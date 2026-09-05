@@ -572,7 +572,6 @@ module.exports = async (req, res) => {
                 reply_markup: {
                   inline_keyboard: [
                     [
-                      { text: '🔓 Mở khóa đặc xá (Thủ công)', callback_data: `unblock_code:${upperCode}` },
                       { text: '🔍 Tra cứu mã', callback_data: `lookup_code:${codeRow.id}` }
                     ]
                   ]
