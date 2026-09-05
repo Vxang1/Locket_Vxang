@@ -45,7 +45,6 @@ module.exports = async (req, res) => {
           current_step: 0,
           last_ping: new Date().toISOString(),
           is_kicked: false,
-          is_original: payload.isOriginal !== false,
         }
       }).catch(() => {});
     }

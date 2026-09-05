@@ -669,36 +669,35 @@ module.exports = async (req, res) => {
       );
     }
 
-    // 6. Tạo session mới (thử full schema, fallback basic schema)
+    // 6. Tạo session mới (thử full schema, fallback core schema an toàn)
     const sessionToken = randomUUID();
+    const coreSession = {
+      access_code: upperCode,
+      session_token: sessionToken,
+      device_id: deviceId || null,
+      is_kicked: false,
+      current_step: 0,
+      last_ping: nowIso,
+    };
     try {
       await sb('POST', 'sessions', {
         body: {
-          access_code: upperCode,
-          session_token: sessionToken,
-          device_id: deviceId || null,
+          ...coreSession,
           device_ip: ip || null,
           device_ua: ua || null,
           is_original: isOriginal,
-          is_kicked: false,
-          current_step: 0,
-          last_ping: nowIso,
         },
         prefer: 'return=minimal',
       });
     } catch (sessErr) {
-      await sb('POST', 'sessions', {
-        body: {
-          access_code: upperCode,
-          session_token: sessionToken,
-          device_id: deviceId || null,
-          is_kicked: false,
-          current_step: 0,
-          is_original: isOriginal,
-          last_ping: nowIso,
-        },
-        prefer: 'return=minimal',
-      });
+      try {
+        await sb('POST', 'sessions', {
+          body: coreSession,
+          prefer: 'return=minimal',
+        });
+      } catch (coreErr) {
+        console.warn('[validate] Non-blocking session insert warning:', coreErr.message);
+      }
     }
 
     const exp = Math.floor(new Date(expiresAt).getTime() / 1000);
