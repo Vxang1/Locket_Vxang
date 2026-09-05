@@ -236,23 +236,33 @@ async function handleTelegramWebhook(req, res) {
           const custRows = await sb('GET', 'customers', { q: `id=eq.${encodeURIComponent(codeData.customer_id)}` });
           const customer = custRows?.[0] || {};
           
-          const pkg = customer.package || codeData.package || '30k';
+          const targetPkg = customer.package || codeData.package || '30k';
+          const targetPkgLabel = targetPkg === '40k' ? '⚡ 40k (15s)' : '✨ 30k (5s)';
+          const statusText = {
+            pending_gold: '⏳ Đang cài đặt',
+            active: '✅ Đã hoàn tất',
+            expired: '⏰ Hết hạn'
+          }[customer.service_status] || customer.service_status || '—';
+
           const lines = [
-            `🎯 <b>THÔNG TIN TỪ MÃ TRUY CẬP</b>`,
+            `🔑 <b>MÃ:</b> <code>${escHtml(codeData.code)}</code> (${targetPkgLabel})`,
             DIVIDER,
-            `🔑 <b>Mã:</b> <code>${escHtml(codeData.code)}</code>`,
-            `📦 <b>Gói:</b> <code>${escHtml(pkg)}</code>`,
-            `👤 <b>Khách hàng:</b> <code>${escHtml(customer.customer_code || '-')}</code> (${escHtml(customer.name || 'Chưa có tên')})`,
-            `📞 <b>SĐT:</b> <code>${escHtml(customer.phone || '-')}</code>`,
-            `📊 <b>Trạng thái:</b> <b>${escHtml(customer.service_status || '-')}</b>`
+            `👤 <b>Khách:</b> <b>${escHtml(customer.name || 'Chưa có tên')}</b> (<code>${escHtml(customer.customer_code || '-')}</code>)`
           ];
-          if (pkg === '30k' || pkg === '5s') {
+          if (customer.phone) lines.push(`📞 <b>SĐT:</b> <code>${escHtml(customer.phone)}</code>`);
+          if (customer.social_link && customer.social_link !== '-') lines.push(`🔗 <b>Liên hệ:</b> ${escHtml(customer.social_link)}`);
+          lines.push(`📊 <b>Trạng thái:</b> <b>${statusText}</b>`);
+
+          if (targetPkg === '30k' || targetPkg === '5s') {
             const startTime = customer.activated_at || customer.created_at;
             if (startTime) {
               const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
               const isWithin7Days = diffDays <= 7;
               const remDays = Math.max(0, 7 - diffDays);
-              lines.push(`⚡ <b>Lên 40k:</b> ${isWithin7Days ? `Còn ${remDays} ngày đổi bù (+10k)` : `Quá 7 ngày (${diffDays} ngày) - Thu full 40k`}`);
+              lines.push(isWithin7Days 
+                ? `💰 <b>Lên 40k:</b> 🟢 Còn ${remDays} ngày (Bù +10k)` 
+                : `💰 <b>Lên 40k:</b> 🔴 Quá 7 ngày (${diffDays} ngày) — Thu full 40k`
+              );
             }
           }
           
@@ -292,13 +302,13 @@ async function handleTelegramWebhook(req, res) {
     // Lệnh trợ giúp /start, help, menu
     if (/^\/(start|help|menu)(\s|@|$)/i.test(text) || text.toLowerCase() === 'help' || text.toLowerCase() === 'menu') {
       const helpLines = [
-        '👋 <b>Chào Admin Vxang (Locket Vxang Bot)!</b>',
+        '👋 <b>Locket Vxang Admin Bot</b>',
         DIVIDER,
-        '⚡ <b>Hệ thống Quản lý Khách hàng:</b>\n',
-        '1️⃣ <b>Tra cứu thông tin CRM:</b>',
-        '👉 Gõ mã khách hàng <code>KH-xxxxxxx</code>, mã truy cập <code>VX-xxxxxx</code> hoặc SĐT để xem thông tin.\n',
-        '2️⃣ <b>Thống kê hệ thống:</b>',
-        '👉 Gõ <code>/stats</code> để xem thống kê tổng quan về khách hàng và gói dịch vụ.'
+        '🔍 <b>Tra cứu nhanh CRM:</b>',
+        'Gõ trực tiếp vào đây:',
+        '• Mã khách: <code>KH-xxxxxxx</code>',
+        '• Mã truy cập: <code>VX-xxxxxx</code>',
+        '• Số điện thoại hoặc link MXH'
       ];
       await replyTelegram(chatId, helpLines.join('\n'));
       return res.status(200).json({ ok: true });
@@ -360,96 +370,110 @@ async function handleTelegramWebhook(req, res) {
     const latestCode = codes[0];
 
     function codeStatus(c) {
-      if (c.completed_at) return '✅ đã hoàn thành';
-      if (!c.is_active && c.fraud_triggered_at) return '🔒 khoá do share mã';
-      if (!c.is_active) return '🚫 admin khoá';
-      if (c.expires_at && new Date(c.expires_at) < new Date()) return '⏰ hết hạn';
-      if (!c.activated_at && !c.first_used_at) return '⏳ chưa dùng';
-      return '🟢 đang còn hiệu lực';
+      if (c.completed_at) return '✅ Đã hoàn tất';
+      if (!c.is_active && c.fraud_triggered_at) return '🔒 Khóa (share mã)';
+      if (!c.is_active) return '🚫 Đã vô hiệu';
+      if (c.expires_at && new Date(c.expires_at) < new Date()) return '⏰ Hết hạn';
+      if (!c.activated_at && !c.first_used_at) return '⏳ Chưa kích hoạt';
+      return '🟢 Đang chạy (30p)';
     }
 
-    const statusEmoji = { pending_gold: '⏳', active: '✅', expired: '⏰' }[customer.service_status] || '❓';
     const pkg = escHtml(customer.package || latestCode?.package || '30k');
+    const pkgLabel = pkg === '40k' ? '40k (15s Vĩnh viễn)' : '30k (5s Vĩnh viễn)';
     const pkgEmoji = (pkg === '40k') ? '⚡' : '✨';
+    const statusText = {
+      pending_gold: '⏳ Đang cài đặt',
+      active: '✅ Đã hoàn tất',
+      expired: '⏰ Hết hạn'
+    }[customer.service_status] || customer.service_status || '—';
     
     const searchedCode = customer._searchedCode;
     const targetCodeObj = searchedCode ? codes.find(c => (c.code || '').toUpperCase() === searchedCode.toUpperCase()) : null;
 
     const lines = [];
 
-    // Nếu admin tra cứu đích danh 1 mã truy cập -> hiện thẻ tiêu điểm mã lên đầu
+    // TRƯỜNG HỢP 1: Tra cứu đích danh 1 mã truy cập -> Thẻ thông tin gọn gàng cho điện thoại
     if (targetCodeObj) {
       const actTime = formatVnDateTime(targetCodeObj.activated_at || targetCodeObj.first_used_at);
       const compTime = formatVnDateTime(targetCodeObj.completed_at);
       const expTime = formatVnDateTime(targetCodeObj.expires_at);
       const createTime = formatVnDateTime(targetCodeObj.created_at);
+      const targetPkg = targetCodeObj.package || pkg;
+      const targetPkgLabel = targetPkg === '40k' ? '⚡ 40k (15s)' : '✨ 30k (5s)';
 
-      lines.push('🎯 <b>THÔNG TIN MÃ TRUY CẬP</b>');
-      lines.push(DIVIDER);
-      lines.push(`🔑 <b>Mã truy cập:</b> <code>${escHtml(targetCodeObj.code)}</code>`);
-      lines.push(`📊 <b>Trạng thái:</b> <b>${codeStatus(targetCodeObj)}</b>`);
-      lines.push(`📦 <b>Gói dịch vụ:</b> <code>${escHtml(targetCodeObj.package || pkg)}</code>`);
-      lines.push(`📅 <b>Ngày tạo mã:</b> <code>${createTime || '-'}</code>`);
-      lines.push(`⚡ <b>Kích hoạt lúc:</b> <b>${actTime ? `<code>${actTime}</code>` : '<i>(Chưa kích hoạt / Chưa dùng)</i>'}</b>`);
-      if (compTime) {
-        lines.push(`✅ <b>Hoàn tất lúc:</b> <code>${compTime}</code>`);
-      } else if (expTime) {
-        lines.push(`⌛ <b>Hết hạn lúc:</b> <code>${expTime}</code>`);
-      }
-      lines.push(DIVIDER);
-      lines.push('👤 <b>CHỦ SỞ HỮU (KHÁCH HÀNG):</b>');
-    }
-
-    if (!targetCodeObj) {
       lines.push(
-        `👤 <b>${escHtml(customer.name || '(chưa có tên)')}</b>`,
+        `🔑 <b>MÃ:</b> <code>${escHtml(targetCodeObj.code)}</code> (${targetPkgLabel})`,
+        `📊 <b>Trạng thái:</b> <b>${codeStatus(targetCodeObj)}</b>`,
         DIVIDER,
-        `🆔 Mã KH: <code>${escHtml(customer.customer_code)}</code>`,
-        `📞 SĐT: <code>${escHtml(customer.phone || '-')}</code>`,
-        `🔗 Profile: <code>${escHtml(customer.social_link || '-')}</code>`,
-        `${pkgEmoji} Gói: <b>${pkg}</b>`,
-        `${statusEmoji} Trạng thái: <b>${escHtml(customer.service_status || '-')}</b>`
+        `👤 <b>Khách:</b> <b>${escHtml(customer.name || 'Chưa có tên')}</b> (<code>${escHtml(customer.customer_code)}</code>)`
       );
+      if (customer.phone) lines.push(`📞 <b>SĐT:</b> <code>${escHtml(customer.phone)}</code>`);
+      if (customer.social_link && customer.social_link !== '-') lines.push(`🔗 <b>Liên hệ:</b> ${escHtml(customer.social_link)}`);
+
+      lines.push(DIVIDER);
+      if (createTime) lines.push(`📅 Tạo: ${createTime}`);
+      if (actTime) lines.push(`⚡ Kích hoạt: ${actTime}`);
+      if (compTime) lines.push(`✅ Hoàn tất: <b>${compTime}</b>`);
+      else if (expTime) lines.push(`⌛ Hết hạn: ${expTime}`);
+
+      if (targetPkg === '30k' || targetPkg === '5s') {
+        const startTime = customer.activated_at || customer.created_at;
+        if (startTime) {
+          const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
+          const isWithin7Days = diffDays <= 7;
+          const remDays = Math.max(0, 7 - diffDays);
+          lines.push(isWithin7Days 
+            ? `💰 <b>Lên 40k:</b> 🟢 Còn ${remDays} ngày (Bù +10k)` 
+            : `💰 <b>Lên 40k:</b> 🔴 Quá 7 ngày (${diffDays} ngày) — Thu full 40k`
+          );
+        }
+      }
+
+      if (customer.notes) {
+        lines.push(DIVIDER);
+        lines.push(`📝 <i>${escHtml(customer.notes)}</i>`);
+      }
     } else {
+      // TRƯỜNG HỢP 2: Tra cứu theo Khách hàng (Mã KH / SĐT / Tên)
       lines.push(
-        `👤 <b>${escHtml(customer.name || '(chưa có tên)')}</b>`,
-        `🆔 Mã KH: <code>${escHtml(customer.customer_code)}</code>`,
-        `📞 SĐT: <code>${escHtml(customer.phone || '-')}</code>`,
-        `🔗 Profile: <code>${escHtml(customer.social_link || '-')}</code>`,
-        `${pkgEmoji} Gói: <b>${pkg}</b>`,
-        `${statusEmoji} Trạng thái: <b>${escHtml(customer.service_status || '-')}</b>`
+        `👤 <b>${escHtml(customer.name || 'Chưa đặt tên')}</b> | <code>${escHtml(customer.customer_code)}</code>`,
+        DIVIDER,
+        `${pkgEmoji} <b>Gói:</b> <b>${escHtml(pkgLabel)}</b>`,
+        `📊 <b>Trạng thái:</b> <b>${statusText}</b>`
       );
-    }
+      if (customer.phone) lines.push(`📞 <b>SĐT:</b> <code>${escHtml(customer.phone)}</code>`);
+      if (customer.social_link && customer.social_link !== '-') lines.push(`🔗 <b>Liên hệ:</b> ${escHtml(customer.social_link)}`);
 
-    if (customer.package === '30k' || customer.package === '5s') {
-      const startTime = customer.activated_at || customer.created_at;
-      if (startTime) {
-        const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
-        const isWithin7Days = diffDays <= 7;
-        const remDays = Math.max(0, 7 - diffDays);
-        lines.push(isWithin7Days 
-          ? `⚡ <b>Lên 40k:</b> Còn ${remDays} ngày đổi bù (+10k)` 
-          : `⚡ <b>Lên 40k:</b> Quá 7 ngày (${diffDays} ngày) - Thu full 40k`
-        );
+      if (customer.package === '30k' || customer.package === '5s') {
+        const startTime = customer.activated_at || customer.created_at;
+        if (startTime) {
+          const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
+          const isWithin7Days = diffDays <= 7;
+          const remDays = Math.max(0, 7 - diffDays);
+          lines.push(isWithin7Days 
+            ? `💰 <b>Đổi lên 40k:</b> 🟢 Còn ${remDays} ngày (Bù +10k)` 
+            : `💰 <b>Lên 40k:</b> 🔴 Quá 7 ngày (${diffDays} ngày) — Thu full 40k`
+          );
+        }
       }
-    }
 
-    if (codes.length) {
-      lines.push(DIVIDER);
-      lines.push(`🔑 <b>Mã truy cập (${codes.length})</b>`);
-      for (const c of codes) {
-        lines.push(`<code>${escHtml(c.code)}</code> - ${codeStatus(c)}`);
+      if (codes.length) {
+        lines.push(DIVIDER);
+        lines.push(`🔑 <b>Mã truy cập (${codes.length}):</b>`);
+        for (const c of codes) {
+          lines.push(`• <code>${escHtml(c.code)}</code> — ${codeStatus(c)}`);
+        }
       }
-    }
 
-    if (dnsRows.length) {
-      const opened = dnsRows.filter(r => r.first_accessed_at).length;
-      lines.push(DIVIDER);
-      lines.push(`🌐 <b>Khách làm DNS riêng</b> - ${dnsRows.length} link${opened ? `, đã mở ${opened}` : ', chưa mở link nào'}`);
-    }
-    if (customer.notes) {
-      lines.push(DIVIDER);
-      lines.push(`📝 <i>${escHtml(customer.notes)}</i>`);
+      if (dnsRows.length) {
+        const opened = dnsRows.filter(r => r.first_accessed_at).length;
+        lines.push(`🌐 <b>DNS riêng:</b> ${dnsRows.length} link (${opened ? `đã mở ${opened}` : 'chưa mở'})`);
+      }
+
+      if (customer.notes) {
+        lines.push(DIVIDER);
+        lines.push(`📝 <i>${escHtml(customer.notes)}</i>`);
+      }
     }
 
     await replyTelegram(chatId, lines.join('\n'));
