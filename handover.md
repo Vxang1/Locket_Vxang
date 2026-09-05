@@ -256,6 +256,14 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
       6. `api/_lib/telegram-bot.js`: Dùng chung `escTgHtml` từ `utils.js` và áp dụng `normalizePackage()` trước mọi thao tác hiển thị gói cước, giải quyết triệt để trường hợp bản ghi mang tên gói legacy (`5s`, `15s`, `150`, `180`).
     - **Kiểm định:** Đạt 100% PASS kiểm thử cú pháp `node -c` và toàn bộ inline script HTML. Hệ thống đạt trạng thái vận hành ổn định và đồng bộ hoàn hảo.
 
+20. **✨ NÂNG CẤP TOÀN DIỆN THẨM MỸ TELEGRAM BOT (2026-09-06 02:30):**
+    - **Mục tiêu:** Cải tiến tính thẩm mỹ, độ chuyên nghiệp và trải nghiệm thị giác của các thông báo và thẻ tra cứu CRM trên điện thoại mà vẫn giữ trọn vẹn sự gọn gàng, súc tích.
+    - **Cải tiến thiết kế & Typography:**
+      - **Đường phân cách hiện đại:** Chuyển từ nét đơn gạch mảnh sang đường khối đôi sắc nét `━━━━━━━━━━━━━━━━━━━━` tạo cảm giác phân tầng rõ ràng như trên ứng dụng di động.
+      - **Phối hợp kiểu chữ:** Tiêu đề viết hoa in đậm kèm biểu tượng (`✨ <b>LOCKET VXANG CRM BOT</b> ✨`, `💎 <b>THẺ MÃ TRUY CẬP</b>`, `👤 <b>HỒ SƠ KHÁCH HÀNG</b>`), nhãn trường in đậm (`🏷️ <b>Mã:</b>`, `📦 <b>Gói:</b>`), các thông tin phụ trợ in nghiêng (`<i>(15s Vĩnh viễn)</i>`, `<i>(active)</i>`), mã và số liệu quan trọng đóng khung monospace (`<code>VX-xxxxxx</code>`, `<code>KH-xxxxxxxx</code>`).
+      - **Khối trích dẫn nổi bật (`<blockquote>`):** Sử dụng thẻ blockquote chuẩn Telegram để làm nổi bật dòng thông tin Nâng cấp gói 30k -> 40k và các cảnh báo gian lận IP/Mẹo tra cứu, tạo dải màu xanh dọc viền trái cực kỳ bắt mắt.
+      - **Huy hiệu Emoji (Emoji Badges):** Gói 40k gán biểu tượng sấm chớp vàng `⚡`, gói 30k gán lấp lánh `✨`, tiến trình cài đặt có mũi tên `➜`, thời gian có đồng hồ `🕒`, hoàn tất có tích xanh `✅`.
+      - **Tích hợp kênh liên hệ thông minh:** Bổ sung trường SĐT (`📞 <b>SĐT:</b>`) và Link mạng xã hội (`🔗 <b>Liên hệ:</b>`) trực tiếp vào thông báo `codeDetailLines` dùng chung, giúp Admin bấm mở chat Zalo/Facebook với khách chỉ trong 1 chạm ngay từ thông báo Telegram.
 
 ---
 
