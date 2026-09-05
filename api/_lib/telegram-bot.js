@@ -133,6 +133,51 @@ async function handleTelegramWebhook(req, res) {
     const update = req.body || {};
 
     // ──────────────────────────────────────────────────
+    // 🔍 DIAGNOSTIC & WEBHOOK REGISTRATION
+    // ──────────────────────────────────────────────────
+    if (req.query?.diag === '1' || update?.diag === true) {
+      let botInfo = null;
+      let hookInfo = null;
+      let testSend = null;
+      if (TG_BOT_TOKEN) {
+        try {
+          const r1 = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/getMe`);
+          botInfo = await r1.json();
+          const r2 = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/getWebhookInfo`);
+          hookInfo = await r2.json();
+          const r3 = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: '8374108763', text: '🔔 Test kết nối Admin 8374108763 từ Locket_Vxang!' })
+          });
+          testSend = await r3.json();
+        } catch (e) {
+          testSend = { error: e.message };
+        }
+      }
+      return res.status(200).json({
+        has_token: !!TG_BOT_TOKEN,
+        token_prefix: TG_BOT_TOKEN ? TG_BOT_TOKEN.slice(0, 10) + '...' : null,
+        admin_ids: TG_CHAT_IDS,
+        botInfo,
+        hookInfo,
+        testSend
+      });
+    }
+
+    if (req.query?.set_webhook === '1') {
+      const host = req.headers['x-forwarded-host'] || req.headers.host || 'locketvxang.vercel.app';
+      const proto = (req.headers['x-forwarded-proto'] || 'https').split(',')[0];
+      const webhookUrl = `${proto}://${host}/api/admin/stats`;
+      let result = null;
+      if (TG_BOT_TOKEN) {
+        const r = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/setWebhook?url=${encodeURIComponent(webhookUrl)}&drop_pending_updates=true`);
+        result = await r.json();
+      }
+      return res.status(200).json({ webhookUrl, result });
+    }
+
+    // ──────────────────────────────────────────────────
     // 🔘 1. XỬ LÝ NÚT BẤM INLINE (CALLBACK QUERY)
     // ──────────────────────────────────────────────────
     if (update.callback_query) {
@@ -224,7 +269,7 @@ async function handleTelegramWebhook(req, res) {
     // ──────────────────────────────────────────────────
     // 💬 2. XỬ LÝ TIN NHẮN VĂN BẢN & FILE (TEXT / DOC)
     // ──────────────────────────────────────────────────
-    const msg = update.message;
+    const msg = update.message || update.edited_message;
     const chatId = msg?.chat?.id;
     const fromId = msg?.from?.id;
 
@@ -239,7 +284,7 @@ async function handleTelegramWebhook(req, res) {
     if (!text) return res.status(200).json({ ok: true });
 
     // Lệnh trợ giúp /start, help, menu
-    if (text === '/start' || text.toLowerCase() === 'help' || text.toLowerCase() === 'menu') {
+    if (/^\/(start|help|menu)(\s|@|$)/i.test(text) || text.toLowerCase() === 'help' || text.toLowerCase() === 'menu') {
       const helpLines = [
         '👋 <b>Chào Admin Vxang (Locket Vxang Bot)!</b>',
         DIVIDER,
@@ -254,7 +299,7 @@ async function handleTelegramWebhook(req, res) {
     }
 
     // Lệnh thống kê /stats
-    if (text === '/stats' || text.toLowerCase() === 'stats') {
+    if (/^\/stats(\s|@|$)/i.test(text) || text.toLowerCase() === 'stats') {
       try {
         const [totalCust, pkg30k, pkg40k, completedCust, activeCodes] = await Promise.all([
           sb('GET', 'customers', { q: 'select=id', count: 'exact', head: true }),
