@@ -32,10 +32,14 @@ module.exports = async (req, res) => {
       const extend30m = new Date(Date.now() + 30 * 60 * 1000).toISOString();
       await sb('PATCH', 'access_codes', {
         q: `code=eq.${encodeURIComponent(upperCode)}`,
-        body: { is_active: true, fraud_triggered_at: null, expires_at: extend30m },
+        body: { is_active: true, status: 'active', fraud_triggered_at: null, expires_at: extend30m },
       }).catch(() => {});
-      await fbPut(`fraud/${upperCode}`, null).catch(() => {});
-      await fbPut(`fraud/${upperCode}/destroyed`, null).catch(() => {});
+      await Promise.all([
+        fbPut(`fraud/${upperCode}`, null).catch(() => {}),
+        fbPut(`fraud/${upperCode}/destroyed`, null).catch(() => {}),
+        fbPut(`heartbeats/${upperCode}`, null).catch(() => {}),
+        fbPut(`code_ownership/${upperCode}`, null).catch(() => {}),
+      ]);
       await sb('DELETE', 'sessions', { q: `access_code=eq.${encodeURIComponent(upperCode)}` }).catch(() => {});
       return res.json({ ok: true, message: `Đã mở khóa đặc xá cho mã ${upperCode}` });
     }

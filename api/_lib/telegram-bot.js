@@ -218,14 +218,19 @@ async function handleTelegramWebhook(req, res) {
             q: `code=eq.${encodeURIComponent(upperCode)}`,
             body: {
               is_active: true,
+              status: 'active',
               fraud_triggered_at: null,
               expires_at: extend30m,
             },
           }).catch(() => {});
 
-          // 2. Xóa triệt để bẫy gian lận trên Firebase
-          await fbPut(`fraud/${upperCode}`, null).catch(() => {});
-          await fbPut(`fraud/${upperCode}/destroyed`, null).catch(() => {});
+          // 2. Xóa triệt để bẫy gian lận & nhịp tim trên Firebase
+          await Promise.all([
+            fbPut(`fraud/${upperCode}`, null).catch(() => {}),
+            fbPut(`fraud/${upperCode}/destroyed`, null).catch(() => {}),
+            fbPut(`heartbeats/${upperCode}`, null).catch(() => {}),
+            fbPut(`code_ownership/${upperCode}`, null).catch(() => {}),
+          ]);
 
           // 3. Dọn các session cũ để khách vào lại sạch sẽ
           await sb('DELETE', 'sessions', {

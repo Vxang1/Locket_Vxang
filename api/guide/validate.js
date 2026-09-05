@@ -430,7 +430,7 @@ module.exports = async (req, res) => {
     const userAgent = req.headers['user-agent'] || '';
     const inApp = /zalo|zalomessenger|fbav|fban|messenger|instagram|tiktok|telegram/i.test(userAgent);
 
-    // Kiểm tra trạng thái tự huỷ trước nếu đã bị phát hiện gian lận quá 20s
+    // Kiểm tra trạng thái tự huỷ / khóa gian lận trước
     let existingFraudAt = codeRow.fraud_triggered_at;
     let fbFraud = null;
     try {
@@ -440,12 +440,9 @@ module.exports = async (req, res) => {
       }
     } catch {}
 
-    if (existingFraudAt) {
-      const elapsed = Date.now() - new Date(existingFraudAt).getTime();
-      if (elapsed >= 20000) {
-        await sb('PATCH', 'access_codes', { q: `id=eq.${codeRow.id}`, body: { is_active: false } }).catch(() => {});
-        return res.status(403).json({ error: '🚨 Mã đã bị khóa vĩnh viễn do phát hiện chia sẻ/gian lận. Mọi tiền cọc sẽ KHÔNG được hoàn trả.' });
-      }
+    const isFraudCode = codeRow.status === 'fraud' || !!existingFraudAt || fbFraud?.destroyed === true || fbFraud?.status === 'fraud';
+    if (isFraudCode) {
+      return res.status(403).json({ error: '🚨 Mã đã bị khóa vĩnh viễn do phát hiện chia sẻ/gian lận. Mọi tiền cọc sẽ KHÔNG được hoàn trả.' });
     }
 
     let isOriginal = true;
@@ -539,46 +536,52 @@ module.exports = async (req, res) => {
           // Xóa cờ bẫy cũ nếu có (vì thiết bị cũ đã ngắt)
           await fbPut(`fraud/${upperCode}`, null).catch(() => {});
         } else {
-          // 🚨 THỰC SỰ CÓ 2 THIẾT BỊ ĐANG CÙNG DÙNG SONG SONG -> KÍCH HOẠT BẪY GIAN LẬN
-          isOriginal = false;
+          // 🚨 THỰC SỰ CÓ 2 THIẾT BỊ ĐANG CÙNG DÙNG SONG SONG -> KHÓA VĨNH VIỄN NGAY LẬP TỨC (KHÔNG NHÂN NHƯỢNG)
           const nowIso = new Date().toISOString();
           const clientIp = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'Không xác định').split(',')[0].trim();
 
-          if (!existingFraudAt) {
-            await fbPut(`fraud/${upperCode}`, {
+          await Promise.all([
+            sb('PATCH', 'access_codes', {
+              q: `id=eq.${codeRow.id}`,
+              body: { is_active: false, status: 'fraud', fraud_triggered_at: nowIso },
+            }).catch(() => {}),
+            sb('PATCH', 'sessions', {
+              q: `access_code=eq.${encodeURIComponent(upperCode)}`,
+              body: { is_kicked: true },
+            }).catch(() => {}),
+            fbPut(`fraud/${upperCode}`, {
+              destroyed: true,
+              status: 'fraud',
               fraud_triggered_at: nowIso,
               original_device_id: ownerDeviceId || otherSessions[0]?.device_id || 'owner',
               leech_device_id: deviceId,
               leech_ip: clientIp,
-            }).catch(() => {});
+            }).catch(() => {}),
+            fbPut(`heartbeats/${upperCode}`, null).catch(() => {}),
+          ]);
 
-            try {
-              await sb('PATCH', 'access_codes', {
-                q: `id=eq.${codeRow.id}`,
-                body: { fraud_triggered_at: nowIso },
-              });
-            } catch {}
-
-            // Bắn cảnh báo khẩn cấp về Telegram Admin kèm nút Đặc Xá 1-chạm (Trụ Cột 7)
+          try {
             const cust = await lookupCustomerByCode(upperCode);
-            const who = cust.name ? escTgHtml(cust.name) : 'Khách';
+            const who = cust?.name ? escTgHtml(cust.name) : 'Khách';
             await notifyTelegram(
-              `🚨 <b>${who}</b> đang share mã\n` +
+              `🚨 <b>${who}</b> GIAN LẬN SHARE MÃ — ĐÃ KHÓA MÃ VĨNH VIỄN\n` +
               codeDetailLines(upperCode, codeRow.package, cust) + '\n' +
               `⚠️ IP gian lận: <code>${escTgHtml(clientIp)}</code>\n` +
-              `Phát hiện 2 thiết bị khác nhau đang cùng truy cập mã song song — mã sẽ tự khoá sau 20 giây.`,
+              `Phát hiện thiết bị thứ hai đăng nhập khi thiết bị chính đang hoạt động. Hệ thống đã khóa vĩnh viễn (Phạt không hoàn cọc).`,
               {
                 reply_markup: {
                   inline_keyboard: [
                     [
-                      { text: '🔓 Mở khóa ngay (Đặc xá)', callback_data: `unblock_code:${upperCode}` },
+                      { text: '🔓 Mở khóa đặc xá (Thủ công)', callback_data: `unblock_code:${upperCode}` },
                       { text: '🔍 Tra cứu mã', callback_data: `lookup_code:${codeRow.id}` }
                     ]
                   ]
                 }
               }
             );
-          }
+          } catch {}
+
+          return res.status(403).json({ error: '🚨 Mã đã bị khóa vĩnh viễn do phát hiện chia sẻ/gian lận. Mọi tiền cọc sẽ KHÔNG được hoàn trả.' });
         }
       }
     }

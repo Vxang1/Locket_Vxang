@@ -582,16 +582,20 @@ window.addEventListener('DOMContentLoaded', () => {
   </div>
 </div>
 
-<!-- Fraud Trap Modal -->
-<div id="fraudOverlay" style="display:none;position:fixed;inset:0;z-index:80;background:rgba(26,26,26,.8);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
-  <div id="fraudCard" style="background:#FFFFFF;border-radius:var(--radius-lg);padding:30px 24px 26px;width:100%;max-width:360px;border:3px solid var(--coral);box-shadow:8px 8px 0 var(--ink);animation:fraudPopIn .45s cubic-bezier(.34,1.56,.64,1) both;text-align:center;">
-    <div id="fraudIcon" style="font-size:50px;margin-bottom:12px;animation:fraudShake .5s ease 2">🚨</div>
-    <div id="fraudTitle" style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.2rem;color:var(--coral);margin-bottom:10px;line-height:1.4;"></div>
+<!-- Fraud Trap Modal (Khóa vĩnh viễn - Không nhân nhượng) -->
+<div id="fraudOverlay" style="display:none;position:fixed;inset:0;z-index:80;background:rgba(26,26,26,.85);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
+  <div id="fraudCard" style="background:#FFFFFF;border-radius:var(--radius-lg);padding:28px 22px 24px;width:100%;max-width:360px;border:3px solid var(--coral);box-shadow:8px 8px 0 var(--ink);animation:fraudPopIn .45s cubic-bezier(.34,1.56,.64,1) both;text-align:center;">
+    <div id="fraudIcon" style="font-size:48px;margin-bottom:10px;animation:fraudShake .5s ease 2">🚨</div>
+    <div id="fraudTitle" style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.2rem;color:var(--coral);margin-bottom:10px;line-height:1.35;">ĐÃ KHÓA MÃ VĨNH VIỄN</div>
     <div id="fraudBody" style="background:#FFF0F0;border:1.5px solid var(--coral);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:18px;text-align:left;">
-      <div id="fraudMsg" style="font-size:.88rem;color:#7A1616;line-height:1.75;font-weight:600;"></div>
+      <div id="fraudMsg" style="font-size:.88rem;color:#7A1616;line-height:1.7;font-weight:600;">
+        Hệ thống phát hiện hành vi chia sẻ mã truy cập cho thiết bị khác.<br><br>
+        Theo quy định, <b>mã đã bị khóa vĩnh viễn</b> và <b>KHÔNG ĐƯỢC HOÀN TRẢ TIỀN CỌC</b> dưới mọi hình thức!
+      </div>
     </div>
-    <div style="font-size:.78rem;color:var(--charcoal);font-weight:800;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">Mã sẽ tự khóa trong</div>
-    <div id="fraudCountdown" style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:2.4rem;color:var(--coral);line-height:1;">15</div>
+    <button onclick="window.location.href='/'" style="width:100%;padding:13px;background:var(--coral);color:#fff;border:var(--border-ink);border-radius:var(--radius-sm);font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.92rem;cursor:pointer;box-shadow:var(--shadow-sm);transition:all .15s ease;">
+      ✕ Đóng &amp; Về trang chủ
+    </button>
   </div>
 </div>
 <style>
@@ -661,7 +665,6 @@ let goldExpiryVal = sessionStorage.getItem('xwGoldExpiry') || '';
 let pkgType = '5s'; // '5s' | '15s' | '150' | '180' — nhận từ /api/guide/steps
 let specialFlow = false; // true = khách đặc biệt (flow có bước IPA + cảnh báo nghiêm trọng)
 let isCompleted = false;          // chặn ping xử lý sau khi đã Hoàn thành
-let fraudCountdownInterval = null;
 // Cache nạp 1 lần cho bước appstore & ipa. video_shadowrocket/video_locket đã bỏ khỏi
 // appstore node (chuyển sang link cứng VIDEO_SR/VIDEO_IPA); has_ipa & ipa_url chỉ có
 // nghĩa khi specialFlow=true (mặc định không có bước IPA nên client không dùng).
@@ -1656,6 +1659,29 @@ function cGoZalo(){
   window.open('https://zalo.me/g/yowrfu992','_blank');
   setTimeout(()=>cTick(3),600);
 }
+function showFraudModalPermanent(isOriginal) {
+  stopAll();
+  const overlay = document.getElementById('fraudOverlay');
+  const iconEl = document.getElementById('fraudIcon');
+  const titleEl = document.getElementById('fraudTitle');
+  const msgEl = document.getElementById('fraudMsg');
+  if (!overlay) {
+    alert('🚨 Mã đã bị khóa vĩnh viễn do phát hiện chia sẻ/gian lận.\nMọi tiền cọc sẽ KHÔNG được hoàn trả.');
+    window.location.href = '/';
+    return;
+  }
+  if (isOriginal) {
+    if (iconEl) iconEl.textContent = '🚨';
+    if (titleEl) titleEl.textContent = 'ĐÃ KHÓA MÃ VĨNH VIỄN';
+    if (msgEl) msgEl.innerHTML = 'Hệ thống phát hiện hành vi <b>chia sẻ mã cho thiết bị khác</b>.<br><br>Theo quy định bảo mật, mã đã bị <b>khóa vĩnh viễn</b> và <b>KHÔNG ĐƯỢC HOÀN TRẢ TIỀN CỌC</b>.';
+  } else {
+    if (iconEl) iconEl.textContent = '⛔';
+    if (titleEl) titleEl.textContent = 'TỪ CHỐI TRUY CẬP';
+    if (msgEl) msgEl.innerHTML = 'Mã này đã bị khóa vĩnh viễn do phát hiện <b>dùng chung / chia sẻ trái phép</b>.<br><br>Hành vi gian lận dùng mã của người khác đã bị ghi nhận và xử phạt không hoàn cọc.';
+  }
+  overlay.style.display = 'flex';
+}
+
 function startPing() {
   pingInterval = setInterval(async () => {
     if (isCompleted) return; // đã hoàn thành rồi, bỏ qua mọi ping còn sót
@@ -1663,65 +1689,33 @@ function startPing() {
       const r = await api('/api/guide/ping', { method: 'POST', body: JSON.stringify({ currentStep, totalSteps: steps.length, step3Choice, deviceId: getDeviceId() }) });
       if (isCompleted) return; // double-check sau khi await xong (tránh race condition)
 
-      if (r.fraud_warning) {
-        showFraudModal(r.seconds_left ?? 15, r.is_original !== false);
+      if (r.fraud_final) {
+        showFraudModalPermanent(r.is_original !== false);
         return;
       }
-      hideFraudModal();
-      if (r.recovered) {
-        showToast('✓ Thiết bị phụ đã đóng. Tiếp tục an toàn!');
-      }
 
-      if (r.kicked) { stopAll(); alert('⚠ Phiên của bạn đã bị kết thúc bởi admin.'); window.location.href = '/'; return; }
+      if (r.kicked) {
+        stopAll();
+        if (r.fraud_final) {
+          showFraudModalPermanent(r.is_original !== false);
+        } else {
+          alert('⚠ Phiên của bạn đã bị kết thúc bởi admin.');
+          window.location.href = '/';
+        }
+        return;
+      }
       if (r.expired) {
         stopAll();
         if (r.fraud_final) {
-          alert('🚨 Mã đã bị khóa vĩnh viễn do phát hiện chia sẻ/gian lận.\nMọi tiền cọc sẽ KHÔNG được hoàn trả.');
+          showFraudModalPermanent(r.is_original !== false);
         } else {
           alert('⚠ Mã truy cập đã hết hiệu lực.');
+          window.location.href = '/';
         }
-        window.location.href = '/';
+        return;
       }
     } catch { console.warn('Ping failed'); }
   }, 4000);
-}
-
-function showFraudModal(seconds, isOriginal) {
-  const overlay = document.getElementById('fraudOverlay');
-  const iconEl = document.getElementById('fraudIcon');
-  const titleEl = document.getElementById('fraudTitle');
-  const msgEl = document.getElementById('fraudMsg');
-  const countEl = document.getElementById('fraudCountdown');
-  if (!overlay) return;
-
-  if (overlay.style.display !== 'flex') {
-    overlay.style.display = 'flex';
-    if (isOriginal) {
-      iconEl.textContent = '🚨';
-      titleEl.textContent = 'Phát hiện gian lận!';
-      msgEl.innerHTML = 'Hệ thống phát hiện <b>thiết bị khác</b> đang dùng mã truy cập của bạn cùng lúc.<br><br>Mọi hành vi <b>share mã, gian lận</b> đều <b>KHÔNG được hoàn trả tiền cọc</b>.';
-    } else {
-      iconEl.textContent = '😏';
-      titleEl.textContent = 'Share mã hả cưng?';
-      msgEl.innerHTML = '<b>Không có đâu nghen 😏</b><br><br>Mã này đã có chủ rồi, dùng chùa kiểu này là bị phát hiện ngay đó!';
-    }
-  }
-
-  let n = Math.max(0, Math.round(seconds));
-  if (countEl) countEl.textContent = n;
-  clearInterval(fraudCountdownInterval);
-  fraudCountdownInterval = setInterval(() => {
-    n = Math.max(0, n - 1);
-    if (countEl) countEl.textContent = n;
-    if (n <= 0) clearInterval(fraudCountdownInterval);
-  }, 1000);
-}
-function hideFraudModal() {
-  const overlay = document.getElementById('fraudOverlay');
-  if (overlay && overlay.style.display !== 'none') {
-    overlay.style.display = 'none';
-    clearInterval(fraudCountdownInterval);
-  }
 }
 function startTimer() {
   function update() {
@@ -1738,7 +1732,6 @@ function startTimer() {
 function stopAll() {
   clearInterval(pingInterval);
   clearInterval(timerInterval);
-  clearInterval(fraudCountdownInterval);
   sessionStorage.removeItem('xwGuideToken');
   sessionStorage.removeItem('xwGuideExpires');
   sessionStorage.removeItem('xwGuideStep');

@@ -1,9 +1,5 @@
 'use strict';
 const { sb, requireGuide, allowMethods, expireCodeAndNotify, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, buildStepFlow, alignStepFlow, PACKAGES, fbGet, fbPut } = require('../_lib/utils');
-
-const SURPRISE_DELAY_MS  = 5  * 1000; // 5s đầu im lặng — tạo bất ngờ
-const DESTRUCT_AFTER_MS  = 20 * 1000; // tổng 20s kể từ lúc phát hiện thì tự huỷ hẳn (5s im lặng + 15s đọc thông báo)
-
 module.exports = async (req, res) => {
   if (!allowMethods(req, res, ['POST'])) return;
   const payload = await requireGuide(req, res);
@@ -57,106 +53,30 @@ module.exports = async (req, res) => {
     if (session.is_kicked) return res.json({ kicked: true });
 
     const codeRow = codes?.[0];
-    if (!codeRow || !codeRow.is_active) return res.json({ expired: true });
+    if (!codeRow) return res.json({ expired: true });
 
-    // ⌛ Mã quá 30 phút mà khách chưa bấm hoàn thành
+    // 🚨 Kiểm tra trạng thái gian lận — khóa cứng, không nhân nhượng, không tự động phục hồi
+    let fbFraud = null;
+    try { fbFraud = await fbGet(`fraud/${payload.code}`); } catch {}
+    const isFraud = codeRow.status === 'fraud' || !!codeRow.fraud_triggered_at || fbFraud?.destroyed === true || fbFraud?.status === 'fraud';
+
+    if (isFraud) {
+      return res.json({
+        expired: true,
+        kicked: true,
+        fraud_final: true,
+        is_original: payload.isOriginal !== false && session?.is_original !== false,
+        error: 'Mã đã bị khóa vĩnh viễn do phát hiện chia sẻ/gian lận. Mọi tiền cọc sẽ KHÔNG được hoàn trả.'
+      });
+    }
+
+    if (!codeRow.is_active) return res.json({ expired: true, kicked: true });
+
+    // ⌛ Mã quá hạn mà khách chưa bấm hoàn thành
     if (codeRow.expires_at && new Date(codeRow.expires_at) < new Date()) {
       await expireCodeAndNotify(codeRow);
       await sb('DELETE', 'sessions', { q: `access_code=eq.${encodeURIComponent(payload.code)}` });
       return res.json({ expired: true });
-    }
-
-    // 🚨 Kiểm tra trạng thái "bẫy" — dùng chung cho mọi thiết bị của mã này (qua Supabase hoặc Firebase)
-    let fraudTriggeredAt = codeRow.fraud_triggered_at;
-    let fbFraud = null;
-    try {
-      fbFraud = await fbGet(`fraud/${payload.code}`);
-      if (fbFraud?.fraud_triggered_at && !fraudTriggeredAt) {
-        fraudTriggeredAt = fbFraud.fraud_triggered_at;
-      }
-    } catch {}
-
-    if (fraudTriggeredAt) {
-      // 🛡️ TRỤ CỘT 4: BỘ ĐỆM CHỐNG BẮT OAN & TỰ PHỤC HỒI NGUYÊN TRẠNG (AUTO-RECOVERY)
-      // Kiểm tra xem thiết bị phụ đã tắt / ngừng ping chưa:
-      const threshold12s = new Date(Date.now() - 12 * 1000).toISOString();
-      const myDev = body.deviceId || session?.device_id || '';
-      let activeOtherSessions = [];
-      try {
-        const rows = await sb('GET', 'sessions', {
-          q: `access_code=eq.${encodeURIComponent(payload.code)}&last_ping=gte.${encodeURIComponent(threshold12s)}`,
-        });
-        activeOtherSessions = (rows || []).filter(s => {
-          if (!s || s.session_token === payload.sessionToken || s.is_kicked === true) return false;
-          return myDev ? (s.device_id !== myDev) : true;
-        });
-      } catch {}
-
-      let fbStillConcurrent = false;
-      try {
-        const hbs = await fbGet(`heartbeats/${payload.code}`);
-        if (hbs && typeof hbs === 'object') {
-          const nowMs = Date.now();
-          for (const [sTok, hb] of Object.entries(hbs)) {
-            if (sTok !== payload.sessionToken && hb && hb.last_ping) {
-              const diff = nowMs - new Date(hb.last_ping).getTime();
-              if (diff < 12000 && (!myDev || !hb.device_id || hb.device_id !== myDev)) {
-                fbStillConcurrent = true;
-                break;
-              }
-            }
-          }
-        }
-      } catch {}
-
-      if (!activeOtherSessions.length && !fbStillConcurrent) {
-        // ✨ THIẾT BỊ PHỤ ĐÃ TẮT -> TỰ ĐỘNG PHỤC HỒI NGUYÊN TRẠNG!
-        await fbPut(`fraud/${payload.code}`, null).catch(() => {});
-        try {
-          await sb('PATCH', 'access_codes', {
-            q: `id=eq.${codeRow.id}`,
-            body: { fraud_triggered_at: null },
-          });
-        } catch {}
-
-        fraudTriggeredAt = null;
-
-        // Báo Admin trên Telegram: Tự phục hồi an toàn
-        try {
-          const cust = await lookupCustomerByCode(payload.code);
-          const who = cust.name ? escTgHtml(cust.name) : 'Khách';
-          await notifyTelegram(
-            `✅ <b>${who}</b> đã đóng thiết bị phụ — Hệ thống tự động phục hồi an toàn!\n` +
-            codeDetailLines(payload.code, payload.package, cust) + '\n' +
-            `Mã truy cập tiếp tục hoạt động bình thường.`
-          );
-        } catch {}
-      } else {
-        const elapsed = Date.now() - new Date(fraudTriggeredAt).getTime();
-
-        if (elapsed >= DESTRUCT_AFTER_MS) {
-          // Hết giờ (20s) — tự huỷ vĩnh viễn, văng TẤT CẢ thiết bị
-          await sb('PATCH', 'access_codes', {
-            q: `id=eq.${codeRow.id}`,
-            body: { is_active: false },
-          }).catch(() => {});
-          await sb('DELETE', 'sessions', { q: `access_code=eq.${encodeURIComponent(payload.code)}` }).catch(() => {});
-          await fbPut(`fraud/${payload.code}/destroyed`, true).catch(() => {});
-          return res.json({ expired: true, fraud_final: true });
-        }
-
-        if (elapsed >= SURPRISE_DELAY_MS) {
-          // 5s-20s: đồng loạt cảnh báo, đếm ngược 15 giây để đọc kịp thông báo
-          const secondsLeft = Math.max(0, Math.ceil((DESTRUCT_AFTER_MS - elapsed) / 1000));
-          const isOriginal = (payload.isOriginal !== false) && (session?.is_original !== false);
-          return res.json({
-            fraud_warning: true,
-            is_original: isOriginal,
-            seconds_left: secondsLeft,
-          });
-        }
-        // elapsed < 5s — vẫn trong "vùng yên lặng", ping như thường, không lộ gì cả
-      }
     }
 
     const nowIso = new Date().toISOString();
@@ -197,74 +117,90 @@ module.exports = async (req, res) => {
     }
 
     // 🚨 BẪY PHÁT HIỆN GIAN LẬN: Kiểm tra xem có thiết bị khác đang cùng PING song song (< 12s)
-    if (!fraudTriggeredAt) {
-      const threshold12s = new Date(Date.now() - 12 * 1000).toISOString();
-      let otherSessions = [];
-      try {
-        const activeSessions = (await sb('GET', 'sessions', {
-          q: `access_code=eq.${encodeURIComponent(payload.code)}&last_ping=gte.${encodeURIComponent(threshold12s)}`,
-        })) || [];
-        otherSessions = (activeSessions || []).filter(s => {
-          if (!s || s.session_token === payload.sessionToken || s.is_kicked === true) return false;
-          return (myDeviceId && s.device_id) ? (s.device_id !== myDeviceId) : true;
-        });
-      } catch {
-        otherSessions = [];
-      }
+    const threshold12s = new Date(Date.now() - 12 * 1000).toISOString();
+    let otherSessions = [];
+    try {
+      const activeSessions = (await sb('GET', 'sessions', {
+        q: `access_code=eq.${encodeURIComponent(payload.code)}&last_ping=gte.${encodeURIComponent(threshold12s)}`,
+      })) || [];
+      otherSessions = (activeSessions || []).filter(s => {
+        if (!s || s.session_token === payload.sessionToken || s.is_kicked === true) return false;
+        return (myDeviceId && s.device_id) ? (s.device_id !== myDeviceId) : true;
+      });
+    } catch {
+      otherSessions = [];
+    }
 
-      // Kiểm tra thêm qua Firebase heartbeats
-      let fbConcurrent = false;
-      try {
-        const hbs = await fbGet(`heartbeats/${payload.code}`);
-        if (hbs && typeof hbs === 'object') {
-          const nowMs = Date.now();
-          for (const [sTok, hb] of Object.entries(hbs)) {
-            if (sTok !== payload.sessionToken && hb && hb.last_ping) {
-              const diff = nowMs - new Date(hb.last_ping).getTime();
-              if (diff < 12000 && (!myDeviceId || !hb.device_id || hb.device_id !== myDeviceId)) {
-                fbConcurrent = true;
-                break;
-              }
+    // Kiểm tra thêm qua Firebase heartbeats
+    let fbConcurrent = false;
+    try {
+      const hbs = await fbGet(`heartbeats/${payload.code}`);
+      if (hbs && typeof hbs === 'object') {
+        const nowMs = Date.now();
+        for (const [sTok, hb] of Object.entries(hbs)) {
+          if (sTok !== payload.sessionToken && hb && hb.last_ping) {
+            const diff = nowMs - new Date(hb.last_ping).getTime();
+            if (diff < 12000 && (!myDeviceId || !hb.device_id || hb.device_id !== myDeviceId)) {
+              fbConcurrent = true;
+              break;
             }
           }
         }
-      } catch {}
+      }
+    } catch {}
 
-      if (otherSessions.length > 0 || fbConcurrent) {
-        // 🚨 KÍCH HOẠT BẪY GIAN LẬN!
-        await fbPut(`fraud/${payload.code}`, {
+    if (otherSessions.length > 0 || fbConcurrent) {
+      // 🚨 PHÁT HIỆN GIAN LẬN SHARE MÃ: KHÓA VĨNH VIỄN TỨC THÌ (ZERO TOLERANCE - KHÔNG NHÂN NHƯỢNG)
+      const clientIp = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'Không xác định').split(',')[0].trim();
+
+      await Promise.all([
+        sb('PATCH', 'access_codes', {
+          q: `id=eq.${codeRow.id}`,
+          body: { is_active: false, status: 'fraud', fraud_triggered_at: nowIso },
+        }).catch(() => {}),
+        sb('PATCH', 'sessions', {
+          q: `access_code=eq.${encodeURIComponent(payload.code)}`,
+          body: { is_kicked: true },
+        }).catch(() => {}),
+        fbPut(`fraud/${payload.code}`, {
+          destroyed: true,
+          status: 'fraud',
           fraud_triggered_at: nowIso,
           original_device_id: myDeviceId || 'device-1',
           detected_by: payload.sessionToken,
-        }).catch(() => {});
+          client_ip: clientIp,
+        }).catch(() => {}),
+        fbPut(`heartbeats/${payload.code}`, null).catch(() => {}),
+      ]);
 
-        try {
-          await sb('PATCH', 'access_codes', {
-            q: `id=eq.${codeRow.id}`,
-            body: { fraud_triggered_at: nowIso },
-          });
-        } catch {}
-
+      try {
         const cust = await lookupCustomerByCode(payload.code);
-        const who = cust.name ? escTgHtml(cust.name) : 'Khách';
-        const clientIp = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'Không xác định').split(',')[0].trim();
+        const who = cust?.name ? escTgHtml(cust.name) : 'Khách';
         await notifyTelegram(
-          `🚨 <b>${who}</b> đang share mã\n` +
+          `🚨 <b>${who}</b> GIAN LẬN SHARE MÃ — ĐÃ KHÓA MÃ VĨNH VIỄN\n` +
           codeDetailLines(payload.code, payload.package, cust) + '\n' +
           `⚠️ IP gian lận: <code>${escTgHtml(clientIp)}</code>\n` +
-          `Phát hiện 2 thiết bị khác nhau đang cùng truy cập mã song song — mã sẽ tự khoá sau 20 giây.`,
+          `Phát hiện 2 thiết bị khác nhau cùng truy cập song song. Hệ thống đã khóa vĩnh viễn (Phạt không hoàn cọc).`,
           {
             reply_markup: {
               inline_keyboard: [
                 [
-                  { text: '🔓 Mở khóa ngay (Đặc xá)', callback_data: `unblock_code:${payload.code}` },
+                  { text: '🔓 Mở khóa đặc xá (Thủ công)', callback_data: `unblock_code:${payload.code}` },
                   { text: '🔍 Tra cứu mã', callback_data: `lookup_code:${codeRow.id}` }
                 ]
               ]
             }
           }
         );
-      }
+      } catch {}
+
+      return res.json({
+        expired: true,
+        kicked: true,
+        fraud_final: true,
+        is_original: payload.isOriginal !== false && session?.is_original !== false,
+        error: 'Mã đã bị khóa vĩnh viễn do phát hiện chia sẻ/gian lận. Mọi tiền cọc sẽ KHÔNG được hoàn trả.'
+      });
     }
 
     // 👣 Thông báo Telegram khi khách CHUYỂN BƯỚC — ví dụ "khách đang làm bước 2 (cài Locket
