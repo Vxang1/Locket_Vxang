@@ -583,17 +583,17 @@ window.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <!-- Fraud Trap Modal (Khóa vĩnh viễn - Không nhân nhượng) -->
-<div id="fraudOverlay" style="display:none;position:fixed;inset:0;z-index:80;background:rgba(26,26,26,.85);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
+<div id="fraudOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(26,26,26,.85);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
   <div id="fraudCard" style="background:#FFFFFF;border-radius:var(--radius-lg);padding:28px 22px 24px;width:100%;max-width:360px;border:3px solid var(--coral);box-shadow:8px 8px 0 var(--ink);animation:fraudPopIn .45s cubic-bezier(.34,1.56,.64,1) both;text-align:center;">
     <div id="fraudIcon" style="font-size:48px;margin-bottom:10px;animation:fraudShake .5s ease 2">🚨</div>
-    <div id="fraudTitle" style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.2rem;color:var(--coral);margin-bottom:10px;line-height:1.35;">ĐÃ KHÓA MÃ VĨNH VIỄN</div>
+    <div id="fraudTitle" style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.25rem;color:var(--coral);margin-bottom:10px;line-height:1.35;">Phát hiện gian lận!</div>
     <div id="fraudBody" style="background:#FFF0F0;border:1.5px solid var(--coral);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:18px;text-align:left;">
       <div id="fraudMsg" style="font-size:.88rem;color:#7A1616;line-height:1.7;font-weight:600;">
         Hệ thống phát hiện hành vi chia sẻ mã truy cập cho thiết bị khác.<br><br>
         Theo quy định, <b>mã đã bị khóa vĩnh viễn</b> và <b>KHÔNG ĐƯỢC HOÀN TRẢ TIỀN CỌC</b> dưới mọi hình thức!
       </div>
     </div>
-    <button onclick="window.location.href='/'" style="width:100%;padding:13px;background:var(--coral);color:#fff;border:var(--border-ink);border-radius:var(--radius-sm);font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.92rem;cursor:pointer;box-shadow:var(--shadow-sm);transition:all .15s ease;">
+    <button onclick="stopAll();window.location.href='/'" style="width:100%;padding:13px;background:var(--coral);color:#fff;border:var(--border-ink);border-radius:var(--radius-sm);font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.92rem;cursor:pointer;box-shadow:var(--shadow-sm);transition:all .15s ease;">
       ✕ Đóng &amp; Về trang chủ
     </button>
   </div>
@@ -770,6 +770,8 @@ async function api(path, opts = {}) {
   if (!r.ok) {
     const err = new Error(data.error || r.status);
     err.wait_seconds = data.wait_seconds;
+    err.fraud = data.fraud;
+    err.is_original = data.is_original;
     throw err;
   }
   return data;
@@ -1090,7 +1092,11 @@ async function enterGuide() {
     }, 400);
   } catch (err) {
     show('entryScreen');
-    showErr('⚠ ' + (err.message || 'Lỗi kết nối. Thử lại.'));
+    if (err.fraud || (err.message && (err.message.includes('Share mã') || err.message.includes('gian lận') || err.message.includes('khóa vĩnh viễn')))) {
+      showFraudModalPermanent(err.is_original === true);
+    } else {
+      showErr('⚠ ' + (err.message || 'Lỗi kết nối. Thử lại.'));
+    }
     document.getElementById('enterBtn').disabled = false;
   }
 }
@@ -1672,12 +1678,12 @@ function showFraudModalPermanent(isOriginal) {
   }
   if (isOriginal) {
     if (iconEl) iconEl.textContent = '🚨';
-    if (titleEl) titleEl.textContent = 'ĐÃ KHÓA MÃ VĨNH VIỄN';
-    if (msgEl) msgEl.innerHTML = 'Hệ thống phát hiện hành vi <b>chia sẻ mã cho thiết bị khác</b>.<br><br>Theo quy định bảo mật, mã đã bị <b>khóa vĩnh viễn</b> và <b>KHÔNG ĐƯỢC HOÀN TRẢ TIỀN CỌC</b>.';
+    if (titleEl) titleEl.textContent = 'Phát hiện gian lận!';
+    if (msgEl) msgEl.innerHTML = 'Hệ thống phát hiện <b>thiết bị khác</b> đang dùng mã truy cập của bạn cùng lúc.<br><br>Mọi hành vi <b>share mã, gian lận</b> đều <b>KHÔNG được hoàn trả tiền cọc</b>.';
   } else {
-    if (iconEl) iconEl.textContent = '⛔';
-    if (titleEl) titleEl.textContent = 'TỪ CHỐI TRUY CẬP';
-    if (msgEl) msgEl.innerHTML = 'Mã này đã bị khóa vĩnh viễn do phát hiện <b>dùng chung / chia sẻ trái phép</b>.<br><br>Hành vi gian lận dùng mã của người khác đã bị ghi nhận và xử phạt không hoàn cọc.';
+    if (iconEl) iconEl.textContent = '😏';
+    if (titleEl) titleEl.textContent = 'Share mã hả cưng?';
+    if (msgEl) msgEl.innerHTML = '<b>Không có đâu nghen 😏</b><br><br>Mã này đã có chủ rồi, dùng chùa kiểu này là bị phát hiện ngay đó!';
   }
   overlay.style.display = 'flex';
 }

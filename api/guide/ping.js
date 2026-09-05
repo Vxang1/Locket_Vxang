@@ -50,26 +50,30 @@ module.exports = async (req, res) => {
         session = { access_code: payload.code, session_token: payload.sessionToken, is_kicked: false, is_original: payload.isOriginal !== false };
       }
     }
-    if (session.is_kicked) return res.json({ kicked: true });
-
     const codeRow = codes?.[0];
-    if (!codeRow) return res.json({ expired: true });
 
-    // 🚨 Kiểm tra trạng thái gian lận — khóa cứng, không nhân nhượng, không tự động phục hồi
+    // 🚨 Kiểm tra trạng thái gian lận TRƯỚC HẾT — nếu đã bị khóa fraud thì trả fraud_final kèm is_original ngay lập tức!
     let fbFraud = null;
     try { fbFraud = await fbGet(`fraud/${payload.code}`); } catch {}
-    const isFraud = codeRow.status === 'fraud' || !!codeRow.fraud_triggered_at || fbFraud?.destroyed === true || fbFraud?.status === 'fraud';
+    const isFraud = codeRow?.status === 'fraud' || !!codeRow?.fraud_triggered_at || fbFraud?.destroyed === true || fbFraud?.status === 'fraud';
 
     if (isFraud) {
+      const myDev = body.deviceId || session?.device_id || '';
+      const isOwnerDev = !!(codeRow?.original_device_id && myDev && codeRow.original_device_id === myDev);
+      const isOriginal = (payload.isOriginal !== false && session?.is_original !== false) || isOwnerDev;
       return res.json({
         expired: true,
         kicked: true,
         fraud_final: true,
-        is_original: payload.isOriginal !== false && session?.is_original !== false,
-        error: 'Mã đã bị khóa vĩnh viễn do phát hiện chia sẻ/gian lận. Mọi tiền cọc sẽ KHÔNG được hoàn trả.'
+        is_original: isOriginal,
+        error: isOriginal
+          ? 'Hệ thống phát hiện thiết bị khác đang dùng mã truy cập của bạn cùng lúc.'
+          : 'Share mã hả cưng? Không có đâu nghen 😏 Mã này đã có chủ rồi!'
       });
     }
 
+    if (session.is_kicked) return res.json({ kicked: true });
+    if (!codeRow) return res.json({ expired: true });
     if (!codeRow.is_active) return res.json({ expired: true, kicked: true });
 
     // ⌛ Mã quá hạn mà khách chưa bấm hoàn thành
@@ -193,12 +197,18 @@ module.exports = async (req, res) => {
         );
       } catch {}
 
+      const myDev = body.deviceId || session?.device_id || '';
+      const isOwnerDev = !!(codeRow?.original_device_id && myDev && codeRow.original_device_id === myDev);
+      const isOriginal = (payload.isOriginal !== false && session?.is_original !== false) || isOwnerDev;
+
       return res.json({
         expired: true,
         kicked: true,
         fraud_final: true,
-        is_original: payload.isOriginal !== false && session?.is_original !== false,
-        error: 'Mã đã bị khóa vĩnh viễn do phát hiện chia sẻ/gian lận. Mọi tiền cọc sẽ KHÔNG được hoàn trả.'
+        is_original: isOriginal,
+        error: isOriginal
+          ? 'Hệ thống phát hiện thiết bị khác đang dùng mã truy cập của bạn cùng lúc.'
+          : 'Share mã hả cưng? Không có đâu nghen 😏 Mã này đã có chủ rồi!'
       });
     }
 

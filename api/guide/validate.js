@@ -442,7 +442,14 @@ module.exports = async (req, res) => {
 
     const isFraudCode = codeRow.status === 'fraud' || !!existingFraudAt || fbFraud?.destroyed === true || fbFraud?.status === 'fraud';
     if (isFraudCode) {
-      return res.status(403).json({ error: '🚨 Mã đã bị khóa vĩnh viễn do phát hiện chia sẻ/gian lận. Mọi tiền cọc sẽ KHÔNG được hoàn trả.' });
+      const isOwnerDev = !!(codeRow?.original_device_id && deviceId && codeRow.original_device_id === deviceId);
+      return res.status(403).json({
+        error: isOwnerDev
+          ? 'Hệ thống phát hiện thiết bị khác đang dùng mã truy cập của bạn cùng lúc.'
+          : 'Share mã hả cưng? Không có đâu nghen 😏 Mã này đã có chủ rồi, dùng chùa kiểu này là bị phát hiện ngay đó!',
+        fraud: true,
+        is_original: isOwnerDev
+      });
     }
 
     let isOriginal = true;
@@ -580,7 +587,11 @@ module.exports = async (req, res) => {
             );
           } catch {}
 
-          return res.status(403).json({ error: '🚨 Mã đã bị khóa vĩnh viễn do phát hiện chia sẻ/gian lận. Mọi tiền cọc sẽ KHÔNG được hoàn trả.' });
+          return res.status(403).json({
+            error: 'Share mã hả cưng? Không có đâu nghen 😏 Mã này đã có chủ rồi, dùng chùa kiểu này là bị phát hiện ngay đó!',
+            fraud: true,
+            is_original: false
+          });
         }
       }
     }
