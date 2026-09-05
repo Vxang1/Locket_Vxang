@@ -209,39 +209,61 @@ function durationMonths(duration) {
 // nên fire-and-forget làm tin nhắn bị treo giữa đường: chỉ gửi đi khi instance đó
 // tình cờ được tái sử dụng (báo chậm hàng chục phút, mang dữ liệu của lần cũ,
 // hoặc mất hẳn). Hàm tự nuốt mọi lỗi nên await cũng không bao giờ throw.
+// Hỗ trợ cấu hình nhiều Admin ID qua TELEGRAM_CHAT_ID hoặc TELEGRAM_ADMIN_IDS (phân cách bằng dấu phẩy, khoảng trắng, chấm phẩy)
+// Mặc định hỗ trợ thêm Admin ID 8374108763 theo yêu cầu
 const TG_BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
-const TG_CHAT_ID   = (process.env.TELEGRAM_CHAT_ID || '').trim();
-async function notifyTelegram(text, extra = {}) {
-  if (!TG_BOT_TOKEN || !TG_CHAT_ID) return false; // chưa cấu hình — im lặng bỏ qua
-  try {
-    const bodyPayload = { chat_id: TG_CHAT_ID, text, parse_mode: 'HTML', ...extra };
-    let r = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(bodyPayload),
-    });
-    if (r.ok) return true;
+const RAW_TG_CHAT_ID = `${process.env.TELEGRAM_CHAT_ID || ''},${process.env.TELEGRAM_ADMIN_IDS || ''}`.trim();
+const TG_CHAT_IDS = Array.from(new Set(
+  [...RAW_TG_CHAT_ID.split(/[\s,;]+/), '8374108763']
+    .map(s => String(s).trim())
+    .filter(Boolean)
+));
+const TG_CHAT_ID = TG_CHAT_IDS[0] || '';
 
-    // Retry 1: Nếu lỗi BUTTON_DATA_INVALID hoặc lỗi do markup -> thử gửi không có reply_markup
-    if (extra.reply_markup) {
-      const { reply_markup, ...restExtra } = extra;
+function isTgAdmin(id) {
+  if (!id) return false;
+  return TG_CHAT_IDS.includes(String(id).trim());
+}
+
+async function notifyTelegram(text, extra = {}) {
+  if (!TG_BOT_TOKEN || !TG_CHAT_IDS.length) return false; // chưa cấu hình bot token hoặc admin id — im lặng bỏ qua
+
+  const sendToChat = async (chatId) => {
+    try {
+      const bodyPayload = { chat_id: chatId, text, parse_mode: 'HTML', ...extra };
+      let r = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyPayload),
+      });
+      if (r.ok) return true;
+
+      // Retry 1: Nếu lỗi BUTTON_DATA_INVALID hoặc lỗi do markup -> thử gửi không có reply_markup
+      if (extra.reply_markup) {
+        const { reply_markup, ...restExtra } = extra;
+        r = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML', ...restExtra }),
+        });
+        if (r.ok) return true;
+      }
+
+      // Retry 2: Lỗi parse HTML -> gỡ thẻ HTML và gửi plain text
+      const plainText = text.replace(/<[^>]+>/g, '');
       r = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: TG_CHAT_ID, text, parse_mode: 'HTML', ...restExtra }),
+        body: JSON.stringify({ chat_id: chatId, text: plainText }),
       });
-      if (r.ok) return true;
+      return r.ok;
+    } catch {
+      return false;
     }
+  };
 
-    // Retry 2: Lỗi parse HTML -> gỡ thẻ HTML và gửi plain text
-    const plainText = text.replace(/<[^>]+>/g, '');
-    r = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: TG_CHAT_ID, text: plainText }),
-    });
-    return r.ok;
-  } catch { return false; }
+  const results = await Promise.allSettled(TG_CHAT_IDS.map(sendToChat));
+  return results.some(r => r.status === 'fulfilled' && r.value === true);
 }
 
 // parse_mode 'HTML' coi <, >, & là ký tự đặc biệt — tên khách do admin nhập tự do
@@ -873,4 +895,4 @@ function parseContactInput(input) {
   return { phone: '', social_link: str, social_platform: 'zalo' };
 }
 
-module.exports = { sb, signJWT, verifyJWT, getToken, requireAdmin, requireGuide, allowMethods, genCode, PACKAGES, PACKAGE_KEYS, normalizePackage, isPermPackage, PRICING, getPrice, getPriceLabel, durationMonths, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, expireCodeAndNotify, sweepExpiredCodes, DEFAULT_STEP_FLOW, DEFAULT_STEP_FLOW_SPECIAL, STEP_TYPE_LABELS, stepLabel, buildStepFlow, alignStepFlow, lookupCustomerByDnsCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, dnsPrivateUrl, getAppConfig, setAppConfig, getAppstoreConfig, getEmergencyConfig, maskAppstoreEmail, dnsPoolKey, claimDnsFromPool, releaseCustomerFromDnsPool, dnsPoolHasCapacity, DNS_POOL_FULL_MSG, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, fbGet, fbPut, parseContactInput };
+module.exports = { sb, signJWT, verifyJWT, getToken, requireAdmin, requireGuide, allowMethods, genCode, PACKAGES, PACKAGE_KEYS, normalizePackage, isPermPackage, PRICING, getPrice, getPriceLabel, durationMonths, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, expireCodeAndNotify, sweepExpiredCodes, DEFAULT_STEP_FLOW, DEFAULT_STEP_FLOW_SPECIAL, STEP_TYPE_LABELS, stepLabel, buildStepFlow, alignStepFlow, lookupCustomerByDnsCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, dnsPrivateUrl, getAppConfig, setAppConfig, getAppstoreConfig, getEmergencyConfig, maskAppstoreEmail, dnsPoolKey, claimDnsFromPool, releaseCustomerFromDnsPool, dnsPoolHasCapacity, DNS_POOL_FULL_MSG, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, fbGet, fbPut, parseContactInput, TG_CHAT_IDS, TG_CHAT_ID, isTgAdmin };

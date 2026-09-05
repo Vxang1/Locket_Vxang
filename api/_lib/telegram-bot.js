@@ -3,9 +3,8 @@
  * 🤖 LOCKET VXANG TELEGRAM BOT
  * Bot Thông Báo + Tra Cứu CRM
  */
-const { sb, lookupCustomerByCode } = require('./utils');
+const { sb, lookupCustomerByCode, TG_CHAT_IDS, TG_CHAT_ID, isTgAdmin } = require('./utils');
 
-const TG_CHAT_ID = (process.env.TELEGRAM_CHAT_ID || '').trim();
 const TG_BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
 const DIVIDER = '───────────────';
 
@@ -145,7 +144,7 @@ async function handleTelegramWebhook(req, res) {
       const fromId = cb.from?.id;
 
       // Kiểm tra quyền Admin
-      if (TG_CHAT_ID && String(fromId) !== String(TG_CHAT_ID)) {
+      if (TG_CHAT_IDS.length > 0 && !isTgAdmin(fromId)) {
         await answerCallbackQuery(callbackId, '⛔ Bạn không có quyền thực hiện thao tác này.', true);
         return res.status(200).json({ ok: true });
       }
@@ -231,8 +230,8 @@ async function handleTelegramWebhook(req, res) {
 
     if (!chatId) return res.status(200).json({ ok: true });
 
-    // Chỉ Chat ID Admin mới được điều khiển
-    if (TG_CHAT_ID && String(fromId) !== String(TG_CHAT_ID) && String(chatId) !== String(TG_CHAT_ID)) {
+    // Chỉ Chat ID / User ID Admin mới được điều khiển
+    if (TG_CHAT_IDS.length > 0 && !isTgAdmin(fromId) && !isTgAdmin(chatId)) {
       return res.status(200).json({ ok: true });
     }
 
