@@ -6,7 +6,7 @@
 const { sb, lookupCustomerByCode, TG_CHAT_IDS, TG_CHAT_ID, isTgAdmin, escTgHtml, normalizePackage } = require('./utils');
 
 const TG_BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
-const DIVIDER = '───────────────';
+const DIVIDER = '━━━━━━━━━━━━━━━━━━━━';
 
 const escHtml = escTgHtml; // alias giữ tương thích với các chỗ gọi cũ
 
@@ -235,7 +235,8 @@ async function handleTelegramWebhook(req, res) {
           const customer = custRows?.[0] || {};
           
           const targetPkg = normalizePackage(customer.package || codeData.package || '30k');
-          const targetPkgLabel = targetPkg === '40k' ? '⚡ 40k (15s)' : '✨ 30k (5s)';
+          const targetPkgEmoji = targetPkg === '40k' ? '⚡' : '✨';
+          const targetPkgLabel = targetPkg === '40k' ? '40k (15s Vĩnh viễn)' : '30k (5s Vĩnh viễn)';
           const statusText = {
             pending_gold: '⏳ Đang cài đặt',
             active: '✅ Đã hoàn tất',
@@ -243,13 +244,17 @@ async function handleTelegramWebhook(req, res) {
           }[customer.service_status] || customer.service_status || '—';
 
           const lines = [
-            `🔑 <b>MÃ:</b> <code>${escHtml(codeData.code)}</code> (${targetPkgLabel})`,
+            `🔑 <b>CHI TIẾT MÃ TRUY CẬP</b>`,
             DIVIDER,
-            `👤 <b>Khách:</b> <b>${escHtml(customer.name || 'Chưa có tên')}</b> (<code>${escHtml(customer.customer_code || '-')}</code>)`
+            `🏷️ <b>Mã:</b> <code>${escHtml(codeData.code)}</code>`,
+            `📦 <b>Gói:</b> ${targetPkgEmoji} <b>${targetPkg}</b> <i>(${targetPkgLabel})</i>`,
+            `📊 <b>Trạng thái:</b> <b>${statusText}</b>`,
+            DIVIDER,
+            `👤 <b>Khách:</b> <b>${escHtml(customer.name || 'Chưa có tên')}</b>`,
+            `🆔 <b>Mã CRM:</b> <code>${escHtml(customer.customer_code || '-')}</code>`
           ];
           if (customer.phone) lines.push(`📞 <b>SĐT:</b> <code>${escHtml(customer.phone)}</code>`);
-          if (customer.social_link && customer.social_link !== '-') lines.push(`🔗 <b>Liên hệ:</b> ${escHtml(customer.social_link)}`);
-          lines.push(`📊 <b>Trạng thái:</b> <b>${statusText}</b>`);
+          if (customer.social_link && customer.social_link !== '-') lines.push(`🔗 <b>Liên hệ:</b> <i>${escHtml(customer.social_link)}</i>`);
 
           if (targetPkg === '30k') {
             const startTime = customer.activated_at || customer.created_at;
@@ -257,9 +262,10 @@ async function handleTelegramWebhook(req, res) {
               const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
               const isWithin7Days = diffDays <= 7;
               const remDays = Math.max(0, 7 - diffDays);
+              lines.push(DIVIDER);
               lines.push(isWithin7Days 
-                ? `💰 <b>Lên 40k:</b> 🟢 Còn ${remDays} ngày (Bù +10k)` 
-                : `💰 <b>Lên 40k:</b> 🔴 Quá 7 ngày (${diffDays} ngày) — Thu full 40k`
+                ? `<blockquote>💰 <b>NÂNG CẤP LÊN 40K:</b>\n🟢 <i>Còn <b>${remDays} ngày</b> ưu đãi — Bù thêm <b>+10.000đ</b></i></blockquote>` 
+                : `<blockquote>💰 <b>NÂNG CẤP LÊN 40K:</b>\n🔴 <i>Quá hạn 7 ngày (${diffDays} ngày) — Thu full <b>40.000đ</b></i></blockquote>`
               );
             }
           }
@@ -300,13 +306,17 @@ async function handleTelegramWebhook(req, res) {
     // Lệnh trợ giúp /start, help, menu
     if (/^\/(start|help|menu)(\s|@|$)/i.test(text) || text.toLowerCase() === 'help' || text.toLowerCase() === 'menu') {
       const helpLines = [
-        '👋 <b>Locket Vxang Admin Bot</b>',
+        '✨ <b>LOCKET VXANG CRM BOT</b> ✨',
+        '<i>Hệ thống quản trị & tra cứu di động 24/7</i>',
         DIVIDER,
-        '🔍 <b>Tra cứu nhanh CRM:</b>',
-        'Gõ trực tiếp vào đây:',
-        '• Mã khách: <code>KH-xxxxxxx</code>',
-        '• Mã truy cập: <code>VX-xxxxxx</code>',
-        '• Số điện thoại hoặc link MXH'
+        '🔎 <b>TRA CỨU NHANH DỮ LIỆU:</b>',
+        '👉 <i>Gõ trực tiếp vào khung chat tin nhắn:</i>',
+        '',
+        '• 🔑 <b>Mã truy cập:</b> <code>VX-xxxxxx</code>',
+        '• 👤 <b>Mã khách:</b> <code>KH-xxxxxxxx</code>',
+        '• 📞 <b>SĐT khách:</b> <code>09xxxxxxxx</code> <i>hoặc Link MXH</i>',
+        '',
+        '<blockquote>💡 <b>Mẹo:</b> <i>Hệ thống tự động nhận diện thông minh 4 tầng, tra cứu tức thì ngay trên điện thoại!</i></blockquote>'
       ];
       await replyTelegram(chatId, helpLines.join('\n'));
       return res.status(200).json({ ok: true });
@@ -324,15 +334,16 @@ async function handleTelegramWebhook(req, res) {
         ]);
         
         const lines = [
-          '📊 <b>THỐNG KÊ LOCKET VXANG</b>',
+          '📊 <b>THỐNG KÊ TOÀN DIỆN LOCKET VXANG</b>',
           DIVIDER,
-          `👥 <b>Tổng khách hàng:</b> <code>${totalCust?.count || 0}</code>`,
-          `✅ <b>Đã hoàn thành (active):</b> <code>${completedCust?.count || 0}</code>`,
+          `👥 <b>Tổng khách hàng:</b> <b>${totalCust?.count || 0}</b> <i>khách</i>`,
+          `✅ <b>Hoàn tất kích hoạt:</b> <b>${completedCust?.count || 0}</b> <i>(active)</i>`,
           DIVIDER,
-          `📦 <b>Khách gói 30k (5s):</b> <code>${pkg30k?.count || 0}</code>`,
-          `📦 <b>Khách gói 40k (15s):</b> <code>${pkg40k?.count || 0}</code>`,
+          `📦 <b>PHÂN PHỐI GÓI DỊCH VỤ:</b>`,
+          `• ✨ <b>Gói 30k (5s):</b> <code>${pkg30k?.count || 0}</code> <i>khách</i>`,
+          `• ⚡ <b>Gói 40k (15s):</b> <code>${pkg40k?.count || 0}</code> <i>khách</i>`,
           DIVIDER,
-          `🔑 <b>Mã truy cập đang active:</b> <code>${activeCodes?.count || 0}</code>`
+          `🔑 <b>Mã đang chạy (active):</b> <code>${activeCodes?.count || 0}</code> <i>phiên</i>`
         ];
         
         await replyTelegram(chatId, lines.join('\n'));
@@ -349,10 +360,13 @@ async function handleTelegramWebhook(req, res) {
 
     if (!customer) {
       await replyTelegram(chatId,
-        '❌ <b>Không tìm thấy thông tin</b>\n' +
+        '🔍 <b>KẾT QUẢ TÌM KIẾM</b>\n' +
         DIVIDER + '\n' +
-        `Không tìm thấy dữ liệu cho <code>${escHtml(text)}</code>.\n\n` +
-        '👉 <i>Vui lòng nhập đúng mã KH (vd: <code>KH-GE2Y4CX8</code>), mã truy cập (<code>VX-123456</code>) hoặc SĐT.</i>'
+        `❌ <i>Không tìm thấy dữ liệu khớp với:</i> <code>${escHtml(text)}</code>\n\n` +
+        '<blockquote>💡 <b>Gợi ý tra cứu:</b>\n' +
+        '• <b>Mã khách:</b> <code>KH-xxxxxxx</code>\n' +
+        '• <b>Mã truy cập:</b> <code>VX-xxxxxx</code>\n' +
+        '• <b>SĐT:</b> <i>nhập tối thiểu 6 số</i> hoặc dán link MXH</blockquote>'
       );
       return res.status(200).json({ ok: true });
     }
@@ -397,22 +411,28 @@ async function handleTelegramWebhook(req, res) {
       const expTime = formatVnDateTime(targetCodeObj.expires_at);
       const createTime = formatVnDateTime(targetCodeObj.created_at);
       const targetPkg = normalizePackage(targetCodeObj.package || pkg);
-      const targetPkgLabel = targetPkg === '40k' ? '⚡ 40k (15s)' : '✨ 30k (5s)';
+      const targetPkgEmoji = targetPkg === '40k' ? '⚡' : '✨';
+      const targetPkgLabel = targetPkg === '40k' ? '40k (15s Vĩnh viễn)' : '30k (5s Vĩnh viễn)';
 
       lines.push(
-        `🔑 <b>MÃ:</b> <code>${escHtml(targetCodeObj.code)}</code> (${targetPkgLabel})`,
-        `📊 <b>Trạng thái:</b> <b>${codeStatus(targetCodeObj)}</b>`,
+        `🔑 <b>THẺ MÃ TRUY CẬP</b>`,
         DIVIDER,
-        `👤 <b>Khách:</b> <b>${escHtml(customer.name || 'Chưa có tên')}</b> (<code>${escHtml(customer.customer_code)}</code>)`
+        `🏷️ <b>Mã:</b> <code>${escHtml(targetCodeObj.code)}</code>`,
+        `📦 <b>Gói:</b> ${targetPkgEmoji} <b>${targetPkg}</b> <i>(${targetPkgLabel})</i>`,
+        `🚦 <b>Trạng thái:</b> <b>${codeStatus(targetCodeObj)}</b>`,
+        DIVIDER,
+        `👤 <b>Khách hàng:</b> <b>${escHtml(customer.name || 'Chưa đặt tên')}</b>`,
+        `🆔 <b>Mã CRM:</b> <code>${escHtml(customer.customer_code)}</code>`
       );
       if (customer.phone) lines.push(`📞 <b>SĐT:</b> <code>${escHtml(customer.phone)}</code>`);
-      if (customer.social_link && customer.social_link !== '-') lines.push(`🔗 <b>Liên hệ:</b> ${escHtml(customer.social_link)}`);
+      if (customer.social_link && customer.social_link !== '-') lines.push(`🔗 <b>Liên hệ:</b> <i>${escHtml(customer.social_link)}</i>`);
 
       lines.push(DIVIDER);
-      if (createTime) lines.push(`📅 Tạo: ${createTime}`);
-      if (actTime) lines.push(`⚡ Kích hoạt: ${actTime}`);
-      if (compTime) lines.push(`✅ Hoàn tất: <b>${compTime}</b>`);
-      else if (expTime) lines.push(`⌛ Hết hạn: ${expTime}`);
+      lines.push(`🕒 <b>TIẾN TRÌNH THỰC HIỆN:</b>`);
+      if (createTime) lines.push(`• <i>Khởi tạo:</i> <code>${createTime}</code>`);
+      if (actTime) lines.push(`• <i>Kích hoạt:</i> <code>${actTime}</code>`);
+      if (compTime) lines.push(`• <i>Hoàn tất:</i> <b>${compTime}</b> ✅`);
+      else if (expTime) lines.push(`• <i>Hết hạn:</i> <code>${expTime}</code> ⌛`);
 
       if (targetPkg === '30k') {
         const startTime = customer.activated_at || customer.created_at;
@@ -420,27 +440,30 @@ async function handleTelegramWebhook(req, res) {
           const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
           const isWithin7Days = diffDays <= 7;
           const remDays = Math.max(0, 7 - diffDays);
+          lines.push(DIVIDER);
           lines.push(isWithin7Days 
-            ? `💰 <b>Lên 40k:</b> 🟢 Còn ${remDays} ngày (Bù +10k)` 
-            : `💰 <b>Lên 40k:</b> 🔴 Quá 7 ngày (${diffDays} ngày) — Thu full 40k`
+            ? `<blockquote>💰 <b>NÂNG CẤP LÊN 40K:</b>\n🟢 <i>Còn <b>${remDays} ngày</b> ưu đãi — Bù thêm <b>+10.000đ</b></i></blockquote>` 
+            : `<blockquote>💰 <b>NÂNG CẤP LÊN 40K:</b>\n🔴 <i>Quá hạn 7 ngày (${diffDays} ngày) — Nâng cấp tính full <b>40.000đ</b></i></blockquote>`
           );
         }
       }
 
       if (customer.notes) {
         lines.push(DIVIDER);
-        lines.push(`📝 <i>${escHtml(customer.notes)}</i>`);
+        lines.push(`📝 <b>Ghi chú:</b> <i>${escHtml(customer.notes)}</i>`);
       }
     } else {
       // TRƯỜNG HỢP 2: Tra cứu theo Khách hàng (Mã KH / SĐT / Tên)
       lines.push(
-        `👤 <b>${escHtml(customer.name || 'Chưa đặt tên')}</b> | <code>${escHtml(customer.customer_code)}</code>`,
+        `👤 <b>HỒ SƠ KHÁCH HÀNG</b>`,
         DIVIDER,
-        `${pkgEmoji} <b>Gói:</b> <b>${escHtml(pkgLabel)}</b>`,
+        `🎖️ <b>Họ tên:</b> <b>${escHtml(customer.name || 'Chưa đặt tên')}</b>`,
+        `🆔 <b>Mã KH:</b> <code>${escHtml(customer.customer_code)}</code>`,
+        `📦 <b>Gói dịch vụ:</b> ${pkgEmoji} <b>${pkg}</b> <i>(${pkgLabel})</i>`,
         `📊 <b>Trạng thái:</b> <b>${statusText}</b>`
       );
-      if (customer.phone) lines.push(`📞 <b>SĐT:</b> <code>${escHtml(customer.phone)}</code>`);
-      if (customer.social_link && customer.social_link !== '-') lines.push(`🔗 <b>Liên hệ:</b> ${escHtml(customer.social_link)}`);
+      if (customer.phone) lines.push(`📞 <b>Số ĐT:</b> <code>${escHtml(customer.phone)}</code>`);
+      if (customer.social_link && customer.social_link !== '-') lines.push(`🔗 <b>Liên hệ:</b> <i>${escHtml(customer.social_link)}</i>`);
 
       if (normalizePackage(customer.package || '30k') === '30k') {
         const startTime = customer.activated_at || customer.created_at;
@@ -448,29 +471,30 @@ async function handleTelegramWebhook(req, res) {
           const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
           const isWithin7Days = diffDays <= 7;
           const remDays = Math.max(0, 7 - diffDays);
+          lines.push(DIVIDER);
           lines.push(isWithin7Days 
-            ? `💰 <b>Đổi lên 40k:</b> 🟢 Còn ${remDays} ngày (Bù +10k)` 
-            : `💰 <b>Lên 40k:</b> 🔴 Quá 7 ngày (${diffDays} ngày) — Thu full 40k`
+            ? `<blockquote>💰 <b>ĐỔI LÊN GÓI 40K:</b>\n🟢 <i>Còn <b>${remDays} ngày</b> ưu đãi — Bù thêm <b>+10.000đ</b></i></blockquote>` 
+            : `<blockquote>💰 <b>ĐỔI LÊN GÓI 40K:</b>\n🔴 <i>Quá hạn 7 ngày (${diffDays} ngày) — Thu full <b>40.000đ</b></i></blockquote>`
           );
         }
       }
 
       if (codes.length) {
         lines.push(DIVIDER);
-        lines.push(`🔑 <b>Mã truy cập (${codes.length}):</b>`);
+        lines.push(`🔑 <b>Lịch sử mã truy cập (${codes.length}):</b>`);
         for (const c of codes) {
-          lines.push(`• <code>${escHtml(c.code)}</code> — ${codeStatus(c)}`);
+          lines.push(`• <code>${escHtml(c.code)}</code> ➜ <i>${codeStatus(c)}</i>`);
         }
       }
 
       if (dnsRows.length) {
         const opened = dnsRows.filter(r => r.first_accessed_at).length;
-        lines.push(`🌐 <b>DNS riêng:</b> ${dnsRows.length} link (${opened ? `đã mở ${opened}` : 'chưa mở'})`);
+        lines.push(`🌐 <b>DNS cá nhân:</b> <code>${dnsRows.length} link</code> <i>(${opened ? `đã mở ${opened}` : 'chưa mở'})</i>`);
       }
 
       if (customer.notes) {
         lines.push(DIVIDER);
-        lines.push(`📝 <i>${escHtml(customer.notes)}</i>`);
+        lines.push(`📝 <b>Ghi chú:</b> <i>${escHtml(customer.notes)}</i>`);
       }
     }
 

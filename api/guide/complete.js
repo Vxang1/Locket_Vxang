@@ -88,7 +88,8 @@ module.exports = async (req, res) => {
     };
 
     await notifyTelegram(
-      `✅ <b>${who}</b> ${what}\n` +
+      `🎉 <b>KÍCH HOẠT LOCKET GOLD THÀNH CÔNG!</b>\n` +
+      `👤 <b>${who}</b> <i>vừa hoàn tất cài đặt toàn bộ các bước</i>\n` +
       codeDetailLines(payload.code, payload.package, cust),
       extra
     );

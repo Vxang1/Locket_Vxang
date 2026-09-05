@@ -288,7 +288,7 @@ async function lookupCustomerByCode(code) {
     if (!customerId) return empty;
 
     const custs = await sb('GET', 'customers', {
-      q: `id=eq.${customerId}&select=id,name,customer_code,package,duration,special_flow`,
+      q: `id=eq.${customerId}&select=id,name,customer_code,package,duration,special_flow,phone,social_link`,
     });
     const cust = custs?.[0];
     if (!cust) return { ...empty, id: customerId };
@@ -301,6 +301,8 @@ async function lookupCustomerByCode(code) {
       customerCode: cust.customer_code || null,
       duration: cust.duration || 'perm',
       specialFlow: !!cust.special_flow,
+      phone: cust.phone || null,
+      socialLink: cust.social_link || null,
     };
   } catch {
     return empty;
@@ -353,8 +355,11 @@ async function checkAndNotifyDnsExpiry(row) {
   const cust = await lookupCustomerByDnsCode(row.customer_code);
   const who = cust?.name ? escTgHtml(cust.name) : 'Khách';
   await notifyTelegram(
-    `⌛ Link DNS riêng của <b>${who}</b> đã hết hạn (10 phút)\n` +
-    `🆔 Mã KH: <code>${escTgHtml(row.customer_code)}</code>`
+    `⏰ <b>LINK DNS RIÊNG HẾT HẠN (10 PHÚT)</b>\n` +
+    `━━━━━━━━━━━━━━━━━━━━\n` +
+    `👤 <b>Khách:</b> <b>${who}</b>\n` +
+    `🆔 <b>Mã KH:</b> <code>${escTgHtml(row.customer_code)}</code>\n` +
+    `<i>Link DNS cá nhân đã tự động khóa sau 10 phút kích hoạt.</i>`
   );
   return true;
 }
@@ -461,14 +466,17 @@ function alignStepFlow(flow, totalSteps) {
 
 // Khối chi tiết dùng chung cho mọi tin nhắn nói về 1 mã truy cập.
 function codeDetailLines(code, pkg, cust) {
-  const p = normalizePackage(pkg);
-  const pkgDisplay = PACKAGES[p]?.label || p;
+  const p = normalizePackage(pkg || cust?.package || '30k');
+  const pkgEmoji = p === '40k' ? '⚡' : '✨';
+  const pkgDisplay = p === '40k' ? '15s Vĩnh viễn' : '5s Vĩnh viễn';
   const lines = [
-    '━━━━━━━━━━━━━━━',
-    `🆔 Mã KH: <code>${escTgHtml(cust?.customerCode || '—')}</code>`,
-    `🔑 Mã truy cập: <code>${escTgHtml(code)}</code>`,
+    '━━━━━━━━━━━━━━━━━━━━',
+    `👤 <b>Khách:</b> <b>${escTgHtml(cust?.name || 'Chưa đặt tên')}</b> | <code>${escTgHtml(cust?.customerCode || '—')}</code>`,
+    `🔑 <b>Mã:</b> <code>${escTgHtml(code)}</code>`,
+    `📦 <b>Gói:</b> ${pkgEmoji} <b>${p}</b> <i>(${pkgDisplay})</i>`,
   ];
-  lines.push(`${PKG_EMOJI[p] || '⭐'} Gói: <b>${escTgHtml(pkgDisplay)}</b>`);
+  if (cust?.phone) lines.push(`📞 <b>SĐT:</b> <code>${escTgHtml(cust.phone)}</code>`);
+  if (cust?.socialLink && cust.socialLink !== '-') lines.push(`🔗 <b>Liên hệ:</b> <i>${escTgHtml(cust.socialLink)}</i>`);
   return lines.join('\n');
 }
 
@@ -495,7 +503,8 @@ async function expireCodeAndNotify(codeRow) {
   const cust = await lookupCustomerByCode(codeRow.code);
   const who = cust.name ? escTgHtml(cust.name) : 'Khách';
   await notifyTelegram(
-    `⌛ <b>${who}</b> hết hạn mã mà chưa bấm hoàn thành\n` +
+    `⌛ <b>HẾT HẠN PHIÊN CÀI ĐẶT (30 PHÚT)</b>\n` +
+    `👤 <b>${who}</b> <i>chưa hoàn thành sau 30 phút</i>\n` +
     codeDetailLines(codeRow.code, codeRow.package, cust)
   );
   return true;

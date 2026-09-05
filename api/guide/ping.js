@@ -222,10 +222,11 @@ module.exports = async (req, res) => {
           const cust = await lookupCustomerByCode(payload.code);
           const who = cust?.name ? escTgHtml(cust.name) : 'Khách';
           await notifyTelegram(
-            `🚨 <b>${who}</b> GIAN LẬN SHARE MÃ — BẪY TỰ KHÓA ĐANG KÍCH HOẠT\n` +
+            `🚨 <b>CẢNH BÁO GIAN LẬN SHARE MÃ!</b>\n` +
+            `👤 <b>${who}</b> — <i>Bẫy tự khóa đang kích hoạt song song</i>\n` +
             codeDetailLines(payload.code, payload.package, cust) + '\n' +
-            `⚠️ IP gian lận: <code>${escTgHtml(clientIp)}</code>\n` +
-            `Phát hiện 2 thiết bị khác nhau cùng truy cập song song. Hệ thống đang kích hoạt bẫy: 6s tưởng bở rồi cảnh báo 15s trước khi khóa vĩnh viễn không hoàn cọc.`,
+            `<blockquote>⚠️ <b>IP vi phạm:</b> <code>${escTgHtml(clientIp)}</code>\n` +
+            `Phát hiện 2 thiết bị cùng truy cập song song. Bẫy 6s tưởng bở + 15s đếm ngược trước khi khóa vĩnh viễn không hoàn cọc!</blockquote>`,
             {
               reply_markup: {
                 inline_keyboard: [
@@ -287,9 +288,12 @@ module.exports = async (req, res) => {
           const aligned = alignStepFlow(flow, body.totalSteps);
           const label = (aligned && aligned[newStep]) || `Bước ${newStep + 1}`;
           const name = escTgHtml(cust?.name || 'Khách');
-          const pkgLabel = PACKAGES[pkg]?.label || pkg;
+          const p = normalizePackage(pkg);
+          const pkgEmoji = p === '40k' ? '⚡' : '✨';
+          const pkgDisplay = p === '40k' ? '15s Vĩnh viễn' : '5s Vĩnh viễn';
           await notifyTelegram(
-            `👣 <b>${name}</b> đang làm bước ${newStep + 1}/${body.totalSteps} (${escTgHtml(label)}) — ${escTgHtml(pkgLabel)}`
+            `👣 <b>${name}</b> đang ở <b>Bước ${newStep + 1}/${body.totalSteps}</b>: <i>${escTgHtml(label)}</i>\n` +
+            `📦 Gói: ${pkgEmoji} <b>${p}</b> <i>(${pkgDisplay})</i>`
           );
         } catch {}
       }

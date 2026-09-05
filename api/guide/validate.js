@@ -313,9 +313,10 @@ async function handleDnsCheck(req, res) {
       const cust = await lookupCustomerByDnsCode(row.customer_code);
       const who = cust?.name ? escTgHtml(cust.name) : 'Khách';
       await notifyTelegram(
-        `🔒 <b>${who}</b> vừa bấm vào link DNS riêng\n` +
-        `🆔 Mã KH: <code>${escTgHtml(row.customer_code)}</code>\n` +
-        `${row.package === '15s' ? '🌟' : '⭐'} Gói: <b>${escTgHtml(row.package || '5s')}</b>`
+        `🌐 <b>TRUY CẬP LINK DNS RIÊNG</b>\n` +
+        `👤 <b>${who}</b> vừa mở link DNS cá nhân\n` +
+        `🆔 <b>Mã KH:</b> <code>${escTgHtml(row.customer_code)}</code>\n` +
+        `📦 <b>Gói:</b> ${row.package === '15s' ? '⚡' : '✨'} <b>${escTgHtml(row.package || '5s')}</b>`
       );
       // Fresh access → chắc chắn chưa hết hạn, khỏi cần check thêm.
       return res.json({ ok: true, expired: false, dns_url: dnsPrivateUrl(row), ublockdns_url: dnsPrivateUrl(row), package: row.package, customer_code: row.customer_code });
@@ -541,10 +542,11 @@ module.exports = async (req, res) => {
             const cust = await lookupCustomerByCode(upperCode);
             const who = cust?.name ? escTgHtml(cust.name) : 'Khách';
             await notifyTelegram(
-              `🚨 <b>${who}</b> GIAN LẬN SHARE MÃ — BẪY TỰ KHÓA ĐANG KÍCH HOẠT\n` +
+              `🚨 <b>CẢNH BÁO GIAN LẬN SHARE MÃ!</b>\n` +
+              `👤 <b>${who}</b> — <i>Bẫy tự khóa đang kích hoạt</i>\n` +
               codeDetailLines(upperCode, codeRow.package, cust) + '\n' +
-              `⚠️ IP gian lận: <code>${escTgHtml(clientIp)}</code>\n` +
-              `Phát hiện thiết bị thứ hai (${escTgHtml(deviceId)}) đăng nhập khi mã đã thuộc sở hữu của thiết bị chính. Hệ thống cho thiết bị 2 vào 6s tưởng bở rồi kích hoạt cảnh báo 15s trên cả 2 máy trước khi khóa vĩnh viễn không hoàn cọc.`,
+              `<blockquote>⚠️ <b>IP vi phạm:</b> <code>${escTgHtml(clientIp)}</code>\n` +
+              `Phát hiện thiết bị thứ hai (${escTgHtml(deviceId)}) đăng nhập khi mã đã có chủ. Bẫy 6s tưởng bở + 15s cảnh báo trên cả 2 máy trước khi khóa vĩnh viễn không hoàn cọc!</blockquote>`,
               {
                 reply_markup: {
                   inline_keyboard: [
@@ -641,7 +643,8 @@ module.exports = async (req, res) => {
       const cust = await getCustomerInfo();
       const who = cust.name ? escTgHtml(cust.name) : 'Khách';
       await notifyTelegram(
-        `🚀 <b>${who}</b> bắt đầu làm hướng dẫn\n` +
+        `🚀 <b>KHÁCH BẮT ĐẦU CÀI ĐẶT</b>\n` +
+        `👤 <b>${who}</b> <i>vừa truy cập hướng dẫn cài đặt</i>\n` +
         codeDetailLines(upperCode, codeRow.package, cust)
       );
     }
