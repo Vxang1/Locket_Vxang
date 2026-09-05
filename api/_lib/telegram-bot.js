@@ -145,12 +145,18 @@ async function handleTelegramWebhook(req, res) {
           botInfo = await r1.json();
           const r2 = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/getWebhookInfo`);
           hookInfo = await r2.json();
-          const r3 = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: '8374108763', text: '🔔 Test kết nối Admin 8374108763 từ Locket_Vxang!' })
-          });
-          testSend = await r3.json();
+          testSend = await Promise.all(TG_CHAT_IDS.map(async (cid) => {
+            try {
+              const r = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: cid, text: `🔔 Test kết nối Admin ${cid} từ Locket_Vxang!` })
+              });
+              return { chat_id: cid, res: await r.json() };
+            } catch (e) {
+              return { chat_id: cid, error: e.message };
+            }
+          }));
         } catch (e) {
           testSend = { error: e.message };
         }

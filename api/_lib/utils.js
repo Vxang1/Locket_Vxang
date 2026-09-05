@@ -210,11 +210,11 @@ function durationMonths(duration) {
 // tình cờ được tái sử dụng (báo chậm hàng chục phút, mang dữ liệu của lần cũ,
 // hoặc mất hẳn). Hàm tự nuốt mọi lỗi nên await cũng không bao giờ throw.
 // Hỗ trợ cấu hình nhiều Admin ID qua TELEGRAM_CHAT_ID hoặc TELEGRAM_ADMIN_IDS (phân cách bằng dấu phẩy, khoảng trắng, chấm phẩy)
-// Mặc định hỗ trợ thêm Admin ID 8374108763 theo yêu cầu
+// Mặc định hỗ trợ 2 Admin chính thức: 8676266893 và 8374108763
 const TG_BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
 const RAW_TG_CHAT_ID = `${process.env.TELEGRAM_CHAT_ID || ''},${process.env.TELEGRAM_ADMIN_IDS || ''}`.trim();
 const TG_CHAT_IDS = Array.from(new Set(
-  [...RAW_TG_CHAT_ID.split(/[\s,;]+/), '8374108763']
+  [...RAW_TG_CHAT_ID.split(/[\s,;]+/), '8676266893', '8374108763']
     .map(s => String(s).trim())
     .filter(Boolean)
 ));
