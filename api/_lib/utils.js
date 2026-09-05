@@ -771,19 +771,27 @@ async function dnsPoolHasCapacity(pkg, customerCode) {
 // Race: dùng PATCH có điều kiện `used_codes=not.cs.{mã}` + return=representation — chỉ
 // request nào THỰC SỰ đổi được row mới coi là chiếm suất, request thua đọc lại row.
 
-// Giả phóng slot của khách khỏi tất cả các DNS pool hiện tại (khi chuyển gói hoặc tạo DNS riêng)
+// Giải phóng slot của khách khỏi tất cả các DNS pool hiện tại (khi chuyển gói hoặc tạo DNS riêng)
 async function releaseCustomerFromDnsPool(customerCode) {
   if (!customerCode) return;
   try {
     const code = String(customerCode).trim();
-    const rows = await sb('GET', 'dns_pool', {
-      q: `used_codes=cs.%7B%22${encodeURIComponent(code)}%22%7D`,
-    });
-    if (!rows || !rows.length) return;
+    const codesToRemove = new Set([code]);
+    if (code.startsWith('KH-')) {
+      const custs = await sb('GET', 'customers', { q: `customer_code=eq.${encodeURIComponent(code)}&select=id` });
+      if (custs && custs[0]) {
+        const accessCodes = (await sb('GET', 'access_codes', { q: `customer_id=eq.${encodeURIComponent(custs[0].id)}&select=code` })) || [];
+        accessCodes.forEach(c => { if (c.code) codesToRemove.add(c.code); });
+      }
+    }
+    const poolRows = await sb('GET', 'dns_pool', { q: 'select=id,used_codes' });
+    if (!poolRows || !poolRows.length) return;
     
-    for (const row of rows) {
-      if (!Array.isArray(row.used_codes)) continue;
-      const next = row.used_codes.filter(c => c !== code);
+    for (const row of poolRows) {
+      if (!Array.isArray(row.used_codes) || !row.used_codes.length) continue;
+      const hasMatch = row.used_codes.some(c => codesToRemove.has(c));
+      if (!hasMatch) continue;
+      const next = row.used_codes.filter(c => !codesToRemove.has(c));
       await sb('PATCH', 'dns_pool', {
         q: `id=eq.${row.id}`,
         body: { used_codes: next }

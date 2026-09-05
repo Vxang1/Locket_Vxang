@@ -310,12 +310,14 @@ async function handleDnsCheck(req, res) {
     if (isFreshAccess) {
       // Báo Telegram "khách vừa bấm vào link" — CHỈ khi fresh access thật (đã lock
       // ở PATCH trên), không báo lại khi khách reload/mở lại link cũ.
-      const cust = await lookupCustomerByDnsCode(row.customer_code);
-      const who = cust?.name ? escTgHtml(cust.name) : 'Khách';
+      const isRecycled = String(row.customer_code || '').startsWith('[THU HỒI]');
+      const cust = !isRecycled ? await lookupCustomerByDnsCode(row.customer_code) : null;
+      const who = cust?.name ? escTgHtml(cust.name) : (isRecycled ? 'Khách mới (Link tái sử dụng)' : 'Khách');
+      const codeDisplay = isRecycled ? '<i>Slot tái sử dụng</i>' : `<code>${escTgHtml(row.customer_code)}</code>`;
       await notifyTelegram(
         `🌐 <b>TRUY CẬP LINK DNS RIÊNG</b>\n` +
         `👤 <b>${who}</b> vừa mở link DNS cá nhân\n` +
-        `🆔 <b>Mã KH:</b> <code>${escTgHtml(row.customer_code)}</code>\n` +
+        `🆔 <b>Mã KH:</b> ${codeDisplay}\n` +
         `📦 <b>Gói:</b> ${row.package === '15s' ? '⚡' : '✨'} <b>${escTgHtml(row.package || '5s')}</b>`
       );
       // Fresh access → chắc chắn chưa hết hạn, khỏi cần check thêm.

@@ -1,5 +1,5 @@
 'use strict';
-const { sb, requireAdmin, allowMethods, genCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, normalizePackage, isPermPackage, getAppstoreConfig, setAppConfig, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, parseContactInput } = require('../_lib/utils');
+const { sb, requireAdmin, allowMethods, genCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, normalizePackage, isPermPackage, getAppstoreConfig, setAppConfig, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, parseContactInput, releaseCustomerFromDnsPool } = require('../_lib/utils');
 
 
 module.exports = async (req, res) => {
@@ -133,6 +133,33 @@ module.exports = async (req, res) => {
       }
       if (body.nextdns_email !== undefined) patch.nextdns_email = String(body.nextdns_email).trim();
       if (body.nextdns_password !== undefined) patch.nextdns_password = String(body.nextdns_password).trim();
+      if (body.package !== undefined) patch.package = normalizePackage(body.package);
+
+      if (body.customer_code !== undefined) {
+        const rawCode = String(body.customer_code).trim().toUpperCase();
+        if (rawCode) {
+          const custs = await sb('GET', 'customers', { q: `customer_code=eq.${encodeURIComponent(rawCode)}&select=id,customer_code,package` });
+          if (!custs?.length) return res.status(404).json({ error: `Không tìm thấy mã khách hàng "${rawCode}"` });
+          patch.customer_code = custs[0].customer_code;
+          if (custs[0].package) patch.package = normalizePackage(custs[0].package);
+          // Tự động tái kích hoạt link cho khách mới (TTL 10p tính từ lần mở đầu tiên)
+          patch.first_accessed_at = null;
+          patch.expired_notified_at = null;
+
+          // Giải phóng khách này khỏi dns_pool nếu khách từng nhận link pool trước đó
+          await releaseCustomerFromDnsPool(custs[0].customer_code);
+        } else {
+          patch.customer_code = '[THU HỒI] TRỐNG';
+          patch.first_accessed_at = null;
+          patch.expired_notified_at = null;
+        }
+      }
+
+      if (body.reactivate === true) {
+        patch.first_accessed_at = null;
+        patch.expired_notified_at = null;
+      }
+
       if (!Object.keys(patch).length) return res.status(400).json({ error: 'Không có field nào để cập nhật' });
       await sb('PATCH', 'private_dns_links', { q: `id=eq.${encodeURIComponent(id)}`, body: patch });
       return res.json({ ok: true });
@@ -359,17 +386,22 @@ module.exports = async (req, res) => {
       const finalSf2 = special_flow !== undefined ? special_flow : current.special_flow;
       const oldConfig = (current.package === '30k' && current.special_flow) ? null : ((current.package === '40k' || current.package === '15s' || current.package === '180') ? '15s' : '5s');
       const newConfig = (finalPkg2 === '30k' && finalSf2) ? null : ((finalPkg2 === '40k' || finalPkg2 === '15s' || finalPkg2 === '180') ? '15s' : '5s');
+      const isUpgradingTo15s = (current.package === '30k' || current.package === '5s') && (finalPkg2 === '40k' || finalPkg2 === '15s' || finalPkg2 === '180');
           
-          if (current && oldConfig !== newConfig) {
-          const { releaseCustomerFromDnsPool } = require('../_lib/utils');
-          await releaseCustomerFromDnsPool(current.customer_code);
-          // NEW: Đổi tên customer_code để THU HỒI Private DNS thay vì xóa. 
-          // Việc này giúp khách cũ rớt về Pool 15s (vì không còn khớp mã), nhưng Admin vẫn giữ được thông tin tài khoản DNS Riêng để tái sử dụng cho khách khác.
-          await sb('PATCH', 'private_dns_links', { 
-            q: `customer_code=eq.${encodeURIComponent(current.customer_code)}`,
-            body: { customer_code: `[THU HỒI] ${current.customer_code}` }
-          }).catch(()=>{});
-        }
+      if (current && (oldConfig !== newConfig || isUpgradingTo15s)) {
+        await releaseCustomerFromDnsPool(current.customer_code);
+        // Thu hồi Private DNS link của khách (nếu có): chuyển sang slot trống [THU HỒI]
+        // Reset first_accessed_at và expired_notified_at về null để link được TÁI KÍCH HOẠT (fresh TTL 10p)
+        // Khách nâng cấp lên 40k sẽ chuyển sang dùng DNS Pool 15s. Slot riêng này chừa lại cho khách tiếp theo.
+        await sb('PATCH', 'private_dns_links', { 
+          q: `customer_code=eq.${encodeURIComponent(current.customer_code)}`,
+          body: { 
+            customer_code: `[THU HỒI] ${current.customer_code}`,
+            first_accessed_at: null,
+            expired_notified_at: null
+          }
+        }).catch(()=>{});
+      }
         
         const updateBody = {};
       if (name !== undefined)            updateBody.name = name;
@@ -435,13 +467,17 @@ module.exports = async (req, res) => {
       const codeStrings = codes.map(c => c.code).filter(Boolean);
       const allCodesToRemove = new Set([custCode, ...codeStrings].filter(Boolean));
 
-      // Giải phóng DNS Riêng thành [THU HỒI] để tái sử dụng
-        if (custCode) {
-          await sb('PATCH', 'private_dns_links', { 
-            q: `customer_code=eq.${encodeURIComponent(custCode)}`,
-            body: { customer_code: `[THU HỒI] ${custCode}` }
-          }).catch(()=>{});
-        }
+      // Giải phóng DNS Riêng thành [THU HỒI] để tái sử dụng, reset TTL về null
+      if (custCode) {
+        await sb('PATCH', 'private_dns_links', { 
+          q: `customer_code=eq.${encodeURIComponent(custCode)}`,
+          body: { 
+            customer_code: `[THU HỒI] ${custCode}`,
+            first_accessed_at: null,
+            expired_notified_at: null
+          }
+        }).catch(()=>{});
+      }
         
         // 2. Tự động xoá khách khỏi tất cả các link trong dns_pool để nhả slot cho khách khác
       if (allCodesToRemove.size > 0) {

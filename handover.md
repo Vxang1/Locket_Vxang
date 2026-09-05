@@ -265,6 +265,35 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
       - **Huy hiệu Emoji (Emoji Badges):** Gói 40k gán biểu tượng sấm chớp vàng `⚡`, gói 30k gán lấp lánh `✨`, tiến trình cài đặt có mũi tên `➜`, thời gian có đồng hồ `🕒`, hoàn tất có tích xanh `✅`.
       - **Tích hợp kênh liên hệ thông minh:** Bổ sung trường SĐT (`📞 <b>SĐT:</b>`) và Link mạng xã hội (`🔗 <b>Liên hệ:</b>`) trực tiếp vào thông báo `codeDetailLines` dùng chung, giúp Admin bấm mở chat Zalo/Facebook với khách chỉ trong 1 chạm ngay từ thông báo Telegram.
 
+21. 🔄 **CƠ CHẾ NÂNG CẤP GÓI 5s -> 15s SỬ DỤNG DNS POOL & TÁI KÍCH HOẠT SLOT DNS RIÊNG CHO KHÁCH TIẾP THEO (2026-09-06 02:45):**
+    - **Yêu cầu bài toán:**
+      - Khi khách hàng đang dùng gói 30k (5s) có link DNS riêng trong `private_dns_links` và nâng cấp lên gói 40k (15s) (trong hạn 7 ngày bù +10k hoặc sau 7 ngày thu full 40k):
+        1. Khách nâng cấp phải được chuyển sang sử dụng **DNS Pool 15s** (dùng chung luân chuyển theo nhóm).
+        2. Link DNS riêng cũ của khách phải được **thu hồi / chừa slot** cho khách tiếp theo có nhu cầu cài đặt DNS riêng.
+        3. Link DNS riêng được thu hồi phải được **TÁI KÍCH HOẠT lại** (`first_accessed_at = null`, `expired_notified_at = null`), để khách tiếp theo có thể truy cập link cài đặt mà không bị thông báo hết hạn (TTL 10 phút đếm lại từ lần mở đầu tiên), và Admin có thể cập nhật thông tin tài khoản DNS riêng hoặc gán mã khách hàng mới cho slot này.
+    - **Triển khai kỹ thuật chi tiết:**
+      - **Backend API (`api/admin/customers.js`):**
+        - Trong `PATCH ?action=update`: Bổ sung điều kiện bắt trọn `isUpgradingTo15s`. Khi khách chuyển từ 30k sang 40k, tự động gọi `releaseCustomerFromDnsPool(customer_code)` để giải phóng suất trong pool cũ và patch bản ghi trong `private_dns_links` với `customer_code: [THU HỒI] ${customer_code}`, đồng thời reset `first_accessed_at: null`, `expired_notified_at: null`.
+        - Trong `DELETE ?id=...`: Khi xóa khách hàng, bản ghi DNS riêng tương ứng được chuyển thành `[THU HỒI]` kèm reset `first_accessed_at: null, expired_notified_at: null`.
+        - Trong `PATCH ?action=dns_update_creds`: Nâng cấp endpoint hỗ trợ các trường mới:
+          + `customer_code`: Cho phép gán slot DNS cho khách mới `KH-xxxxxxx`. Tự động kiểm tra khách tồn tại trong `customers`, đồng bộ trường `package`, reset `first_accessed_at: null`, `expired_notified_at: null` và giải phóng mã khách khỏi `dns_pool`.
+          + `reactivate: true`: Reset TTL của link về null khi cần hồi sinh.
+          + `package`: Chuẩn hóa package qua `normalizePackage()`.
+      - **Sinh mã truy cập (`api/admin/add-code.js`):**
+        - Khi Admin hoặc hệ thống gọi cấp mã kèm đổi gói sang 40k, API tự động giải phóng khách khỏi pool cũ và thu hồi tái kích hoạt DNS riêng trước khi kiểm tra capacity của DNS Pool 15s, đảm bảo cấp mã mượt mà không bị lỗi 503 ảo.
+      - **Hàm giải phóng DNS Pool (`api/_lib/utils.js`):**
+        - Nâng cấp `releaseCustomerFromDnsPool(customerCode)`: Nếu truyền mã khách `KH-xxxxxxx`, tự động tìm thêm toàn bộ các mã truy cập `VX-xxxxxx` của khách đó và loại bỏ triệt để khỏi mảng `used_codes` của mọi link trong `dns_pool`.
+      - **Xử lý cài đặt trên iOS (`dns.html`):**
+        - Khi khách tải profile cấu hình DNS, hàm `installDns()` tự động làm sạch mã khách (bỏ qua tiền tố `[THU HỒI]`), đảm bảo tên tổ chức hiển thị trong Cài đặt iPhone luôn là `Vxang DNS` thanh lịch, không bị dính chữ `[THU HỒI]`.
+      - **Thông báo Telegram (`api/guide/validate.js`):**
+        - Khi một link DNS tái sử dụng được mở lần đầu, bot Telegram thông báo rõ ràng `Slot tái sử dụng` thay vì hiển thị mã thu hồi cũ.
+      - **Giao diện Admin (`admin.html`):**
+        - Tab **DNS riêng**: Các dòng mang trạng thái `[THU HỒI]` hiển thị nhãn `🟢 Còn trống (Có thể tái sử dụng)` kèm nút nổi bật **`👤 Gán cho khách mới`**. Bấm nút sẽ hiển thị prompt nhập mã KH, tự động gọi API gán slot và copy link gửi khách.
+        - Hàm `editDnsCreds`: Mở rộng cho phép Admin nhập sửa cả mã khách hàng sở hữu slot DNS.
+        - Modal chi tiết khách hàng (`openCustDetail`): Bổ sung dòng hiển thị loại DNS kết nối (`🌐 DNS: DNS Riêng (Cá nhân)` hoặc `🌐 DNS: DNS Pool (15s / 5s)`).
+        - Hàm `upgradeCurrentCustTo40k`: Thông báo toast nêu rõ khách đã chuyển sang DNS Pool 15s và slot DNS riêng cũ đã được thu hồi & tái kích hoạt.
+    - **Kiểm định:** Đạt 100% PASS kiểm tra cú pháp toàn bộ file qua `node -c` và script kiểm định HTML inline.
+
 ---
 
 ## 🎯 NEXT STEPS & QUY CHUẨN DUY TRÌ

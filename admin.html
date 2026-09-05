@@ -1871,14 +1871,22 @@ window.genDnsLink=async function(btn){
 // Sửa lại link DNS / email / password của 1 link DNS riêng đã tạo.
 // 2026-08-15: thêm prompt sửa link DNS vì giờ hỗ trợ nhiều nhà cung cấp, admin có thể
 // chuyển từ NextDNS sang AdGuard/ControlD mà không cần xóa link cũ tạo lại.
-window.editDnsCreds=async function(id,curUrl,curEmail,curPassword){
+// Sửa lại link DNS / email / password / mã KH của 1 link DNS riêng đã tạo.
+window.editDnsCreds=async function(id,curUrl,curEmail,curPassword,curCustCode){
+  const isThuHoi = (curCustCode||'').startsWith('[THU HỒI]');
+  const defaultCust = isThuHoi ? '' : (curCustCode||'');
+  const newCust = prompt('Mã khách hàng sở hữu slot DNS này (Ví dụ: KH-1234567, để trống nếu giữ nguyên/còn trống):', defaultCust);
+  if (newCust === null) return;
   const url=prompt('Link DNS (để trống nếu không đổi):',curUrl||'');
   if(url===null) return;
   const email=prompt('Email tài khoản DNS (để trống nếu không đổi):',curEmail||'');
   if(email===null) return;
   const password=prompt('Mật khẩu tài khoản DNS (để trống nếu không đổi):',curPassword||'');
   if(password===null) return;
+
   const patch={};
+  const trimmedCust = newCust.trim().toUpperCase();
+  if(trimmedCust !== defaultCust) patch.customer_code = trimmedCust;
   if(url.trim()!==(curUrl||'')) patch.nextdns_url=url.trim();
   if(email.trim()!==(curEmail||'')) patch.nextdns_email=email.trim();
   if(password.trim()!==(curPassword||'')) patch.nextdns_password=password.trim();
@@ -1888,6 +1896,21 @@ window.editDnsCreds=async function(id,curUrl,curEmail,curPassword){
     showToast('✓ Đã cập nhật thông tin DNS','green');
     await loadDnsList();
   }catch(e){showToast('⚠ Lỗi: '+e.message,'red');}
+};
+// Gán nhanh slot DNS riêng trống cho khách hàng mới và tự động tái kích hoạt link
+window.assignDnsSlotToCustomer=async function(id){
+  const code = prompt('Nhập Mã khách hàng (KH-xxxxxxx) để gán slot DNS riêng này:\n(Link sẽ tự động tái kích hoạt để khách mới cài đặt)');
+  if (code === null) return;
+  const targetCode = code.trim().toUpperCase();
+  if (!targetCode) { showToast('⚠ Vui lòng nhập mã khách hàng!', 'orange'); return; }
+  try {
+    await api('PATCH', `/api/admin/customers?action=dns_update_creds&id=${encodeURIComponent(id)}`, {
+      customer_code: targetCode,
+      reactivate: true
+    });
+    showToast(`✓ Đã gán slot DNS cho khách ${targetCode}! Link đã được tái kích hoạt.`, 'green');
+    await loadDnsList();
+  } catch (e) { showToast('⚠ Lỗi: ' + e.message, 'red'); }
 };
 // Hồi sinh TTL cho 1 link DNS riêng — reset về 'unopened', TTL đếm lại từ lần
 // khách mở kế tiếp. Token/link/key giữ nguyên, chỉ cần confirm vì đây là hành
@@ -1954,6 +1977,7 @@ window.renderDnsList=function(){
       return p?`<span style="display:inline-block;font-size:.68rem;font-weight:900;color:var(--ink);background:var(--bg-surface);border:1.5px solid var(--ink);border-radius:6px;padding:1px 7px;margin-left:6px;">${esc(p)}</span>`:'';
     };
     wrap.innerHTML=rows.map(r=>{
+      const isThuHoi = (r.customer_code||'').startsWith('[THU HỒI]');
       const custName=nameOf(r.customer_code);
       const [label,color]=statusMap[r.status]||statusMap.unopened;
       const link=`${location.origin}/dns.html?t=${encodeURIComponent(r.token)}`;
@@ -1964,10 +1988,11 @@ window.renderDnsList=function(){
       const urlSafe=esc(dnsUrl).replace(/'/g,"\\'");
       const emailSafe=esc(email).replace(/'/g,"\\'");
       const passSafe=esc(password).replace(/'/g,"\\'");
+      const custCodeSafe=esc(r.customer_code||'').replace(/'/g,"\\'");
       return `<div class="dns-row" style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:12px 14px;background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);margin-bottom:8px;flex-wrap:wrap;box-shadow:var(--shadow-sm);">
         <div style="min-width:0;flex:1 1 280px;">
           <div style="font-weight:800;font-size:.85rem;display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
-            ${(r.customer_code||'').startsWith('[THU HỒI]') ? '<span style="color:#16a34a">🟢 Còn trống (Có thể tái sử dụng)</span>' : esc(r.customer_code) + (custName ? ' — ' + esc(custName) : '')}
+            ${isThuHoi ? '<span style="color:#16a34a">🟢 Còn trống (Có thể tái sử dụng)</span>' : esc(r.customer_code) + (custName ? ' — ' + esc(custName) : '')}
             ${pkgBadge(r.package)}
             <span style="color:${color};font-weight:700;font-size:.75rem;margin-left:6px;">${label}</span>
           </div>
@@ -1977,7 +2002,8 @@ window.renderDnsList=function(){
         </div>
         <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;min-width:140px;">
           <button class="btn-copy-r" onclick="navigator.clipboard.writeText('${link}');showToast('✓ Đã copy link','green');">⧉ Copy link</button>
-          <button class="btn-copy-r" onclick="editDnsCreds('${r.id}','${urlSafe}','${emailSafe}','${passSafe}')">✎ Sửa thông tin DNS</button>
+          ${isThuHoi ? `<button class="btn-copy-r" style="background:#E8F5E9;color:#1B5E20;border-color:#2E7D32;font-weight:800;" onclick="assignDnsSlotToCustomer('${r.id}')">👤 Gán cho khách mới</button>` : ''}
+          <button class="btn-copy-r" onclick="editDnsCreds('${r.id}','${urlSafe}','${emailSafe}','${passSafe}','${custCodeSafe}')">✎ Sửa thông tin DNS</button>
           ${r.status==='unopened'?'':`<button class="btn-copy-r" onclick="reactivateDnsLink('${r.id}','${esc(r.customer_code)}')">↻ Hồi sinh TTL</button>`}
           <button class="btn-copy-r" style="color:var(--red);border-color:rgba(239,68,68,.3)" onclick="deletePrivateDnsLink('${r.id}','${esc(r.customer_code)}')">🗑 Xóa</button>
         </div>
@@ -2711,7 +2737,7 @@ window.openCustDetail=async function(id){
   document.getElementById('dCodes').innerHTML='<div style="font-size:.78rem;color:var(--muted);padding:8px 0;font-weight:600;">Đang tải mã...</div>';
   document.getElementById('detailModal').classList.add('open');
 
-  function renderHeader(c) {
+  function renderHeader(c, privDns = currentCustPrivateDns) {
     if (!c) return;
     document.getElementById('dName').textContent=c.name || 'Khách hàng';
     const genPkgEl=document.getElementById('genPkg');
@@ -2726,6 +2752,7 @@ window.openCustDetail=async function(id){
       <div class="info-item"><div class="info-label">Nền tảng</div><div class="info-val">${PI[c.social_platform]||'💬'} ${esc(c.social_platform||'—')}</div></div>
       <div class="info-item"><div class="info-label">Link</div><div class="info-val">${c.social_link?`<a href="${esc(c.social_link)}" target="_blank">${esc(c.social_link)}</a>`:'—'}</div></div>
       <div class="info-item"><div class="info-label">Gói dịch vụ</div><div class="info-val">${pkgBadge}</div></div>
+      <div class="info-item"><div class="info-label">DNS kết nối</div><div class="info-val">${privDns ? '<span style="color:#16a34a;font-weight:800">🌐 DNS Riêng (Cá nhân)</span>' : `<span style="color:var(--muted);font-weight:700">🌐 DNS Pool (${is40k ? '15s' : '5s'})</span>`}</div></div>
       <div class="info-item"><div class="info-label">Trạng thái &amp; Thanh toán</div><div class="info-val">${custSmartBadge(c)}</div></div>
       <div class="info-item"><div class="info-label">Flow hướng dẫn</div><div class="info-val">${c.special_flow?'<span style="color:#7c3aed;font-weight:800">🛡️ Đặc biệt (có IPA)</span>':'<span style="color:var(--muted);font-weight:700">Mặc định</span>'}</div></div>
       <div class="info-item"><div class="info-label">Kích hoạt lúc</div><div class="info-val">${(c.activated_at || c.first_code_completed_at) ? `⏱ ${new Date(c.activated_at || c.first_code_completed_at).toLocaleString('vi-VN')}` : '<span style="color:var(--muted);font-weight:600">— Chưa kích hoạt —</span>'}</div></div>
@@ -2777,6 +2804,7 @@ window.openCustDetail=async function(id){
   try{
     const res=await api('GET',`/api/admin/customers?id=${id}`);
     const codes = res?.codes || [];
+    currentCustPrivateDns = res?.private_dns || null;
     if(res?.customer){
       cust = res.customer;
       cust.codes = codes;
@@ -2785,7 +2813,7 @@ window.openCustDetail=async function(id){
         target.first_code_completed_at = cust.first_code_completed_at;
         target.codes = codes;
       }
-      renderHeader(cust);
+      renderHeader(cust, currentCustPrivateDns);
     }
 
     if(!codes.length){document.getElementById('dCodes').innerHTML='<div style="font-size:.78rem;color:var(--muted);font-weight:600;">Chưa có mã nào</div>';return;}
@@ -2935,7 +2963,7 @@ window.upgradeCurrentCustTo40k = async function(isWithin7Days) {
     });
 
     const r = await api('POST', '/api/admin/add-code', { customer_id: cust.id, package: '40k' });
-    showToast('✓ Đã nâng cấp sang Gói 40k thành công!', 'green');
+    showToast('✓ Đã nâng cấp sang Gói 40k! Khách chuyển sang DNS Pool 15s. Slot DNS riêng cũ đã thu hồi & tái kích hoạt.', 'green');
 
     await loadCustomers();
     await openCustDetail(cust.id);

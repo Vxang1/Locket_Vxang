@@ -55,10 +55,14 @@
 - Gói `30k`: 5s Vĩnh viễn (30.000 VNĐ)
 - Gói `40k`: 15s Vĩnh viễn (40.000 VNĐ)
 
-### Chính Sách Đổi Gói / Nâng Cấp (30k -> 40k):
+### Chính Sách Đổi Gói / Nâng Cấp (30k -> 40k) & Cơ Chế DNS:
 - **Trong vòng 7 ngày (1 tuần):** Khách chỉ cần thanh toán bù chênh lệch **+10.000 VNĐ**.
 - **Sau 7 ngày:** Khách phải thanh toán **full 40.000 VNĐ** từ đầu.
 - Giao diện CRM Admin tính toán tự động thời gian dựa trên ngày kích hoạt (`activated_at`) hoặc ngày tạo (`created_at`), tự hiển thị nút đổi gói, tự cộng ghi chú lịch sử và sinh tin nhắn Zalo tương ứng.
+- **Chuyển sang DNS Pool 15s & Giải phóng Slot DNS Riêng:**
+  - Khách đang dùng gói 30k (5s) có link DNS riêng khi nâng cấp lên 40k (15s) sẽ **chuyển sang dùng DNS Pool 15s**.
+  - Link DNS riêng cũ của khách được **giải phóng thành slot trống** (`[THU HỒI] ...`) để dành cho khách tiếp theo có nhu cầu cài đặt DNS riêng.
+  - Link DNS riêng đó được **tự động TÁI KÍCH HOẠT lại** (`first_accessed_at: null`, `expired_notified_at: null`) để khách tiếp theo có thể truy cập link cài đặt bình thường (TTL 10 phút đếm lại từ đầu), và Admin có thể cập nhật thông tin tài khoản DNS hoặc gán mã khách hàng mới cho slot này.
 
 
 ### 4 Kịch Bản Flows:
@@ -217,6 +221,10 @@ Hệ thống đã trải qua quy trình rà soát đối chiếu chéo (Cross-Re
 6. **🟠 Chuẩn Hóa Hiển Thị Gói Telegram Bot (`api/_lib/telegram-bot.js`):**
    - *Nguyên nhân:* Tự tạo hàm escape trùng lặp và không gọi `normalizePackage()`, khiến việc hiển thị gói cước và kiểm tra điều kiện nâng cấp có thể sai lệch nếu cơ sở dữ liệu lưu chuỗi cũ (`5s`, `15s`, `150`, `180`).
    - *Xử lý:* Import và áp dụng triệt để `normalizePackage()` và `escTgHtml` từ `utils.js`.
+
+7. **🟢 Tái Kích Hoạt Slot DNS Riêng & Chuyển DNS Pool 15s Khi Nâng Cấp (`customers.js`, `add-code.js`, `admin.html`):**
+   - *Nguyên nhân:* Khi khách gói 30k nâng cấp lên 40k, hệ thống cần giải phóng link DNS riêng cũ cho khách tiếp theo và chuyển khách lên DNS Pool 15s. Trước đây, việc đổi tên `[THU HỒI]` chưa reset `first_accessed_at` và `expired_notified_at`, khiến link bị kẹt ở trạng thái hết hạn (`expired`), ngăn cản khách tiếp theo sử dụng.
+   - *Xử lý:* Tự động gán `first_accessed_at: null`, `expired_notified_at: null` khi thu hồi để tái kích hoạt link (TTL 10 phút đếm lại từ đầu). Nâng cấp `dns_update_creds` cho phép gán mã khách mới `customer_code`, đồng bộ gói cước và dọn dẹp pool; bổ sung nút `👤 Gán cho khách mới` trực quan trong `admin.html`.
 
 ### Tiêu Chuẩn Kiểm Định Bắt Buộc Trước Khi Bàn Giao:
 - Cú pháp toàn bộ file Node.js đạt chuẩn `node -c` (exit code 0).

@@ -389,7 +389,8 @@ function installDns(){
   // PayloadOrganization tùy biến theo mã KH admin gán lúc tạo link (thay cho chuỗi
   // cứng "Vxang DNS" cũ) — "Vxang DNS" chỉ còn là fallback phòng khi server không trả
   // được mã KH (link cũ/lỗi tra cứu), không phải giá trị mặc định dùng thường xuyên.
-  const organization = customerCode ? `Vxang DNS · ${customerCode}` : 'Vxang DNS';
+  const cleanCode = (customerCode && !customerCode.startsWith('[THU HỒI]')) ? customerCode : null;
+  const organization = cleanCode ? `Vxang DNS · ${cleanCode}` : 'Vxang DNS';
   const profileUUID = randomUUID();
   const payloadUUID = randomUUID();
 

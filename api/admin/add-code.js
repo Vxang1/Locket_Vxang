@@ -13,6 +13,29 @@ module.exports = async (req, res) => {
     const customerCode = cust?.customer_code || null;
     const pkg = (reqPkg && PRICING[reqPkg]) ? reqPkg : currentPkg;
 
+    // Nếu đổi gói (ví dụ nâng từ 30k lên 40k):
+    if (pkg && pkg !== currentPkg) {
+      await sb('PATCH', 'customers', {
+        q: `id=eq.${customer_id}`,
+        body: { package: pkg },
+        prefer: 'return=minimal',
+      }).catch(() => {});
+
+      if (customerCode && (currentPkg === '30k' || currentPkg === '5s') && (pkg === '40k' || pkg === '15s' || pkg === '180')) {
+        const { releaseCustomerFromDnsPool } = require('../_lib/utils');
+        await releaseCustomerFromDnsPool(customerCode);
+        // Thu hồi & tái kích hoạt DNS riêng cũ để khách chuyển sang dùng DNS Pool 15s
+        await sb('PATCH', 'private_dns_links', {
+          q: `customer_code=eq.${encodeURIComponent(customerCode)}`,
+          body: {
+            customer_code: `[THU HỒI] ${customerCode}`,
+            first_accessed_at: null,
+            expired_notified_at: null
+          }
+        }).catch(() => {});
+      }
+    }
+
     // Chặn sinh mã mới khi DNS pool đầy nếu khách chưa có DNS riêng
     const [existingDns] = (customerCode
       ? await sb('GET', 'private_dns_links', { q: `customer_code=eq.${encodeURIComponent(customerCode)}&select=id&limit=1` })
@@ -26,14 +49,6 @@ module.exports = async (req, res) => {
       body: { customer_id, code, is_active: true },
       prefer: 'return=minimal',
     });
-
-    if (pkg && pkg !== currentPkg) {
-      await sb('PATCH', 'customers', {
-        q: `id=eq.${customer_id}`,
-        body: { package: pkg },
-        prefer: 'return=minimal',
-      }).catch(() => {});
-    }
 
     res.json({ code, package: pkg });
   } catch (e) { res.status(500).json({ error: e.message }); }
