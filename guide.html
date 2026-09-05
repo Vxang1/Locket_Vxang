@@ -583,7 +583,7 @@ window.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <!-- Fraud Trap Modal (Khóa vĩnh viễn - Không nhân nhượng) -->
-<div id="fraudOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(26,26,26,.85);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
+<div id="fraudOverlay" style="display:none;position:fixed;inset:0;z-index:999999;background:rgba(26,26,26,.88);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;pointer-events:all;">
   <div id="fraudCard" style="background:#FFFFFF;border-radius:var(--radius-lg);padding:28px 22px 24px;width:100%;max-width:360px;border:3px solid var(--coral);box-shadow:8px 8px 0 var(--ink);animation:fraudPopIn .45s cubic-bezier(.34,1.56,.64,1) both;text-align:center;">
     <div id="fraudIcon" style="font-size:48px;margin-bottom:10px;animation:fraudShake .5s ease 2">🚨</div>
     <div id="fraudTitle" style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.25rem;color:var(--coral);margin-bottom:10px;line-height:1.35;">Phát hiện gian lận!</div>
@@ -1131,7 +1131,9 @@ async function enterGuide() {
     }, 400);
   } catch (err) {
     show('entryScreen');
-    if (err.fraud || (err.message && (err.message.includes('Share mã') || err.message.includes('gian lận') || err.message.includes('khóa vĩnh viễn')))) {
+    if (err.fraud_warning) {
+      showFraudModal(err.seconds_left, err.is_original);
+    } else if (err.fraud || (err.message && (err.message.includes('Share mã') || err.message.includes('gian lận') || err.message.includes('khóa vĩnh viễn')))) {
       showFraudModalPermanent(err.is_original === true);
     } else {
       showErr('⚠ ' + (err.message || 'Lỗi kết nối. Thử lại.'));
@@ -1471,7 +1473,7 @@ function renderStep() {
         <p><b>LƯU Ý QUAN TRỌNG:</b> Giữ lại app <b>VPN USA</b> trên máy, <b>tuyệt đối không được xóa</b> app VPN USA đi.</p>
       </div>
 
-      ${(specialFlow && pkgType === '180') ? `
+      ${(specialFlow && (pkgType === '40k' || pkgType === '180' || pkgType === '15s')) ? `
       <div class="notice-box notice-tip" style="margin-bottom:14px;">
         <span class="notice-icon">⚠️</span>
         <p><b>LƯU Ý:</b> Hãy <b>bỏ qua bước xóa và cài đặt lại Locket</b> ở trong video.</p>
@@ -1538,7 +1540,7 @@ function renderStep() {
           <span class="notice-icon">💡</span>
           <p style="font-size:.86rem;line-height:1.5">Tải xong Locket thì bạn hãy <b>đăng xuất tài khoản App Store của shop rồi đăng nhập lại tài khoản App Store cá nhân của bạn</b>.</p>
         </div>
-        ${(specialFlow && pkgType === '180') ? `
+        ${(specialFlow && (pkgType === '40k' || pkgType === '180' || pkgType === '15s')) ? `
         <div class="notice-box notice-tip" style="margin-top:10px;">
           <span class="notice-icon">⚠️</span>
           <p style="font-size:.86rem;line-height:1.5"><b>LƯU Ý:</b> Cài xong <b>không vào Locket ngay</b>. Bạn cần kết nối VPN (Mỹ) ở bước tiếp theo rồi mới được mở app!</p>
@@ -1565,7 +1567,7 @@ function renderStep() {
 
       <div class="notice-box notice-alert" style="margin-top:16px;">
         <span class="notice-icon">⚠️</span>
-        <p style="font-size:.9rem;line-height:1.5"><b>CẢNH BÁO QUAN TRỌNG:</b><br>Đây là <b>bước bắt buộc</b> để kích hoạt Gold.${pkgType==='180'?' Chưa lên Gold thì DNS đã cài ở bước trước <b>sẽ không có tác dụng</b>.':''}</p>
+        <p style="font-size:.9rem;line-height:1.5"><b>CẢNH BÁO QUAN TRỌNG:</b><br>Đây là <b>bước bắt buộc</b> để kích hoạt Gold.${(pkgType==='40k'||pkgType==='180'||pkgType==='15s')?' Chưa lên Gold thì DNS đã cài ở bước trước <b>sẽ không có tác dụng</b>.':''}</p>
       </div>
 
       ${renderVideoPlaceholder('Video hướng dẫn lên Locket Gold')}
@@ -1614,34 +1616,18 @@ async function doComplete() {
     stopAll();
     document.querySelectorAll('.screen,#guideUI').forEach(e=>{e.classList.add('hidden');e.style.display='';});
 
-    // Gói 150 / 180 (flow thường lẫn flow đặc biệt): chụp màn gửi Vxang
-    if (pkgType === '150' || pkgType === '180') {
-      const c1 = document.getElementById('cCard1');
-      if (c1) {
-        const titleEl = document.getElementById('cTitle1') || c1.querySelector('div[style*="font-weight:900;font-size:.9rem"]');
-        const descEl  = document.getElementById('cDesc1') || c1.querySelector('div[style*="font-size:.78rem;color:var(--muted)"]');
-        if (titleEl) titleEl.innerHTML = '📸 Chụp màn hình gửi Vxang';
-        if (descEl)  descEl.innerHTML  = 'Chụp lại màn hình gửi qua Zalo cho Vxang để xác nhận. <b style="color:var(--p1)">Bắt buộc!</b>';
-      }
-      const btn1 = document.getElementById('cBtn1');
-      if (btn1) {
-        btn1.textContent = '💬 Gửi qua Zalo ngay';
-        btn1.onclick = cGoZaloGoldPerm;
-      }
-    } else {
-      // Gói 5s, 15s (50k, 60k, 80k, 100k): Liên hệ Vxang để hướng dẫn thao tác lên Gold
-      const c1 = document.getElementById('cCard1');
-      if (c1) {
-        const titleEl = document.getElementById('cTitle1') || c1.querySelector('div[style*="font-weight:900;font-size:.9rem"]');
-        const descEl  = document.getElementById('cDesc1') || c1.querySelector('div[style*="font-size:.78rem;color:var(--muted)"]');
-        if (titleEl) titleEl.innerHTML = '💜 Liên hệ Vxang để lên Gold';
-        if (descEl)  descEl.innerHTML  = 'Nhắn Zalo cho Vxang để được hướng dẫn thao tác lên Gold. <b style="color:var(--p1)">Quan trọng!</b>';
-      }
-      const btn1 = document.getElementById('cBtn1');
-      if (btn1) {
-        btn1.textContent = '💬 Liên hệ Zalo ngay';
-        btn1.onclick = cGoZaloGold;
-      }
+    // Toàn bộ gói (30k, 40k vĩnh viễn): chụp màn hình gửi Vxang qua Zalo
+    const c1 = document.getElementById('cCard1');
+    if (c1) {
+      const titleEl = document.getElementById('cTitle1') || c1.querySelector('div[style*="font-weight:900;font-size:.9rem"]');
+      const descEl  = document.getElementById('cDesc1') || c1.querySelector('div[style*="font-size:.78rem;color:var(--muted)"]');
+      if (titleEl) titleEl.innerHTML = '📸 Chụp màn hình gửi Vxang';
+      if (descEl)  descEl.innerHTML  = 'Chụp lại màn hình gửi qua Zalo cho Vxang để xác nhận. <b style="color:var(--p1)">Bắt buộc!</b>';
+    }
+    const btn1 = document.getElementById('cBtn1');
+    if (btn1) {
+      btn1.textContent = '💬 Gửi qua Zalo ngay';
+      btn1.onclick = cGoZaloGoldPerm;
     }
 
     const cs=document.getElementById('completeScreen');

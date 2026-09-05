@@ -76,8 +76,12 @@ module.exports = async (req, res) => {
 
     if (fraudTriggeredAt) {
       const elapsed = Date.now() - new Date(fraudTriggeredAt).getTime();
-      if (elapsed < 15000) {
-        const secondsLeft = Math.max(1, Math.ceil((15000 - elapsed) / 1000));
+      if (elapsed < 6000) {
+        // VÙNG YÊN LẶNG (6 GIÂY ĐẦU): Cho kẻ gian tưởng bở đã vào được web, không hiện cảnh báo
+        // Tiếp tục để ping chạy bình thường
+      } else if (elapsed < 21000) {
+        // TỪ GIÂY THỨ 6 ĐẾN GIÂY THỨ 21 (15 GIÂY): BÙM! Cảnh báo đồng loạt trên cả 2 máy!
+        const secondsLeft = Math.max(1, Math.ceil((21000 - elapsed) / 1000));
         return res.json({
           ok: true,
           fraud_warning: true,
@@ -85,7 +89,7 @@ module.exports = async (req, res) => {
           is_original: isOriginal,
         });
       } else {
-        // Đã hết 15 giây đếm lùi -> KHÓA VĨNH VIỄN (ZERO TOLERANCE - KHÔNG HOÀN CỌC)
+        // Đã hết 15 giây đếm lùi (Tổng >= 21s) -> KHÓA VĨNH VIỄN (ZERO TOLERANCE - KHÔNG HOÀN CỌC)
         await Promise.all([
           sb('PATCH', 'access_codes', {
             q: `id=eq.${codeRow.id}`,
@@ -194,54 +198,73 @@ module.exports = async (req, res) => {
     } catch {}
 
     if (otherSessions.length > 0 || fbConcurrent) {
-      // 🚨 PHÁT HIỆN GIAN LẬN SHARE MÃ: KÍCH HOẠT ĐẾM LÙI 15S KHÓA VĨNH VIỄN (CẢ 2 MÁY CÙNG THẤY)
+      // 🚨 PHÁT HIỆN GIAN LẬN SHARE MÃ: KÍCH HOẠT BẪY TỰ KHÓA VĨNH VIỄN
       const clientIp = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'Không xác định').split(',')[0].trim();
 
-      await Promise.all([
-        sb('PATCH', 'access_codes', {
-          q: `id=eq.${codeRow.id}`,
-          body: { fraud_triggered_at: nowIso },
-        }).catch(() => {}),
-        fbPut(`fraud/${payload.code}`, {
-          destroyed: false,
-          status: 'warning',
-          fraud_triggered_at: nowIso,
-          original_device_id: codeRow?.original_device_id || myDeviceId || 'owner',
-          detected_by: payload.sessionToken,
-          client_ip: clientIp,
-        }).catch(() => {}),
-      ]);
+      if (!fraudTriggeredAt) {
+        fraudTriggeredAt = nowIso;
+        await Promise.all([
+          sb('PATCH', 'access_codes', {
+            q: `id=eq.${codeRow.id}`,
+            body: { fraud_triggered_at: nowIso, status: 'fraud_warning' },
+          }).catch(() => {}),
+          fbPut(`fraud/${payload.code}`, {
+            destroyed: false,
+            status: 'warning',
+            fraud_triggered_at: nowIso,
+            original_device_id: codeRow?.original_device_id || myDeviceId || 'owner',
+            detected_by: payload.sessionToken,
+            client_ip: clientIp,
+          }).catch(() => {}),
+        ]);
 
-      try {
-        const cust = await lookupCustomerByCode(payload.code);
-        const who = cust?.name ? escTgHtml(cust.name) : 'Khách';
-        await notifyTelegram(
-          `🚨 <b>${who}</b> GIAN LẬN SHARE MÃ — ĐANG ĐẾM LÙI TỰ KHÓA 15S\n` +
-          codeDetailLines(payload.code, payload.package, cust) + '\n' +
-          `⚠️ IP gian lận: <code>${escTgHtml(clientIp)}</code>\n` +
-          `Phát hiện 2 thiết bị khác nhau cùng truy cập song song. Hệ thống đang đếm lùi 15s cảnh báo trên cả hai thiết bị trước khi khóa vĩnh viễn không hoàn cọc.`,
-          {
-            reply_markup: {
-              inline_keyboard: [
-                [
-                  { text: '🔍 Tra cứu mã', callback_data: `lookup_code:${codeRow.id}` }
+        try {
+          const cust = await lookupCustomerByCode(payload.code);
+          const who = cust?.name ? escTgHtml(cust.name) : 'Khách';
+          await notifyTelegram(
+            `🚨 <b>${who}</b> GIAN LẬN SHARE MÃ — BẪY TỰ KHÓA ĐANG KÍCH HOẠT\n` +
+            codeDetailLines(payload.code, payload.package, cust) + '\n' +
+            `⚠️ IP gian lận: <code>${escTgHtml(clientIp)}</code>\n` +
+            `Phát hiện 2 thiết bị khác nhau cùng truy cập song song. Hệ thống đang kích hoạt bẫy: 6s tưởng bở rồi cảnh báo 15s trước khi khóa vĩnh viễn không hoàn cọc.`,
+            {
+              reply_markup: {
+                inline_keyboard: [
+                  [
+                    { text: '🔍 Tra cứu mã', callback_data: `lookup_code:${codeRow.id}` }
+                  ]
                 ]
-              ]
+              }
             }
-          }
-        );
-      } catch {}
+          );
+        } catch {}
+      }
 
+      const elapsed = Date.now() - new Date(fraudTriggeredAt).getTime();
       const myDev = body.deviceId || session?.device_id || '';
       const isOwnerDev = !!(codeRow?.original_device_id && myDev && codeRow.original_device_id === myDev);
       const isOriginal = (payload.isOriginal !== false && session?.is_original !== false) || isOwnerDev;
 
-      return res.json({
-        ok: true,
-        fraud_warning: true,
-        seconds_left: 15,
-        is_original: isOriginal,
-      });
+      if (elapsed < 6000) {
+        // Vùng yên lặng 6s đầu, chưa bung cảnh báo
+      } else if (elapsed < 21000) {
+        const secondsLeft = Math.max(1, Math.ceil((21000 - elapsed) / 1000));
+        return res.json({
+          ok: true,
+          fraud_warning: true,
+          seconds_left: secondsLeft,
+          is_original: isOriginal,
+        });
+      } else {
+        return res.json({
+          expired: true,
+          kicked: true,
+          fraud_final: true,
+          is_original: isOriginal,
+          error: isOriginal
+            ? 'Hệ thống phát hiện thiết bị khác đang dùng mã truy cập của bạn cùng lúc.'
+            : 'Share mã hả cưng? Không có đâu nghen 😏 Mã này đã có chủ rồi!'
+        });
+      }
     }
 
     // 👣 Thông báo Telegram khi khách CHUYỂN BƯỚC — ví dụ "khách đang làm bước 2 (cài Locket

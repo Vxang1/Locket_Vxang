@@ -5,10 +5,19 @@ module.exports = async (req, res) => {
   if (!allowMethods(req, res, ['POST'])) return;
   const payload = await requireGuide(req, res);
   if (!payload) return;
+  if (payload.isOriginal === false) {
+    return res.status(403).json({ error: 'Thiết bị không hợp lệ' });
+  }
 
   const { choice } = req.body || {};
 
   try {
+    const crRows = await sb('GET', 'access_codes', { q: `code=eq.${encodeURIComponent(payload.code)}&select=id,status,fraud_triggered_at` });
+    const cr = crRows?.[0];
+    if (cr?.fraud_triggered_at || cr?.status === 'fraud') {
+      return res.status(403).json({ error: 'Mã đang trong diện xử lý vi phạm gian lận' });
+    }
+
     const updateBody = { completed_at: new Date().toISOString(), is_active: false };
     if (choice) updateBody.locket_choice = choice;
 

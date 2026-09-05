@@ -165,13 +165,16 @@ async function handleTelegramWebhook(req, res) {
         
         try {
           let codeRows = [];
-          if (/^\d+$/.test(codeId)) {
+          if (/^[0-9a-f-]{36}$/i.test(codeId) || /^\d+$/.test(codeId)) {
             codeRows = await sb('GET', 'access_codes', { q: `id=eq.${encodeURIComponent(codeId)}` });
             if (!codeRows || !codeRows.length) {
               codeRows = await sb('GET', 'access_codes', { q: `code=eq.${encodeURIComponent(codeId)}` });
             }
           } else {
             codeRows = await sb('GET', 'access_codes', { q: `code=eq.${encodeURIComponent(codeId)}` });
+            if (!codeRows || !codeRows.length) {
+              codeRows = await sb('GET', 'access_codes', { q: `id=eq.${encodeURIComponent(codeId)}` });
+            }
           }
           const codeData = codeRows?.[0];
           

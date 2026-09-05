@@ -19,7 +19,7 @@ module.exports = async (req, res) => {
       }),
       sb('GET', 'guide_steps', {
         q: `or=(package.eq.${pkg},package.is.null)&order=order_num.asc`,
-      }),
+      }).catch(() => []),
     ]);
 
     if (sessions?.length && sessions[0].is_kicked) {

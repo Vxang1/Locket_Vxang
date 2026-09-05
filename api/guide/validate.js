@@ -442,10 +442,10 @@ module.exports = async (req, res) => {
 
     const isFraudDestroyed = codeRow.status === 'fraud' || fbFraud?.destroyed === true || fbFraud?.status === 'fraud';
     const elapsedSinceFraud = existingFraudAt ? (Date.now() - new Date(existingFraudAt).getTime()) : 999999;
-    const isOver15s = existingFraudAt && elapsedSinceFraud >= 15000;
+    const isOverTotal = existingFraudAt && elapsedSinceFraud >= 21000;
 
-    // Nếu đã bị hủy vĩnh viễn hoặc đã quá 15s đếm lùi: CHẶN CỨNG 403 NGAY
-    if (isFraudDestroyed || isOver15s) {
+    // Nếu đã bị hủy vĩnh viễn hoặc đã quá 21s (hết thời gian cảnh báo): CHẶN CỨNG 403 NGAY
+    if (isFraudDestroyed || isOverTotal) {
       if (!isFraudDestroyed) {
         await Promise.all([
           sb('PATCH', 'access_codes', { q: `id=eq.${codeRow.id}`, body: { is_active: false, status: 'fraud' } }).catch(() => {}),
@@ -461,6 +461,22 @@ module.exports = async (req, res) => {
           ? 'Hệ thống phát hiện thiết bị khác đang dùng mã truy cập của bạn cùng lúc.'
           : 'Share mã hả cưng? Không có đâu nghen 😏 Mã này đã có chủ rồi, dùng chùa kiểu này là bị phát hiện ngay đó!',
         fraud: true,
+        is_original: isOwnerDev
+      });
+    }
+
+    // Nếu mã đang trong giai đoạn cảnh báo (từ giây thứ 6 đến 21):
+    // Thiết bị thứ 3, 4 nhập vào lúc này bị chặn và hiện ngay cảnh báo đếm lùi!
+    if (existingFraudAt && elapsedSinceFraud >= 6000 && elapsedSinceFraud < 21000) {
+      const isOwnerDev = !!(codeRow?.original_device_id && deviceId && codeRow.original_device_id === deviceId);
+      const secondsLeft = Math.max(1, Math.ceil((21000 - elapsedSinceFraud) / 1000));
+      return res.status(403).json({
+        error: isOwnerDev
+          ? 'Hệ thống phát hiện thiết bị khác đang dùng mã truy cập của bạn cùng lúc.'
+          : 'Share mã hả cưng? Không có đâu nghen 😏 Mã này đã có chủ rồi, dùng chùa kiểu này là bị phát hiện ngay đó!',
+        fraud: true,
+        fraud_warning: true,
+        seconds_left: secondsLeft,
         is_original: isOwnerDev
       });
     }
@@ -496,109 +512,50 @@ module.exports = async (req, res) => {
         const nowIso = new Date().toISOString();
         await fbPut(`code_ownership/${upperCode}`, { device_id: deviceId, last_ping: nowIso }).catch(() => {});
       }
-      // 4. Thiết bị KHÁC (ownerDeviceId !== deviceId): XỬ LÝ ĐỔI THIẾT BỊ / ĐỔI TRÌNH DUYỆT (CHỐNG BẮT OAN)
+      // 4. Thiết bị KHÁC (ownerDeviceId !== deviceId): GIAN LẬN SHARE MÃ (ZERO TOLERANCE - KHÔNG NHÂN NHƯỢNG)
+      // LOẠI BỎ HOÀN TOÀN NHÁNH "CHUYỂN GIAO SỞ HỮU"!
+      // Bất kỳ thiết bị thứ 2 nào nhập mã đều kích hoạt bẫy gian lận ngay tức thì.
       else {
-        // Kiểm tra xem có thiết bị nào KHÁC đang gửi ping trong 12 giây qua không
-        const threshold12s = new Date(Date.now() - 12 * 1000).toISOString();
-        let activeSessions = [];
-        try {
-          activeSessions = (await sb('GET', 'sessions', {
-            q: `access_code=eq.${encodeURIComponent(upperCode)}&last_ping=gte.${encodeURIComponent(threshold12s)}`,
-          })) || [];
-        } catch {
-          activeSessions = [];
-        }
+        isOriginal = false;
+        const nowIso = new Date().toISOString();
+        const clientIp = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'Không xác định').split(',')[0].trim();
 
-        // Lọc các session của thiết bị KHÁC đang ping
-        const otherSessions = (activeSessions || []).filter(s => {
-          if (!s || s.is_kicked === true) return false;
-          return s.device_id ? (s.device_id !== deviceId) : (s.session_token !== undefined);
-        });
+        if (!existingFraudAt) {
+          existingFraudAt = nowIso;
+          await Promise.all([
+            sb('PATCH', 'access_codes', {
+              q: `id=eq.${codeRow.id}`,
+              body: { fraud_triggered_at: nowIso, status: 'fraud_warning' },
+            }).catch(() => {}),
+            fbPut(`fraud/${upperCode}`, {
+              destroyed: false,
+              status: 'warning',
+              fraud_triggered_at: nowIso,
+              original_device_id: ownerDeviceId,
+              leech_device_id: deviceId,
+              leech_ip: clientIp,
+            }).catch(() => {}),
+          ]);
 
-        // Kiểm tra xem owner cũ có đang ping trong 12s qua Firebase không
-        const isOwnerPinging = ownership?.last_ping && 
-          (Date.now() - new Date(ownership.last_ping).getTime() < 12000) && 
-          (ownership.device_id && ownership.device_id !== deviceId);
-
-        // Kiểm tra thêm qua Firebase heartbeats
-        let fbConcurrent = false;
-        try {
-          const hbs = await fbGet(`heartbeats/${upperCode}`);
-          if (hbs && typeof hbs === 'object') {
-            const nowMs = Date.now();
-            for (const [sTok, hb] of Object.entries(hbs)) {
-              if (hb && hb.last_ping) {
-                const diff = nowMs - new Date(hb.last_ping).getTime();
-                if (diff < 12000 && (!hb.device_id || hb.device_id !== deviceId)) {
-                  fbConcurrent = true;
-                  break;
+          try {
+            const cust = await lookupCustomerByCode(upperCode);
+            const who = cust?.name ? escTgHtml(cust.name) : 'Khách';
+            await notifyTelegram(
+              `🚨 <b>${who}</b> GIAN LẬN SHARE MÃ — BẪY TỰ KHÓA ĐANG KÍCH HOẠT\n` +
+              codeDetailLines(upperCode, codeRow.package, cust) + '\n' +
+              `⚠️ IP gian lận: <code>${escTgHtml(clientIp)}</code>\n` +
+              `Phát hiện thiết bị thứ hai (${escTgHtml(deviceId)}) đăng nhập khi mã đã thuộc sở hữu của thiết bị chính. Hệ thống cho thiết bị 2 vào 6s tưởng bở rồi kích hoạt cảnh báo 15s trên cả 2 máy trước khi khóa vĩnh viễn không hoàn cọc.`,
+              {
+                reply_markup: {
+                  inline_keyboard: [
+                    [
+                      { text: '🔍 Tra cứu mã', callback_data: `lookup_code:${codeRow.id}` }
+                    ]
+                  ]
                 }
               }
-            }
-          }
-        } catch {}
-
-        if (!otherSessions.length && !isOwnerPinging && !fbConcurrent && !existingFraudAt) {
-          // Không có ai đang dùng song song -> Khách vừa chuyển app / đổi trình duyệt
-          // => CHUYỂN GIAO SỞ HỮU AN TOÀN CHO THIẾT BỊ MỚI (handover_success)
-          isOriginal = true;
-          const nowIso = new Date().toISOString();
-          await fbPut(`code_ownership/${upperCode}`, {
-            device_id: deviceId,
-            last_ping: nowIso,
-          }).catch(() => {});
-          try {
-            await sb('PATCH', 'access_codes', {
-              q: `id=eq.${codeRow.id}`,
-              body: { original_device_id: deviceId },
-            });
+            );
           } catch {}
-          // Xóa cờ bẫy cũ nếu có (vì thiết bị cũ đã ngắt)
-          await fbPut(`fraud/${upperCode}`, null).catch(() => {});
-        } else {
-          // 🚨 THỰC SỰ CÓ 2 THIẾT BỊ ĐANG CÙNG DÙNG SONG SONG -> KÍCH HOẠT ĐẾM LÙI 15S KHÓA VĨNH VIỄN
-          // Máy 2 vẫn VÀO ĐƯỢC để đọc cảnh báo (isOriginal = false), cùng lúc Máy 1 cũng hiện cảnh báo!
-          isOriginal = false;
-          const nowIso = new Date().toISOString();
-          const clientIp = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'Không xác định').split(',')[0].trim();
-
-          if (!existingFraudAt) {
-            existingFraudAt = nowIso;
-            await Promise.all([
-              sb('PATCH', 'access_codes', {
-                q: `id=eq.${codeRow.id}`,
-                body: { fraud_triggered_at: nowIso },
-              }).catch(() => {}),
-              fbPut(`fraud/${upperCode}`, {
-                destroyed: false,
-                status: 'warning',
-                fraud_triggered_at: nowIso,
-                original_device_id: ownerDeviceId || otherSessions[0]?.device_id || 'owner',
-                leech_device_id: deviceId,
-                leech_ip: clientIp,
-              }).catch(() => {}),
-            ]);
-
-            try {
-              const cust = await lookupCustomerByCode(upperCode);
-              const who = cust?.name ? escTgHtml(cust.name) : 'Khách';
-              await notifyTelegram(
-                `🚨 <b>${who}</b> GIAN LẬN SHARE MÃ — ĐANG ĐẾM LÙI TỰ KHÓA 15S\n` +
-                codeDetailLines(upperCode, codeRow.package, cust) + '\n' +
-                `⚠️ IP gian lận: <code>${escTgHtml(clientIp)}</code>\n` +
-                `Phát hiện thiết bị thứ hai (${escTgHtml(deviceId)}) đăng nhập khi thiết bị chính đang hoạt động. Hệ thống đang đếm lùi 15s cảnh báo trên cả hai thiết bị trước khi khóa vĩnh viễn không hoàn cọc.`,
-                {
-                  reply_markup: {
-                    inline_keyboard: [
-                      [
-                        { text: '🔍 Tra cứu mã', callback_data: `lookup_code:${codeRow.id}` }
-                      ]
-                    ]
-                  }
-                }
-              );
-            } catch {}
-          }
         }
       }
     }

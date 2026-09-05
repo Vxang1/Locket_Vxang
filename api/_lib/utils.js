@@ -705,7 +705,7 @@ async function dnsPoolHasCapacity(pkg, customerCode) {
 
     // 2. Fetch các link DNS pool active
     const rows = await sb('GET', 'dns_pool', {
-      q: `package=eq.${encodeURIComponent(key)}&is_active=eq.true&select=used_codes,max_uses`,
+      q: `or=(package.eq.${encodeURIComponent(key)},package.eq.${encodeURIComponent(pkg)})&is_active=eq.true&select=used_codes,max_uses`,
     });
     if (!rows || !rows.length) return false;
 
@@ -779,7 +779,7 @@ async function claimDnsFromPool(pkg, customerCode) {
   }
 
   const poolPromise = sb('GET', 'dns_pool', {
-    q: `package=eq.${encodeURIComponent(key)}&is_active=eq.true&order=created_at.asc`,
+    q: `or=(package.eq.${encodeURIComponent(key)},package.eq.${encodeURIComponent(pkg)})&is_active=eq.true&order=created_at.asc`,
   }).catch(() => null);
 
   const [privates, rows] = await Promise.all([privatesPromise, poolPromise]);
