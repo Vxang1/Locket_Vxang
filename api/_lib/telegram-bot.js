@@ -196,6 +196,15 @@ async function handleTelegramWebhook(req, res) {
             `📞 <b>SĐT:</b> <code>${escHtml(customer.phone || '-')}</code>`,
             `📊 <b>Trạng thái:</b> <b>${escHtml(customer.service_status || '-')}</b>`
           ];
+          if (pkg === '30k' || pkg === '5s') {
+            const startTime = customer.activated_at || customer.created_at;
+            if (startTime) {
+              const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
+              const isWithin7Days = diffDays <= 7;
+              const remDays = Math.max(0, 7 - diffDays);
+              lines.push(`⚡ <b>Lên 40k:</b> ${isWithin7Days ? `Còn ${remDays} ngày đổi bù (+10k)` : `Quá 7 ngày (${diffDays} ngày) - Thu full 40k`}`);
+            }
+          }
           
           await replyTelegram(chatId, lines.join('\n'));
         } catch (err) {
@@ -360,6 +369,19 @@ async function handleTelegramWebhook(req, res) {
         `${pkgEmoji} Gói: <b>${pkg}</b>`,
         `${statusEmoji} Trạng thái: <b>${escHtml(customer.service_status || '-')}</b>`
       );
+    }
+
+    if (customer.package === '30k' || customer.package === '5s') {
+      const startTime = customer.activated_at || customer.created_at;
+      if (startTime) {
+        const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
+        const isWithin7Days = diffDays <= 7;
+        const remDays = Math.max(0, 7 - diffDays);
+        lines.push(isWithin7Days 
+          ? `⚡ <b>Lên 40k:</b> Còn ${remDays} ngày đổi bù (+10k)` 
+          : `⚡ <b>Lên 40k:</b> Quá 7 ngày (${diffDays} ngày) - Thu full 40k`
+        );
+      }
     }
 
     if (codes.length) {

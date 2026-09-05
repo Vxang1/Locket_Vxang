@@ -55,6 +55,12 @@
 - Gói `30k`: 5s Vĩnh viễn (30.000 VNĐ)
 - Gói `40k`: 15s Vĩnh viễn (40.000 VNĐ)
 
+### Chính Sách Đổi Gói / Nâng Cấp (30k -> 40k):
+- **Trong vòng 7 ngày (1 tuần):** Khách chỉ cần thanh toán bù chênh lệch **+10.000 VNĐ**.
+- **Sau 7 ngày:** Khách phải thanh toán **full 40.000 VNĐ** từ đầu.
+- Giao diện CRM Admin tính toán tự động thời gian dựa trên ngày kích hoạt (`activated_at`) hoặc ngày tạo (`created_at`), tự hiển thị nút đổi gói, tự cộng ghi chú lịch sử và sinh tin nhắn Zalo tương ứng.
+
+
 ### 4 Kịch Bản Flows:
 1. **Gói 30k Thường (`special_flow = false` - 3 bước):**
    - Bước 1: Cài Shadowrocket (Tài khoản Apple ID shop on-demand)

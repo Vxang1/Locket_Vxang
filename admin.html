@@ -1210,6 +1210,8 @@ window.addEventListener('DOMContentLoaded', () => {
         <input type="hidden" id="genPkg" value="30k"/>
         <div id="genPkgHint" style="font-size:.72rem;color:var(--muted);font-weight:600;margin-top:4px">Muốn đổi gói, dùng nút "✏️ Chỉnh sửa thông tin khách" ở dưới.</div>
       </div>
+      <!-- Khu vực đổi gói thông minh (Chính sách: Đổi trong 7 ngày bù 10k, quá 7 ngày full 40k) -->
+      <div id="upgradePkgArea" style="display:none;margin-top:8px;margin-bottom:6px;"></div>
       <button class="btn-gen-code" onclick="genCodeForCurrent()">➕ Cấp mã mới (30 phút)</button>
       <div class="new-code-box" id="newCodeBox">
         <div class="new-code-label">📋 Nội dung gửi cho khách</div>
@@ -1600,6 +1602,25 @@ window.showCodeMsgModal=function(khCode,xwCode,title,isReentry=true){
   window.switchZaloMsgType(isReentry ? 'reentry' : 'full');
   const hint=document.getElementById('zaloMsgCopied');
   if(hint) hint.style.display='none';
+  document.getElementById('msgModal').classList.add('open');
+};
+function buildUpgradeZaloMsg(khCode, xwCode, isWithin7Days){
+  const feeMsg = isWithin7Days
+    ? '✨ Bạn nâng cấp trong hạn 1 tuần kể từ lúc mua gói 30k nên chỉ cần thanh toán thêm +10.000đ (bù chênh lệch) thôi nhé!'
+    : '✨ Bạn đã mua gói 30k quá 7 ngày nên phí nâng cấp lên Gói 40k (15s Vĩnh viễn) được tính theo gói mới là 40.000đ nhé!';
+  return `Vxang gửi thông tin Nâng cấp Locket Gold (Gói 40k - 15s Vĩnh viễn) nè! 🌟\n\n💰 ${feeMsg}\n\n👤 Mã khách hàng:\n${khCode}\n\n🔑 Mã truy cập mới (Gói 40k):\n${xwCode}\n\n🔗 Link truy cập:\nlocketvxang.vercel.app\n\n📲 Hướng dẫn vào:\n1. Mở Safari trên iPhone\n2. Truy cập link trên\n3. Nhập mã truy cập → bấm Xác nhận\n4. Làm theo đúng từng bước để kích hoạt 15s nhé!\n\n⏱ Lưu ý: Mã hiệu lực 30 phút từ lúc xác thực.\n\nCần hỗ trợ cứ nhắn Zalo Vxang 💜`;
+}
+window.showUpgradeCodeMsgModal=function(khCode, xwCode, isWithin7Days){
+  currentMsgKhCode = khCode || '';
+  currentMsgXwCode = xwCode || '';
+  const tEl = document.getElementById('msgModalTitle');
+  if (tEl) tEl.textContent = `🌟 Mẫu tin nhắn nâng cấp Gói 40k (${isWithin7Days ? '+10k' : 'Full 40k'})`;
+  document.getElementById('msgResKH').textContent = khCode || '—';
+  document.getElementById('msgResAC').textContent = xwCode || '—';
+  const ta = document.getElementById('zaloMsgText');
+  if (ta) ta.value = buildUpgradeZaloMsg(khCode, xwCode, isWithin7Days);
+  const hint = document.getElementById('zaloMsgCopied');
+  if (hint) hint.style.display = 'none';
   document.getElementById('msgModal').classList.add('open');
 };
 // Phân giải ô nhập liên hệ duy nhất (SĐT hoặc Link Profile)
@@ -2710,6 +2731,39 @@ window.openCustDetail=async function(id){
       <div class="info-item"><div class="info-label">Kích hoạt lúc</div><div class="info-val">${(c.activated_at || c.first_code_completed_at) ? `⏱ ${new Date(c.activated_at || c.first_code_completed_at).toLocaleString('vi-VN')}` : '<span style="color:var(--muted);font-weight:600">— Chưa kích hoạt —</span>'}</div></div>
       <div class="info-item"><div class="info-label">Ghi chú</div><div class="info-val">${esc(c.notes||'—')}</div></div>
       <div class="info-item"><div class="info-label">Ngày tạo</div><div class="info-val">${new Date(c.created_at).toLocaleString('vi-VN')}</div></div>`;
+
+    const upArea = document.getElementById('upgradePkgArea');
+    if (upArea) {
+      if (!is40k) {
+        const startTime = c.activated_at || c.first_code_completed_at || c.created_at;
+        const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
+        const isWithin7Days = diffDays <= 7;
+        const remDays = Math.max(0, 7 - diffDays);
+
+        upArea.style.display = 'block';
+        upArea.innerHTML = `
+          <div style="padding:12px 14px;border:2px dashed ${isWithin7Days ? '#2E7D32' : '#FF6B6B'};border-radius:var(--radius-sm);background:${isWithin7Days ? '#E8F5E9' : '#FFF0F0'};">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;flex-wrap:wrap">
+              <span style="font-weight:900;font-size:.84rem;color:var(--ink)">⚡ Đổi / Nâng cấp lên Gói 40k (15s):</span>
+              <span style="background:${isWithin7Days ? '#C8E6C9' : '#FFCDD2'};color:${isWithin7Days ? '#1B5E20' : '#B71C1C'};border:1.5px solid var(--ink);border-radius:20px;padding:2px 8px;font-size:.68rem;font-weight:900;">
+                ${isWithin7Days ? `🟢 Còn ${remDays} ngày đổi bù +10k` : `🔴 Quá 7 ngày (Full 40k)`}
+              </span>
+            </div>
+            <div style="font-size:.78rem;color:var(--ink);line-height:1.5;margin-bottom:8px">
+              ${isWithin7Days 
+                ? `Khách mua gói 30k trong vòng 1 tuần (ngày thứ ${diffDays + 1}/7): <b>Chỉ cần thanh toán thêm +10.000đ</b> để lên 15s vĩnh viễn.` 
+                : `Khách đã mua gói 30k được ${diffDays} ngày (quá 1 tuần): <b>Cần thanh toán full 40.000đ từ đầu</b> để nâng cấp.`}
+            </div>
+            <button onclick="upgradeCurrentCustTo40k(${isWithin7Days})" style="width:100%;padding:10px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:${isWithin7Days ? 'var(--gold)' : '#FFFFFF'};color:var(--ink);font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.82rem;cursor:pointer;box-shadow:var(--shadow-sm);transition:all .15s ease;">
+              ${isWithin7Days ? '⬆ Đổi sang Gói 40k (Thu thêm +10.000đ) & Cấp mã mới' : '⬆ Nâng cấp Gói 40k (Thu full 40.000đ) & Cấp mã mới'}
+            </button>
+          </div>
+        `;
+      } else {
+        upArea.style.display = 'none';
+        upArea.innerHTML = '';
+      }
+    }
   }
 
   let cust = allCustomers.find(c=>c.id===id);
@@ -2798,19 +2852,49 @@ window.openEditCust=function(){
 };
 window.updateEditPrice=function(){
   const pkg=document.getElementById('ePkg').value;
-  const dur=document.getElementById('eDur').value || 'perm';
-  const priceInfo=PRICING[pkg]?.[dur] || PRICING[pkg]?.['perm'];
-  if(priceInfo){
-    const fmt=new Intl.NumberFormat('vi-VN').format(priceInfo.price);
-    document.getElementById('ePriceDisplay').textContent=`💰 Giá: ${fmt}đ (${priceInfo.label})`;
-  }else{
-    document.getElementById('ePriceDisplay').textContent='💰 Giá: —';
+  const currentCust = allCustomers.find(c => c.id === currentCustomerId);
+  const isOriginal30k = currentCust && (currentCust.package === '30k' || currentCust.package === '5s');
+
+  if (isOriginal30k && pkg === '40k') {
+    const startTime = currentCust.activated_at || currentCust.first_code_completed_at || currentCust.created_at;
+    const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
+    const isWithin7Days = diffDays <= 7;
+    const remDays = Math.max(0, 7 - diffDays);
+    if (isWithin7Days) {
+      document.getElementById('ePriceDisplay').innerHTML = `💰 <b>Phí đổi gói: +10.000đ</b> (Trong hạn 7 ngày [còn ${remDays} ngày] — Bù chênh lệch)`;
+    } else {
+      document.getElementById('ePriceDisplay').innerHTML = `💰 <b>Phí đổi gói: 40.000đ</b> (Đã quá 7 ngày [${diffDays} ngày] — Thu full từ đầu)`;
+    }
+  } else {
+    const dur=document.getElementById('eDur').value || 'perm';
+    const priceInfo=PRICING[pkg]?.[dur] || PRICING[pkg]?.['perm'];
+    if(priceInfo){
+      const fmt=new Intl.NumberFormat('vi-VN').format(priceInfo.price);
+      document.getElementById('ePriceDisplay').textContent=`💰 Giá: ${fmt}đ (${priceInfo.label})`;
+    }else{
+      document.getElementById('ePriceDisplay').textContent='💰 Giá: —';
+    }
   }
 };
 window.closeEditCust=function(){document.getElementById('editModal').classList.remove('open');};
 window.saveEditCust=async function(){
   const name=document.getElementById('eN').value.trim();
   if(!name){showToast('⚠ Nhập tên khách!','red');return;}
+
+  const currentCust = allCustomers.find(c => c.id === currentCustomerId);
+  const isOriginal30k = currentCust && (currentCust.package === '30k' || currentCust.package === '5s');
+  const targetPkg = document.getElementById('ePkg').value;
+  let notes = document.getElementById('eNo').value.trim();
+
+  if (isOriginal30k && targetPkg === '40k') {
+    const startTime = currentCust.activated_at || currentCust.first_code_completed_at || currentCust.created_at;
+    const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
+    const isWithin7Days = diffDays <= 7;
+    const noteUpgrade = `[Đổi gói 40k]: ${isWithin7Days ? 'Thu bù +10k (trong 7 ngày)' : 'Thu full 40k (quá 7 ngày)'} ngày ${new Date().toLocaleDateString('vi-VN')}`;
+    if (!notes.includes('[Đổi gói 40k]')) {
+      notes = notes ? `${notes} | ${noteUpgrade}` : noteUpgrade;
+    }
+  }
 
   const body={
     name,
@@ -2819,8 +2903,8 @@ window.saveEditCust=async function(){
     social_platform: parseContactInput(document.getElementById('eContact')?.value || '').social_platform,
     social_link: parseContactInput(document.getElementById('eContact')?.value || '').social_link,
     service_status:document.getElementById('eSs').value,
-    notes:document.getElementById('eNo').value.trim(),
-    package: document.getElementById('ePkg').value,
+    notes,
+    package: targetPkg,
     duration: 'perm',
     special_flow:document.getElementById('eSf').checked,
   };
@@ -2832,6 +2916,36 @@ window.saveEditCust=async function(){
     const updated=allCustomers.find(c=>c.id===currentCustomerId);
     if(updated) await openCustDetail(currentCustomerId);
   }catch(e){showToast('⚠ Lỗi: '+e.message,'red');}
+};
+window.upgradeCurrentCustTo40k = async function(isWithin7Days) {
+  const cust = allCustomers.find(c => c.id === currentCustomerId);
+  if (!cust) return;
+  const promptFee = isWithin7Days ? '+10.000đ (bù chênh lệch trong hạn 7 ngày)' : '40.000đ (thanh toán full do đã quá 7 ngày)';
+  if (!confirm(`Xác nhận đổi khách "${cust.name}" sang Gói 40k (15s Vĩnh viễn)?\n\n💰 Phí cần thu: ${promptFee}\n\nHệ thống sẽ cập nhật gói và cấp ngay 1 mã truy cập mới (30 phút) cho khách.`)) return;
+
+  const noteUpgrade = `[Đổi gói 40k]: ${isWithin7Days ? 'Thu bù +10k (trong hạn 7 ngày)' : 'Thu full 40k (quá 7 ngày)'} ngày ${new Date().toLocaleDateString('vi-VN')}`;
+  const newNotes = cust.notes ? `${cust.notes} | ${noteUpgrade}` : noteUpgrade;
+
+  try {
+    await api('PATCH', `/api/admin/customers?action=update&id=${cust.id}`, {
+      package: '40k',
+      duration: 'perm',
+      notes: newNotes,
+      service_status: 'pending_gold'
+    });
+
+    const r = await api('POST', '/api/admin/add-code', { customer_id: cust.id, package: '40k' });
+    showToast('✓ Đã nâng cấp sang Gói 40k thành công!', 'green');
+
+    await loadCustomers();
+    await openCustDetail(cust.id);
+
+    if (r?.code) {
+      showUpgradeCodeMsgModal(cust.customer_code, r.code, isWithin7Days);
+    }
+  } catch (e) {
+    showToast('⚠ Lỗi: ' + e.message, 'red');
+  }
 };
 window.genCodeForCurrent=async function(){
   if(!currentCustomerId)return;
