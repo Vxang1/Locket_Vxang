@@ -379,7 +379,7 @@ module.exports = async (req, res) => {
       if (notes !== undefined)           updateBody.notes = notes || null;
       if (service_status !== undefined)  updateBody.service_status = service_status;
       if (pkg !== undefined)             updateBody.package = normalizePackage(pkg);
-      if (duration !== undefined && ['3m', '6m', '1y', 'perm'].includes(duration)) updateBody.duration = duration;
+      if (duration !== undefined && duration === 'perm') updateBody.duration = duration;
       if (special_flow !== undefined)    updateBody.special_flow = !!special_flow;
       if (deposit_note !== undefined)    updateBody.deposit_note = deposit_note || null;
       if (needSetActivated && activatedVal) updateBody.activated_at = activatedVal;

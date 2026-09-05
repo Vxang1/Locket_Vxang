@@ -3,14 +3,12 @@
  * 🤖 LOCKET VXANG TELEGRAM BOT
  * Bot Thông Báo + Tra Cứu CRM
  */
-const { sb, lookupCustomerByCode, TG_CHAT_IDS, TG_CHAT_ID, isTgAdmin } = require('./utils');
+const { sb, lookupCustomerByCode, TG_CHAT_IDS, TG_CHAT_ID, isTgAdmin, escTgHtml, normalizePackage } = require('./utils');
 
 const TG_BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
 const DIVIDER = '───────────────';
 
-function escHtml(s) {
-  return String(s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-}
+const escHtml = escTgHtml; // alias giữ tương thích với các chỗ gọi cũ
 
 function formatVnDateTime(isoStr) {
   if (!isoStr) return null;
@@ -236,7 +234,7 @@ async function handleTelegramWebhook(req, res) {
           const custRows = await sb('GET', 'customers', { q: `id=eq.${encodeURIComponent(codeData.customer_id)}` });
           const customer = custRows?.[0] || {};
           
-          const targetPkg = customer.package || codeData.package || '30k';
+          const targetPkg = normalizePackage(customer.package || codeData.package || '30k');
           const targetPkgLabel = targetPkg === '40k' ? '⚡ 40k (15s)' : '✨ 30k (5s)';
           const statusText = {
             pending_gold: '⏳ Đang cài đặt',
@@ -253,7 +251,7 @@ async function handleTelegramWebhook(req, res) {
           if (customer.social_link && customer.social_link !== '-') lines.push(`🔗 <b>Liên hệ:</b> ${escHtml(customer.social_link)}`);
           lines.push(`📊 <b>Trạng thái:</b> <b>${statusText}</b>`);
 
-          if (targetPkg === '30k' || targetPkg === '5s') {
+          if (targetPkg === '30k') {
             const startTime = customer.activated_at || customer.created_at;
             if (startTime) {
               const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
@@ -378,7 +376,7 @@ async function handleTelegramWebhook(req, res) {
       return '🟢 Đang chạy (30p)';
     }
 
-    const pkg = escHtml(customer.package || latestCode?.package || '30k');
+    const pkg = normalizePackage(customer.package || latestCode?.package || '30k');
     const pkgLabel = pkg === '40k' ? '40k (15s Vĩnh viễn)' : '30k (5s Vĩnh viễn)';
     const pkgEmoji = (pkg === '40k') ? '⚡' : '✨';
     const statusText = {
@@ -398,7 +396,7 @@ async function handleTelegramWebhook(req, res) {
       const compTime = formatVnDateTime(targetCodeObj.completed_at);
       const expTime = formatVnDateTime(targetCodeObj.expires_at);
       const createTime = formatVnDateTime(targetCodeObj.created_at);
-      const targetPkg = targetCodeObj.package || pkg;
+      const targetPkg = normalizePackage(targetCodeObj.package || pkg);
       const targetPkgLabel = targetPkg === '40k' ? '⚡ 40k (15s)' : '✨ 30k (5s)';
 
       lines.push(
@@ -416,7 +414,7 @@ async function handleTelegramWebhook(req, res) {
       if (compTime) lines.push(`✅ Hoàn tất: <b>${compTime}</b>`);
       else if (expTime) lines.push(`⌛ Hết hạn: ${expTime}`);
 
-      if (targetPkg === '30k' || targetPkg === '5s') {
+      if (targetPkg === '30k') {
         const startTime = customer.activated_at || customer.created_at;
         if (startTime) {
           const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
@@ -444,7 +442,7 @@ async function handleTelegramWebhook(req, res) {
       if (customer.phone) lines.push(`📞 <b>SĐT:</b> <code>${escHtml(customer.phone)}</code>`);
       if (customer.social_link && customer.social_link !== '-') lines.push(`🔗 <b>Liên hệ:</b> ${escHtml(customer.social_link)}`);
 
-      if (customer.package === '30k' || customer.package === '5s') {
+      if (normalizePackage(customer.package || '30k') === '30k') {
         const startTime = customer.activated_at || customer.created_at;
         if (startTime) {
           const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));

@@ -13,8 +13,11 @@ module.exports = async (req, res) => {
     const customerCode = cust?.customer_code || null;
     const pkg = (reqPkg && PRICING[reqPkg]) ? reqPkg : currentPkg;
 
-    // Chặn sinh mã mới khi DNS pool đầy nếu khách chưa có slot trong pool hoặc có DNS riêng
-    if (!cust?.has_private_dns && !await dnsPoolHasCapacity(pkg, customerCode)) {
+    // Chặn sinh mã mới khi DNS pool đầy nếu khách chưa có DNS riêng
+    const [existingDns] = (customerCode
+      ? await sb('GET', 'private_dns_links', { q: `customer_code=eq.${encodeURIComponent(customerCode)}&select=id&limit=1` })
+      : []) || [];
+    if (!existingDns && !await dnsPoolHasCapacity(pkg, customerCode)) {
       return res.status(503).json({ error: 'DNS pool đang đầy, vui lòng thêm link DNS trước khi tạo mã mới.' });
     }
 

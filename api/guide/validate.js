@@ -575,7 +575,7 @@ module.exports = async (req, res) => {
 
     // 4. Kích hoạt lần đầu & Cập nhật thời hạn vào access_codes an toàn
     let expiresAt = codeRow.expires_at;
-    const isFirstActivation = !codeRow.first_used_at && !codeRow.activated_at;
+    const isFirstActivation = !codeRow.first_used_at && !codeRow.activated_at && !(codeRow.entry_count > 0);
     const nowIso = new Date().toISOString();
 
     if (isFirstActivation || !expiresAt) {

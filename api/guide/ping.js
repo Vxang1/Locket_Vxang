@@ -55,7 +55,7 @@ module.exports = async (req, res) => {
     // 🚨 Kiểm tra trạng thái gian lận TRƯỚC HẾT
     let fbFraud = null;
     try { fbFraud = await fbGet(`fraud/${payload.code}`); } catch {}
-    const fraudTriggeredAt = codeRow?.fraud_triggered_at || fbFraud?.fraud_triggered_at;
+    let fraudTriggeredAt = codeRow?.fraud_triggered_at || fbFraud?.fraud_triggered_at;
     const isDestroyed = codeRow?.status === 'fraud' || fbFraud?.destroyed === true || fbFraud?.status === 'fraud';
 
     const myDev = body.deviceId || session?.device_id || '';
