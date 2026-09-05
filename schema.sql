@@ -4,8 +4,9 @@
 -- Đặc trưng: CHỈ CÓ KHÁCH MỚI - KHÔNG CÓ CỘT TYPE VÀ KHÁI NIỆM BẢO HÀNH
 -- ==============================================================================
 
--- 0. BẬT EXTENSION UUID
+-- 0. BẬT EXTENSION UUID & CRYPTO
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- 1. BẢNG CẤU HÌNH HỆ THỐNG (APP_CONFIG)
 CREATE TABLE IF NOT EXISTS public.app_config (
@@ -14,13 +15,15 @@ CREATE TABLE IF NOT EXISTS public.app_config (
     updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
 );
 
--- Dữ liệu mẫu khởi tạo cho cấu hình DNS Template
+-- Khởi tạo cấu hình mặc định
 INSERT INTO public.app_config (key, value)
-VALUES ('dns_template', '{"template": "https://apple.dns.nextdns.io/{CODE}"}'::jsonb)
+VALUES 
+    ('dns_template', '{"template": "https://apple.dns.nextdns.io/{CODE}"}'::jsonb),
+    ('dev_mode', '{"active": false}'::jsonb)
 ON CONFLICT (key) DO NOTHING;
 
 -- 2. BẢNG QUẢN LÝ KHÁCH HÀNG (CUSTOMERS)
--- Lưu ý: Không có cột `type` (mọi khách đều là khách mới, gói vĩnh viễn)
+-- Lưu ý: Không có cột `type` và `locket_username` (chỉ có khách mới, 100% vĩnh viễn)
 CREATE TABLE IF NOT EXISTS public.customers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     customer_code TEXT NOT NULL UNIQUE,
@@ -49,10 +52,14 @@ CREATE TABLE IF NOT EXISTS public.access_codes (
     code TEXT NOT NULL UNIQUE,
     is_active BOOLEAN DEFAULT true,
     status TEXT NOT NULL DEFAULT 'pending',
-    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()),
+    entry_count INT DEFAULT 0,
+    original_device_id TEXT,
+    fraud_triggered_at TIMESTAMPTZ,
+    activated_at TIMESTAMPTZ,
     first_used_at TIMESTAMPTZ,
     expires_at TIMESTAMPTZ,
-    completed_at TIMESTAMPTZ
+    completed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
 );
 
 CREATE INDEX IF NOT EXISTS idx_access_codes_code ON public.access_codes(code);
@@ -65,10 +72,15 @@ CREATE TABLE IF NOT EXISTS public.sessions (
     access_code TEXT NOT NULL,
     session_token TEXT NOT NULL UNIQUE,
     device_id TEXT,
+    device_ip TEXT,
+    device_ua TEXT,
+    is_original BOOLEAN DEFAULT true,
     current_step INT DEFAULT 0,
-    last_ping TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()),
+    step_choice TEXT,
+    total_steps INT DEFAULT 0,
     is_kicked BOOLEAN DEFAULT false,
-    fraud_triggered_at TIMESTAMPTZ
+    fraud_triggered_at TIMESTAMPTZ,
+    last_ping TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
 );
 
 CREATE INDEX IF NOT EXISTS idx_sessions_access_code ON public.sessions(access_code);
@@ -120,11 +132,13 @@ CREATE TABLE IF NOT EXISTS public.guide_steps (
     image_url TEXT,
     video_url TEXT,
     package TEXT DEFAULT '30k',
-    is_active BOOLEAN DEFAULT true
+    is_active BOOLEAN DEFAULT true,
+    button_text TEXT,
+    button_url TEXT
 );
 
 -- ==============================================================================
--- TẮT RLS HOẶC CHO PHÉP TOÀN QUYỀN TRUY CẬP CHO BACKEND (SERVICE ROLE)
+-- TẮT RLS ĐỂ SERVICE ROLE HOẠT ĐỘNG THÔNG SUỐT
 -- ==============================================================================
 ALTER TABLE public.app_config DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.customers DISABLE ROW LEVEL SECURITY;
@@ -133,21 +147,4 @@ ALTER TABLE public.sessions DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.dns_pool DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.private_dns_links DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.guide_steps DISABLE ROW LEVEL SECURITY;
-
--- ==============================================================================
--- 8. MIGRATION COMPATIBILITY (DÀNH CHO DATABASE CŨ HOẶC NÂNG CẤP)
--- ==============================================================================
-ALTER TABLE public.access_codes ADD COLUMN IF NOT EXISTS activated_at TIMESTAMPTZ;
-ALTER TABLE public.access_codes ADD COLUMN IF NOT EXISTS first_used_at TIMESTAMPTZ;
-ALTER TABLE public.access_codes ADD COLUMN IF NOT EXISTS entry_count INT DEFAULT 0;
-ALTER TABLE public.access_codes ADD COLUMN IF NOT EXISTS original_device_id TEXT;
-ALTER TABLE public.access_codes ADD COLUMN IF NOT EXISTS fraud_triggered_at TIMESTAMPTZ;
-ALTER TABLE public.access_codes ADD COLUMN IF NOT EXISTS locket_choice TEXT;
-
-ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS activated_at TIMESTAMPTZ;
-ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS device_ip TEXT;
-ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS device_ua TEXT;
-ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS is_original BOOLEAN DEFAULT true;
-ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS step_choice TEXT;
-ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS total_steps INT DEFAULT 0;
 
