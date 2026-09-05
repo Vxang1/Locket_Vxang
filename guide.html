@@ -587,11 +587,15 @@ window.addEventListener('DOMContentLoaded', () => {
   <div id="fraudCard" style="background:#FFFFFF;border-radius:var(--radius-lg);padding:28px 22px 24px;width:100%;max-width:360px;border:3px solid var(--coral);box-shadow:8px 8px 0 var(--ink);animation:fraudPopIn .45s cubic-bezier(.34,1.56,.64,1) both;text-align:center;">
     <div id="fraudIcon" style="font-size:48px;margin-bottom:10px;animation:fraudShake .5s ease 2">🚨</div>
     <div id="fraudTitle" style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.25rem;color:var(--coral);margin-bottom:10px;line-height:1.35;">Phát hiện gian lận!</div>
-    <div id="fraudBody" style="background:#FFF0F0;border:1.5px solid var(--coral);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:18px;text-align:left;">
+    <div id="fraudBody" style="background:#FFF0F0;border:1.5px solid var(--coral);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:14px;text-align:left;">
       <div id="fraudMsg" style="font-size:.88rem;color:#7A1616;line-height:1.7;font-weight:600;">
         Hệ thống phát hiện hành vi chia sẻ mã truy cập cho thiết bị khác.<br><br>
         Theo quy định, <b>mã đã bị khóa vĩnh viễn</b> và <b>KHÔNG ĐƯỢC HOÀN TRẢ TIỀN CỌC</b> dưới mọi hình thức!
       </div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <div id="fraudCountdownLabel" style="font-size:.76rem;color:var(--charcoal);font-weight:800;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;">Tự động thoát sau</div>
+      <div id="fraudCountdown" style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:2.2rem;color:var(--coral);line-height:1;">15s</div>
     </div>
     <button onclick="stopAll();window.location.href='/'" style="width:100%;padding:13px;background:var(--coral);color:#fff;border:var(--border-ink);border-radius:var(--radius-sm);font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.92rem;cursor:pointer;box-shadow:var(--shadow-sm);transition:all .15s ease;">
       ✕ Đóng &amp; Về trang chủ
@@ -634,7 +638,7 @@ document.dispatchEvent(new CustomEvent('firebase-ready'));
   </script>
   
   <script>
-    // Realtime listener for appstore changes and dev_mode
+    // Realtime listener for appstore changes, dev_mode and fraud detection
     document.addEventListener('firebase-ready', () => {
       let fbDebounce = null;
       window._fbOnValue(window._fbRef(window._fbDb, 'appstore'), (snapshot) => {
@@ -652,11 +656,43 @@ document.dispatchEvent(new CustomEvent('firebase-ready'));
           syncDevMode(val);
         }
       });
+      // Realtime Fraud Listener
+      const currentCode = sessionStorage.getItem('xwGuideCode') || new URLSearchParams(location.search).get('code') || '';
+      if (currentCode && typeof initFraudListener === 'function') {
+        initFraudListener(currentCode);
+      }
     });
   </script>
 
 <script>
 let guideToken = sessionStorage.getItem('xwGuideToken') || null;
+let isOriginalDevice = sessionStorage.getItem('xwIsOriginal') !== '0';
+let fraudCountdownTimer = null;
+let fbFraudSubscribed = false;
+
+function initFraudListener(code) {
+  if (!code || fbFraudSubscribed || !window._fbDb || !window._fbRef || !window._fbOnValue) return;
+  fbFraudSubscribed = true;
+  const upperCode = code.toUpperCase();
+  try {
+    window._fbOnValue(window._fbRef(window._fbDb, `fraud/${upperCode}`), (snapshot) => {
+      const val = snapshot.val();
+      if (!val) return;
+      if (val.fraud_triggered_at) {
+        const elapsed = Date.now() - new Date(val.fraud_triggered_at).getTime();
+        if (elapsed < 15000 && !val.destroyed && val.status !== 'fraud') {
+          const sec = Math.max(1, Math.ceil((15000 - elapsed) / 1000));
+          showFraudModal(sec, isOriginalDevice);
+        } else {
+          showFraudModalPermanent(isOriginalDevice);
+        }
+      } else if (val.destroyed || val.status === 'fraud') {
+        showFraudModalPermanent(isOriginalDevice);
+      }
+    });
+  } catch (e) {}
+}
+
 let steps = [], currentStep = 0;
 let expiresAt = null, pingInterval, timerInterval;
 let step3Choice = 'dns'; // luôn là 'dns' — giữ field để tương thích DB cũ; mặc định 'dns' để Hoàn thành không bị kẹt nếu reload ở bước Gold
@@ -665,11 +701,8 @@ let goldExpiryVal = sessionStorage.getItem('xwGoldExpiry') || '';
 let pkgType = '5s'; // '5s' | '15s' | '150' | '180' — nhận từ /api/guide/steps
 let specialFlow = false; // true = khách đặc biệt (flow có bước IPA + cảnh báo nghiêm trọng)
 let isCompleted = false;          // chặn ping xử lý sau khi đã Hoàn thành
-// Cache nạp 1 lần cho bước appstore & ipa. video_shadowrocket/video_locket đã bỏ khỏi
-// appstore node (chuyển sang link cứng VIDEO_SR/VIDEO_IPA); has_ipa & ipa_url chỉ có
-// nghĩa khi specialFlow=true (mặc định không có bước IPA nên client không dùng).
 let appstoreData = null;
-  let dnsPoolData = null; // cache { ok, dns_url, package, customer_code } hoặc { ok:false, error } — nạp 1 lần cho bước DNS (choice)
+let dnsPoolData = null;
 
 // Video hướng dẫn: dùng placeholder chuẩn Retro Notebook (Chờ Vxang cập nhật), loại bỏ toàn bộ video cũ từ Locket Xwuan Unified
 function renderVideoPlaceholder(label = 'Video hướng dẫn') {
@@ -992,6 +1025,8 @@ window.addEventListener('load', async () => {
   if (savedToken && savedExpires && new Date(savedExpires) > new Date()) {
     guideToken = savedToken;
     expiresAt = new Date(savedExpires);
+    const savedCode = sessionStorage.getItem('xwGuideCode') || code || '';
+    if (savedCode) initFraudListener(savedCode);
     show('loadScreen');
     try {
       const r = await api('/api/guide/steps');
@@ -1073,11 +1108,15 @@ async function enterGuide() {
     sessionStorage.removeItem('xwGuideStep');
     sessionStorage.removeItem('xwGuideChoice');
 
-    const { token, expires_at } = await api('/api/guide/validate', { method: 'POST', body: JSON.stringify({ code, device_id: getDeviceId() }) });
+    const { token, expires_at, is_original } = await api('/api/guide/validate', { method: 'POST', body: JSON.stringify({ code, device_id: getDeviceId() }) });
     guideToken = token;
     expiresAt = new Date(expires_at);
+    isOriginalDevice = is_original !== false;
     sessionStorage.setItem('xwGuideToken', token);
     sessionStorage.setItem('xwGuideExpires', expires_at);
+    sessionStorage.setItem('xwIsOriginal', isOriginalDevice ? '1' : '0');
+    sessionStorage.setItem('xwGuideCode', code);
+    initFraudListener(code);
     const r = await api('/api/guide/steps');
     applyStepsResponse(r);
     currentStep = 0;
@@ -1665,38 +1704,90 @@ function cGoZalo(){
   window.open('https://zalo.me/g/yowrfu992','_blank');
   setTimeout(()=>cTick(3),600);
 }
-function showFraudModalPermanent(isOriginal) {
-  stopAll();
+function showFraudModal(seconds, isOriginal) {
+  if (typeof isOriginal === 'boolean') {
+    isOriginalDevice = isOriginal;
+    sessionStorage.setItem('xwIsOriginal', isOriginal ? '1' : '0');
+  }
+  clearInterval(pingInterval);
+  clearInterval(timerInterval);
+
+  const welcome = document.getElementById('welcomeOverlay');
+  if (welcome) welcome.style.display = 'none';
+
   const overlay = document.getElementById('fraudOverlay');
   const iconEl = document.getElementById('fraudIcon');
   const titleEl = document.getElementById('fraudTitle');
   const msgEl = document.getElementById('fraudMsg');
+  const cdLabel = document.getElementById('fraudCountdownLabel');
+  const cdNum = document.getElementById('fraudCountdown');
+
   if (!overlay) {
-    alert('🚨 Mã đã bị khóa vĩnh viễn do phát hiện chia sẻ/gian lận.\nMọi tiền cọc sẽ KHÔNG được hoàn trả.');
+    alert(isOriginalDevice
+      ? '🚨 Hệ thống phát hiện thiết bị khác đang dùng mã truy cập của bạn cùng lúc.\nMọi hành vi share mã, gian lận đều KHÔNG được hoàn trả tiền cọc.'
+      : '😏 Share mã hả cưng? Không có đâu nghen 😏 Mã này đã có chủ rồi, dùng chùa kiểu này là bị phát hiện ngay đó!');
     window.location.href = '/';
     return;
   }
-  if (isOriginal) {
+
+  if (isOriginalDevice) {
     if (iconEl) iconEl.textContent = '🚨';
     if (titleEl) titleEl.textContent = 'Phát hiện gian lận!';
     if (msgEl) msgEl.innerHTML = 'Hệ thống phát hiện <b>thiết bị khác</b> đang dùng mã truy cập của bạn cùng lúc.<br><br>Mọi hành vi <b>share mã, gian lận</b> đều <b>KHÔNG được hoàn trả tiền cọc</b>.';
+    if (cdLabel) cdLabel.textContent = 'Mã sẽ tự khóa và thoát trong';
   } else {
     if (iconEl) iconEl.textContent = '😏';
     if (titleEl) titleEl.textContent = 'Share mã hả cưng?';
     if (msgEl) msgEl.innerHTML = '<b>Không có đâu nghen 😏</b><br><br>Mã này đã có chủ rồi, dùng chùa kiểu này là bị phát hiện ngay đó!';
+    if (cdLabel) cdLabel.textContent = 'Tự động thoát sau';
   }
+
   overlay.style.display = 'flex';
+
+  let remaining = (typeof seconds === 'number' && seconds > 0) ? seconds : 15;
+  if (cdNum) cdNum.textContent = remaining + 's';
+
+  if (!fraudCountdownTimer) {
+    fraudCountdownTimer = setInterval(() => {
+      remaining--;
+      if (cdNum) cdNum.textContent = Math.max(0, remaining) + 's';
+      if (remaining <= 0) {
+        clearInterval(fraudCountdownTimer);
+        fraudCountdownTimer = null;
+        stopAll();
+        window.location.href = '/';
+      }
+    }, 1000);
+  }
+}
+
+function showFraudModalPermanent(isOriginal) {
+  if (typeof isOriginal === 'boolean') {
+    isOriginalDevice = isOriginal;
+  }
+  showFraudModal(0, isOriginalDevice);
+  setTimeout(() => {
+    stopAll();
+    window.location.href = '/';
+  }, 800);
 }
 
 function startPing() {
-  pingInterval = setInterval(async () => {
+  const doPing = async () => {
     if (isCompleted) return; // đã hoàn thành rồi, bỏ qua mọi ping còn sót
     try {
       const r = await api('/api/guide/ping', { method: 'POST', body: JSON.stringify({ currentStep, totalSteps: steps.length, step3Choice, deviceId: getDeviceId() }) });
       if (isCompleted) return; // double-check sau khi await xong (tránh race condition)
 
+      if (r.fraud_warning) {
+        const isOrig = (r.is_original !== undefined) ? r.is_original : isOriginalDevice;
+        showFraudModal(r.seconds_left, isOrig);
+        return;
+      }
+
       if (r.fraud_final) {
-        showFraudModalPermanent(r.is_original !== false);
+        const isOrig = (r.is_original !== undefined) ? r.is_original : isOriginalDevice;
+        showFraudModalPermanent(isOrig);
         return;
       }
 
@@ -1721,7 +1812,11 @@ function startPing() {
         return;
       }
     } catch { console.warn('Ping failed'); }
-  }, 4000);
+  };
+
+  // Gửi ping đầu tiên tức thì (0ms), sau đó lặp lại mỗi 4s
+  doPing();
+  pingInterval = setInterval(doPing, 4000);
 }
 function startTimer() {
   function update() {

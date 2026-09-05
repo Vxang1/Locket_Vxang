@@ -440,8 +440,21 @@ module.exports = async (req, res) => {
       }
     } catch {}
 
-    const isFraudCode = codeRow.status === 'fraud' || !!existingFraudAt || fbFraud?.destroyed === true || fbFraud?.status === 'fraud';
-    if (isFraudCode) {
+    const isFraudDestroyed = codeRow.status === 'fraud' || fbFraud?.destroyed === true || fbFraud?.status === 'fraud';
+    const elapsedSinceFraud = existingFraudAt ? (Date.now() - new Date(existingFraudAt).getTime()) : 999999;
+    const isOver15s = existingFraudAt && elapsedSinceFraud >= 15000;
+
+    // Nếu đã bị hủy vĩnh viễn hoặc đã quá 15s đếm lùi: CHẶN CỨNG 403 NGAY
+    if (isFraudDestroyed || isOver15s) {
+      if (!isFraudDestroyed) {
+        await Promise.all([
+          sb('PATCH', 'access_codes', { q: `id=eq.${codeRow.id}`, body: { is_active: false, status: 'fraud' } }).catch(() => {}),
+          sb('PATCH', 'sessions', { q: `access_code=eq.${encodeURIComponent(upperCode)}`, body: { is_kicked: true } }).catch(() => {}),
+          fbPut(`fraud/${upperCode}/destroyed`, true).catch(() => {}),
+          fbPut(`fraud/${upperCode}/status`, 'fraud').catch(() => {}),
+          fbPut(`heartbeats/${upperCode}`, null).catch(() => {}),
+        ]);
+      }
       const isOwnerDev = !!(codeRow?.original_device_id && deviceId && codeRow.original_device_id === deviceId);
       return res.status(403).json({
         error: isOwnerDev
@@ -525,7 +538,7 @@ module.exports = async (req, res) => {
           }
         } catch {}
 
-        if (!otherSessions.length && !isOwnerPinging && !fbConcurrent) {
+        if (!otherSessions.length && !isOwnerPinging && !fbConcurrent && !existingFraudAt) {
           // Không có ai đang dùng song song -> Khách vừa chuyển app / đổi trình duyệt
           // => CHUYỂN GIAO SỞ HỮU AN TOÀN CHO THIẾT BỊ MỚI (handover_success)
           isOriginal = true;
@@ -543,55 +556,49 @@ module.exports = async (req, res) => {
           // Xóa cờ bẫy cũ nếu có (vì thiết bị cũ đã ngắt)
           await fbPut(`fraud/${upperCode}`, null).catch(() => {});
         } else {
-          // 🚨 THỰC SỰ CÓ 2 THIẾT BỊ ĐANG CÙNG DÙNG SONG SONG -> KHÓA VĨNH VIỄN NGAY LẬP TỨC (KHÔNG NHÂN NHƯỢNG)
+          // 🚨 THỰC SỰ CÓ 2 THIẾT BỊ ĐANG CÙNG DÙNG SONG SONG -> KÍCH HOẠT ĐẾM LÙI 15S KHÓA VĨNH VIỄN
+          // Máy 2 vẫn VÀO ĐƯỢC để đọc cảnh báo (isOriginal = false), cùng lúc Máy 1 cũng hiện cảnh báo!
+          isOriginal = false;
           const nowIso = new Date().toISOString();
           const clientIp = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'Không xác định').split(',')[0].trim();
 
-          await Promise.all([
-            sb('PATCH', 'access_codes', {
-              q: `id=eq.${codeRow.id}`,
-              body: { is_active: false, status: 'fraud', fraud_triggered_at: nowIso },
-            }).catch(() => {}),
-            sb('PATCH', 'sessions', {
-              q: `access_code=eq.${encodeURIComponent(upperCode)}`,
-              body: { is_kicked: true },
-            }).catch(() => {}),
-            fbPut(`fraud/${upperCode}`, {
-              destroyed: true,
-              status: 'fraud',
-              fraud_triggered_at: nowIso,
-              original_device_id: ownerDeviceId || otherSessions[0]?.device_id || 'owner',
-              leech_device_id: deviceId,
-              leech_ip: clientIp,
-            }).catch(() => {}),
-            fbPut(`heartbeats/${upperCode}`, null).catch(() => {}),
-          ]);
+          if (!existingFraudAt) {
+            existingFraudAt = nowIso;
+            await Promise.all([
+              sb('PATCH', 'access_codes', {
+                q: `id=eq.${codeRow.id}`,
+                body: { fraud_triggered_at: nowIso },
+              }).catch(() => {}),
+              fbPut(`fraud/${upperCode}`, {
+                destroyed: false,
+                status: 'warning',
+                fraud_triggered_at: nowIso,
+                original_device_id: ownerDeviceId || otherSessions[0]?.device_id || 'owner',
+                leech_device_id: deviceId,
+                leech_ip: clientIp,
+              }).catch(() => {}),
+            ]);
 
-          try {
-            const cust = await lookupCustomerByCode(upperCode);
-            const who = cust?.name ? escTgHtml(cust.name) : 'Khách';
-            await notifyTelegram(
-              `🚨 <b>${who}</b> GIAN LẬN SHARE MÃ — ĐÃ KHÓA MÃ VĨNH VIỄN\n` +
-              codeDetailLines(upperCode, codeRow.package, cust) + '\n' +
-              `⚠️ IP gian lận: <code>${escTgHtml(clientIp)}</code>\n` +
-              `Phát hiện thiết bị thứ hai đăng nhập khi thiết bị chính đang hoạt động. Hệ thống đã khóa vĩnh viễn (Phạt không hoàn cọc).`,
-              {
-                reply_markup: {
-                  inline_keyboard: [
-                    [
-                      { text: '🔍 Tra cứu mã', callback_data: `lookup_code:${codeRow.id}` }
+            try {
+              const cust = await lookupCustomerByCode(upperCode);
+              const who = cust?.name ? escTgHtml(cust.name) : 'Khách';
+              await notifyTelegram(
+                `🚨 <b>${who}</b> GIAN LẬN SHARE MÃ — ĐANG ĐẾM LÙI TỰ KHÓA 15S\n` +
+                codeDetailLines(upperCode, codeRow.package, cust) + '\n' +
+                `⚠️ IP gian lận: <code>${escTgHtml(clientIp)}</code>\n` +
+                `Phát hiện thiết bị thứ hai (${escTgHtml(deviceId)}) đăng nhập khi thiết bị chính đang hoạt động. Hệ thống đang đếm lùi 15s cảnh báo trên cả hai thiết bị trước khi khóa vĩnh viễn không hoàn cọc.`,
+                {
+                  reply_markup: {
+                    inline_keyboard: [
+                      [
+                        { text: '🔍 Tra cứu mã', callback_data: `lookup_code:${codeRow.id}` }
+                      ]
                     ]
-                  ]
+                  }
                 }
-              }
-            );
-          } catch {}
-
-          return res.status(403).json({
-            error: 'Share mã hả cưng? Không có đâu nghen 😏 Mã này đã có chủ rồi, dùng chùa kiểu này là bị phát hiện ngay đó!',
-            fraud: true,
-            is_original: false
-          });
+              );
+            } catch {}
+          }
         }
       }
     }
@@ -719,6 +726,6 @@ module.exports = async (req, res) => {
     const specialFlow = !!custInfo?.specialFlow;
     const guideToken = signJWT({ role: 'guide', code: upperCode, sessionToken, package: pkg, specialFlow, isOriginal, exp });
 
-    res.json({ token: guideToken, expires_at: expiresAt, package: pkg });
+    res.json({ token: guideToken, expires_at: expiresAt, package: pkg, is_original: isOriginal });
   } catch (e) { res.status(500).json({ error: e.message }); }
 };

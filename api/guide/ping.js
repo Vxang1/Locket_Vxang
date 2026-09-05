@@ -52,15 +52,17 @@ module.exports = async (req, res) => {
     }
     const codeRow = codes?.[0];
 
-    // 🚨 Kiểm tra trạng thái gian lận TRƯỚC HẾT — nếu đã bị khóa fraud thì trả fraud_final kèm is_original ngay lập tức!
+    // 🚨 Kiểm tra trạng thái gian lận TRƯỚC HẾT
     let fbFraud = null;
     try { fbFraud = await fbGet(`fraud/${payload.code}`); } catch {}
-    const isFraud = codeRow?.status === 'fraud' || !!codeRow?.fraud_triggered_at || fbFraud?.destroyed === true || fbFraud?.status === 'fraud';
+    const fraudTriggeredAt = codeRow?.fraud_triggered_at || fbFraud?.fraud_triggered_at;
+    const isDestroyed = codeRow?.status === 'fraud' || fbFraud?.destroyed === true || fbFraud?.status === 'fraud';
 
-    if (isFraud) {
-      const myDev = body.deviceId || session?.device_id || '';
-      const isOwnerDev = !!(codeRow?.original_device_id && myDev && codeRow.original_device_id === myDev);
-      const isOriginal = (payload.isOriginal !== false && session?.is_original !== false) || isOwnerDev;
+    const myDev = body.deviceId || session?.device_id || '';
+    const isOwnerDev = !!(codeRow?.original_device_id && myDev && codeRow.original_device_id === myDev);
+    const isOriginal = (payload.isOriginal !== false && session?.is_original !== false) || isOwnerDev;
+
+    if (isDestroyed) {
       return res.json({
         expired: true,
         kicked: true,
@@ -70,6 +72,44 @@ module.exports = async (req, res) => {
           ? 'Hệ thống phát hiện thiết bị khác đang dùng mã truy cập của bạn cùng lúc.'
           : 'Share mã hả cưng? Không có đâu nghen 😏 Mã này đã có chủ rồi!'
       });
+    }
+
+    if (fraudTriggeredAt) {
+      const elapsed = Date.now() - new Date(fraudTriggeredAt).getTime();
+      if (elapsed < 15000) {
+        const secondsLeft = Math.max(1, Math.ceil((15000 - elapsed) / 1000));
+        return res.json({
+          ok: true,
+          fraud_warning: true,
+          seconds_left: secondsLeft,
+          is_original: isOriginal,
+        });
+      } else {
+        // Đã hết 15 giây đếm lùi -> KHÓA VĨNH VIỄN (ZERO TOLERANCE - KHÔNG HOÀN CỌC)
+        await Promise.all([
+          sb('PATCH', 'access_codes', {
+            q: `id=eq.${codeRow.id}`,
+            body: { is_active: false, status: 'fraud' },
+          }).catch(() => {}),
+          sb('PATCH', 'sessions', {
+            q: `access_code=eq.${encodeURIComponent(payload.code)}`,
+            body: { is_kicked: true },
+          }).catch(() => {}),
+          fbPut(`fraud/${payload.code}/destroyed`, true).catch(() => {}),
+          fbPut(`fraud/${payload.code}/status`, 'fraud').catch(() => {}),
+          fbPut(`heartbeats/${payload.code}`, null).catch(() => {}),
+        ]);
+
+        return res.json({
+          expired: true,
+          kicked: true,
+          fraud_final: true,
+          is_original: isOriginal,
+          error: isOriginal
+            ? 'Hệ thống phát hiện thiết bị khác đang dùng mã truy cập của bạn cùng lúc.'
+            : 'Share mã hả cưng? Không có đâu nghen 😏 Mã này đã có chủ rồi!'
+        });
+      }
     }
 
     if (session.is_kicked) return res.json({ kicked: true });
@@ -154,37 +194,32 @@ module.exports = async (req, res) => {
     } catch {}
 
     if (otherSessions.length > 0 || fbConcurrent) {
-      // 🚨 PHÁT HIỆN GIAN LẬN SHARE MÃ: KHÓA VĨNH VIỄN TỨC THÌ (ZERO TOLERANCE - KHÔNG NHÂN NHƯỢNG)
+      // 🚨 PHÁT HIỆN GIAN LẬN SHARE MÃ: KÍCH HOẠT ĐẾM LÙI 15S KHÓA VĨNH VIỄN (CẢ 2 MÁY CÙNG THẤY)
       const clientIp = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'Không xác định').split(',')[0].trim();
 
       await Promise.all([
         sb('PATCH', 'access_codes', {
           q: `id=eq.${codeRow.id}`,
-          body: { is_active: false, status: 'fraud', fraud_triggered_at: nowIso },
-        }).catch(() => {}),
-        sb('PATCH', 'sessions', {
-          q: `access_code=eq.${encodeURIComponent(payload.code)}`,
-          body: { is_kicked: true },
+          body: { fraud_triggered_at: nowIso },
         }).catch(() => {}),
         fbPut(`fraud/${payload.code}`, {
-          destroyed: true,
-          status: 'fraud',
+          destroyed: false,
+          status: 'warning',
           fraud_triggered_at: nowIso,
-          original_device_id: myDeviceId || 'device-1',
+          original_device_id: codeRow?.original_device_id || myDeviceId || 'owner',
           detected_by: payload.sessionToken,
           client_ip: clientIp,
         }).catch(() => {}),
-        fbPut(`heartbeats/${payload.code}`, null).catch(() => {}),
       ]);
 
       try {
         const cust = await lookupCustomerByCode(payload.code);
         const who = cust?.name ? escTgHtml(cust.name) : 'Khách';
         await notifyTelegram(
-          `🚨 <b>${who}</b> GIAN LẬN SHARE MÃ — ĐÃ KHÓA MÃ VĨNH VIỄN\n` +
+          `🚨 <b>${who}</b> GIAN LẬN SHARE MÃ — ĐANG ĐẾM LÙI TỰ KHÓA 15S\n` +
           codeDetailLines(payload.code, payload.package, cust) + '\n' +
           `⚠️ IP gian lận: <code>${escTgHtml(clientIp)}</code>\n` +
-          `Phát hiện 2 thiết bị khác nhau cùng truy cập song song. Hệ thống đã khóa vĩnh viễn (Phạt không hoàn cọc).`,
+          `Phát hiện 2 thiết bị khác nhau cùng truy cập song song. Hệ thống đang đếm lùi 15s cảnh báo trên cả hai thiết bị trước khi khóa vĩnh viễn không hoàn cọc.`,
           {
             reply_markup: {
               inline_keyboard: [
@@ -202,13 +237,10 @@ module.exports = async (req, res) => {
       const isOriginal = (payload.isOriginal !== false && session?.is_original !== false) || isOwnerDev;
 
       return res.json({
-        expired: true,
-        kicked: true,
-        fraud_final: true,
+        ok: true,
+        fraud_warning: true,
+        seconds_left: 15,
         is_original: isOriginal,
-        error: isOriginal
-          ? 'Hệ thống phát hiện thiết bị khác đang dùng mã truy cập của bạn cùng lúc.'
-          : 'Share mã hả cưng? Không có đâu nghen 😏 Mã này đã có chủ rồi!'
       });
     }
 
