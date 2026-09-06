@@ -365,7 +365,7 @@ async function loadDnsInfo(){
     const data = await r.json();
     if (!r.ok || data.error) { showArea('errArea'); return; }
     if (data.expired) { showArea('expiredArea'); return; }
-    dnsUrl = data.ublockdns_url;
+    dnsUrl = data.dns_url || data.ublockdns_url;
     pkg = data.package === '15s' ? '15s' : '5s';
     customerCode = data.customer_code || null;
     showArea('validArea');

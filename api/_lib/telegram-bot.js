@@ -257,7 +257,7 @@ async function handleTelegramWebhook(req, res) {
           if (customer.social_link && customer.social_link !== '-') lines.push(`🔗 <b>Liên hệ:</b> <i>${escHtml(customer.social_link)}</i>`);
 
           if (targetPkg === '30k') {
-            const startTime = customer.activated_at || customer.created_at;
+            const startTime = customer.activated_at;
             if (startTime) {
               const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
               const isWithin7Days = diffDays <= 7;
@@ -435,7 +435,7 @@ async function handleTelegramWebhook(req, res) {
       else if (expTime) lines.push(`• <i>Hết hạn:</i> <code>${expTime}</code> ⌛`);
 
       if (targetPkg === '30k') {
-        const startTime = customer.activated_at || customer.created_at;
+        const startTime = customer.activated_at;
         if (startTime) {
           const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
           const isWithin7Days = diffDays <= 7;
@@ -466,7 +466,7 @@ async function handleTelegramWebhook(req, res) {
       if (customer.social_link && customer.social_link !== '-') lines.push(`🔗 <b>Liên hệ:</b> <i>${escHtml(customer.social_link)}</i>`);
 
       if (normalizePackage(customer.package || '30k') === '30k') {
-        const startTime = customer.activated_at || customer.created_at;
+        const startTime = customer.activated_at;
         if (startTime) {
           const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
           const isWithin7Days = diffDays <= 7;

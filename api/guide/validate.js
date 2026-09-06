@@ -3,16 +3,16 @@ const { sb, signJWT, verifyJWT, getToken, allowMethods, notifyTelegram, escTgHtm
 
 const { randomUUID } = require('crypto');
 
-// Mã có hiệu lực bao lâu kể từ lúc khách kích hoạt. Gói vĩnh viễn (150/180) được
-// 45 phút thay vì 30: flow dài hơn (cài Shadowrocket bằng tài khoản Appstore chung
-// → đăng xuất/đăng nhập App Store → cài IPA qua OTA), 30 phút không đủ.
+// Mã có hiệu lực bao lâu kể từ lúc khách kích hoạt. Gói 40k (15s) được 45 phút thay
+// vì flow dài hơn (cài Shadowrocket bằng tài khoản Appstore chung → đăng xuất/đăng
+// nhập App Store → cài IPA qua OTA), 30 phút không đủ. Gói 30k (5s) giữ 30 phút.
 const CODE_VALID_MS      = 30 * 60 * 1000;
 const CODE_VALID_MS_PERM = 45 * 60 * 1000;
 function codeValidMs(pkg) {
-  return isPermPackage(normalizePackage(pkg)) ? CODE_VALID_MS_PERM : CODE_VALID_MS;
+  return normalizePackage(pkg) === '40k' ? CODE_VALID_MS_PERM : CODE_VALID_MS;
 }
 function codeValidLabel(pkg) {
-  return isPermPackage(normalizePackage(pkg)) ? '45 phút' : '30 phút';
+  return normalizePackage(pkg) === '40k' ? '45 phút' : '30 phút';
 }
 
 // ── GET ?action=appstore — trả tài khoản Appstore chung cho khách gói vĩnh viễn ──
@@ -335,7 +335,7 @@ async function handleDnsCheck(req, res) {
 
 // ── GET ?action=dns_pool_claim — lấy link DNS pool (NextDNS) đang active cho gói của khách ──
 // Thay cho file .mobileconfig tĩnh /dns5s.mobileconfig, /dns15s.mobileconfig cũ: mỗi link
-// pool chỉ phục vụ tối đa 5 MÃ KHÁCH khác nhau (max_uses, xem claimDnsFromPool trong utils.js)
+// pool chỉ phục vụ tối đa 5 MÃ KHÁCH khác nhau (max, xem claimDnsFromPool trong utils.js)
 // rồi admin phải tạo link mới — tự động rotate, không cần thay file thủ công.
 // Cần JWT guide hợp lệ để biết chắc gói (payload.package) + lấy đúng customer_code (khách
 // gói vĩnh viễn không có access_codes.customer_id kiểu 1-1 rõ, nên tra qua lookupCustomerByCode).

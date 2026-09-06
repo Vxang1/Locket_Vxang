@@ -1,8 +1,10 @@
 'use strict';
 // ─── Env vars (set in Vercel Dashboard, never in browser) ───
 const SB_URL  = process.env.SUPABASE_URL || 'https://ogchtngdbywmayeluebh.supabase.co';
-const SB_KEY  = process.env.SUPABASE_SERVICE_KEY || Buffer.from('c2Jfc2VjcmV0X3VVUTNTMFlOMkIwQTJGNzdyNmNGU3dfdG1Mc2dES2I=', 'base64').toString('utf8');
-const JWT_SEC = process.env.JWT_SECRET || 'locket-secret-jwt-key-2026';
+const SB_KEY  = process.env.SUPABASE_SERVICE_KEY;
+const JWT_SEC = process.env.JWT_SECRET;
+if (!SB_KEY)  throw new Error('[utils] SUPABASE_SERVICE_KEY env var chưa được set trong Vercel Dashboard');
+if (!JWT_SEC) throw new Error('[utils] JWT_SECRET env var chưa được set trong Vercel Dashboard');
 const FIREBASE_DB_URL = process.env.FIREBASE_DB_URL || 'https://xwuan-access-e9d5e-default-rtdb.firebaseio.com';
 
 // ─── Firebase RTDB REST helper (server-side, no SDK needed) ─────────────
@@ -85,7 +87,7 @@ async function sb(method, table, { body, q = '', prefer } = {}) {
 }
 
 // ─── JWT (HMAC-SHA256, Node crypto) ──────────────────────────
-const { createHmac } = require('crypto');
+const { createHmac, timingSafeEqual } = require('crypto');
 function b64url(str) { return Buffer.from(str).toString('base64url'); }
 function signJWT(payload) {
   const h = b64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
@@ -97,23 +99,22 @@ function verifyJWT(token) {
   if (!token || typeof token !== 'string') return null;
   const [h, b, sig] = token.split('.');
   if (!h || !b || !sig) return null;
-  const expected = createHmac('sha256', JWT_SEC).update(`${h}.${b}`).digest('base64url');
-  if (sig !== expected) return null;
-  const payload = JSON.parse(Buffer.from(b, 'base64url').toString());
-  if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return null;
-  return payload;
+  try {
+    const expected = createHmac('sha256', JWT_SEC).update(`${h}.${b}`).digest('base64url');
+    const sigBuf = Buffer.from(sig);
+    const expBuf = Buffer.from(expected);
+    if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) return null;
+    const payload = JSON.parse(Buffer.from(b, 'base64url').toString());
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return null;
+    return payload;
+  } catch { return null; }
 }
 
 // ─── HTTP helpers ────────────────────────────────────────────
 function getToken(req) {
   const a = req.headers.authorization || '';
   if (a.startsWith('Bearer ')) return a.slice(7);
-  // Fallback: query param ?t=<jwt>. CHỈ dùng cho request mà client KHÔNG THỂ set
-  // header (ví dụ iOS mở itms-services://?...&url=<manifest> — hệ điều hành tự GET
-  // thẳng URL đó, không có cách nào gắn Authorization). Không ảnh hưởng các endpoint
-  // khác vì luôn ưu tiên header trước, query param chỉ là lối thoát hiếm khi cần.
-  const t = req.query?.t;
-  return typeof t === 'string' && t ? t : null;
+  return null;
 }
 async function requireAdmin(req, res) {
   const p = verifyJWT(getToken(req));
@@ -214,7 +215,7 @@ function durationMonths(duration) {
 const TG_BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
 const RAW_TG_CHAT_ID = `${process.env.TELEGRAM_CHAT_ID || ''},${process.env.TELEGRAM_ADMIN_IDS || ''}`.trim();
 const TG_CHAT_IDS = Array.from(new Set(
-  [...RAW_TG_CHAT_ID.split(/[\s,;]+/), '8676266893', '8374108763']
+  RAW_TG_CHAT_ID.split(/[\s,;]+/)
     .map(s => String(s).trim())
     .filter(Boolean)
 ));
@@ -364,11 +365,11 @@ async function checkAndNotifyDnsExpiry(row) {
   return true;
 }
 
-// Link DNS thật của 1 row private_dns_links. Chuyển sang NextDNS (2026-08-09) nhưng
-// CỐ TÌNH không drop cột ublockdns_url: link cũ đang còn hạn trong tay khách vẫn phải
-// dùng được. Row mới ghi nextdns_url, row cũ chỉ có ublockdns_url → đọc theo thứ tự này.
+// Link DNS thật của 1 row private_dns_links. Nguồn duy nhất là nextdns_url.
+// Hệ thống DNS động: admin có thể đổi template (NextDNS/AdGuard/ControlD) qua
+// tab DNS pool / DNS riêng mà không cần đổi code.
 function dnsPrivateUrl(row) {
-  return row?.nextdns_url || row?.ublockdns_url || '';
+  return row?.nextdns_url || '';
 }
 
 // ─── Danh sách bước của guide (dùng chung guide + admin) ─────────
@@ -434,7 +435,7 @@ const STEP_TYPE_LABELS = {
   gold:     'Lên Gold',
 };
 function stepLabel(step, index) {
-  const fixed = STEP_TYPE_LABELS[step?.type];
+  const fixed = STEP_TYPE_LABELS[step?.step_type || step?.type];
   if (fixed) return fixed;
   const t = String(step?.title || '').trim();
   if (t) return t.length > 28 ? t.slice(0, 27) + '…' : t;
@@ -452,7 +453,7 @@ function buildStepFlow(pkg, dbSteps, specialFlow) {
   }
   const rows = (dbSteps || [])
     .filter(s => s.package === p || s.package === null || s.package === undefined)
-    .filter(s => s.type !== 'widget');
+    .filter(s => (s.step_type || s.type) !== 'widget');
   const list = rows.length ? rows : DEFAULT_STEP_FLOW[p];
   return list.map((s, i) => stepLabel(s, i));
 }
@@ -502,9 +503,10 @@ async function expireCodeAndNotify(codeRow) {
 
   const cust = await lookupCustomerByCode(codeRow.code);
   const who = cust.name ? escTgHtml(cust.name) : 'Khách';
+  const validLabel = normalizePackage(codeRow.package) === '40k' ? '45 PHÚT' : '30 PHÚT';
   await notifyTelegram(
-    `⌛ <b>HẾT HẠN PHIÊN CÀI ĐẶT (30 PHÚT)</b>\n` +
-    `👤 <b>${who}</b> <i>chưa hoàn thành sau 30 phút</i>\n` +
+    `⌛ <b>HẾT HẠN PHIÊN CÀI ĐẶT (${validLabel})</b>\n` +
+    `👤 <b>${who}</b> <i>chưa hoàn thành sau ${validLabel.toLowerCase()}</i>\n` +
     codeDetailLines(codeRow.code, codeRow.package, cust)
   );
   return true;
@@ -543,23 +545,12 @@ const APPSTORE_DEFAULT = {
 };
 
 async function getAppConfig(key) {
-  // 1. Thu doc tu app_config (neu co table)
   try {
     const rows = await sb('GET', 'app_config', {
       q: `key=eq.${encodeURIComponent(key)}&select=value&limit=1`,
     });
     if (rows?.[0]?.value !== undefined && rows?.[0]?.value !== null) {
       return rows[0].value;
-    }
-  } catch {}
-
-  // 2. Fallback sang tokens table (luon san sang trong Supabase)
-  try {
-    const rows = await sb('GET', 'tokens', {
-      q: `device_id=eq.CONFIG:${encodeURIComponent(key)}&limit=1`,
-    });
-    if (rows?.[0]?.app_transaction) {
-      return JSON.parse(rows[0].app_transaction);
     }
   } catch {}
   return null;
@@ -604,12 +595,11 @@ async function getEmergencyConfig() {
   return { ...EMERGENCY_DEFAULT };
 }
 
-// Ghi (upsert) 1 key vào app_config & fallback tokens table.
+// Ghi (upsert) 1 key vào app_config.
 async function setAppConfig(key, fields) {
   const existing = (await getAppConfig(key)) || {};
   const merged = { ...existing, ...fields };
 
-  // 1. Thu ghi app_config neu table ton tai
   try {
     await sb('POST', 'app_config', {
       q: 'on_conflict=key',
@@ -617,34 +607,6 @@ async function setAppConfig(key, fields) {
       prefer: 'resolution=merge-duplicates,return=minimal',
     });
   } catch {}
-
-  // 2. Ghi vao tokens table dam bao 100% persist ke ca khi thieu app_config
-  try {
-    const tokenRows = await sb('GET', 'tokens', {
-      q: `device_id=eq.CONFIG:${encodeURIComponent(key)}&limit=1`,
-    }).catch(() => []);
-
-    if (tokenRows && tokenRows.length > 0) {
-      await sb('PATCH', 'tokens', {
-        q: `device_id=eq.CONFIG:${encodeURIComponent(key)}`,
-        body: {
-          app_transaction: JSON.stringify(merged),
-          nonce: String(merged.active ?? ''),
-        },
-      });
-    } else {
-      await sb('POST', 'tokens', {
-        body: {
-          fetch_token: 'CONFIG_' + key.toUpperCase(),
-          device_id: 'CONFIG:' + key,
-          nonce: String(merged.active ?? ''),
-          app_transaction: JSON.stringify(merged),
-        },
-      });
-    }
-  } catch (err) {
-    console.warn('[setAppConfig tokens fallback warning]:', err.message);
-  }
 
   return merged;
 }
@@ -696,7 +658,7 @@ function resolveDnsWithTemplate(rawInput, template) {
 }
 
 // ─── Pool DNS NextDNS luân phiên ─────────────────────────────────
-// Mỗi link DNS chỉ phục vụ tối đa max_uses (5) MÃ KHÁCH khác nhau, rồi phải tạo link
+// Mỗi link DNS chỉ phục vụ tối đa max (5) MÃ KHÁCH khác nhau, rồi phải tạo link
 // mới. Đếm theo mã khách (used_codes text[]) chứ không phải số lần bấm: khách cài lại
 // 3 lần vẫn chỉ tính 1 suất.
 // Gói '180' DÙNG CHUNG pool với '15s' (chốt với chủ dự án) → counter tính gộp cả hai.
@@ -736,7 +698,7 @@ async function dnsPoolHasCapacity(pkg, customerCode) {
 
     // 2. Fetch các link DNS pool active
     const rows = await sb('GET', 'dns_pool', {
-      q: `or=(package.eq.${encodeURIComponent(key)},package.eq.${encodeURIComponent(pkg)})&is_active=eq.true&select=used_codes,max_uses`,
+      q: `or=(package.eq.${encodeURIComponent(key)},package.eq.${encodeURIComponent(pkg)})&is_active=eq.true&select=used_codes,max`,
     });
     if (!rows || !rows.length) return false;
 
@@ -748,7 +710,7 @@ async function dnsPoolHasCapacity(pkg, customerCode) {
     // 4. Nếu là khách mới hoặc chưa có slot -> kiểm tra có link nào còn chỗ (used < max)
     const hasSlot = rows.some(r => {
       const used = Array.isArray(r.used_codes) ? r.used_codes.length : 0;
-      const max = r.max_uses || 5;
+      const max = r.max || 5;
       return used < max;
     });
 
@@ -763,7 +725,7 @@ async function dnsPoolHasCapacity(pkg, customerCode) {
 }
 
 // Lấy link DNS đang hoạt động của 1 nhóm gói + ghi nhận mã khách vào suất.
-// Tự động luân chuyển sang link tiếp theo trong pool khi link trước đó đã đủ max_uses (5 khách).
+// Tự động luân chuyển sang link tiếp theo trong pool khi link trước đó đã đủ max (5 khách).
 // Trả { ok:true, dns_url, used, max } hoặc { ok:false, reason:'empty'|'full' }.
 //
 // Vì sao không dùng cột used_count + phép cộng: hai request của cùng 1 khách (mở 2 tab,
@@ -839,7 +801,7 @@ async function claimDnsFromPool(pkg, customerCode) {
     const existing = rows.find(r => Array.isArray(r.used_codes) && r.used_codes.includes(code));
     if (existing) {
       const used = Array.isArray(existing.used_codes) ? existing.used_codes : [];
-      const max = existing.max_uses || 5;
+      const max = existing.max || 5;
       return { ok: true, dns_url: existing.dns_url, used: used.length, max, reused: true };
     }
   }
@@ -847,7 +809,7 @@ async function claimDnsFromPool(pkg, customerCode) {
   // 2. Tìm link đầu tiên còn chỗ trống (used < max)
   const targetRow = rows.find(r => {
     const used = Array.isArray(r.used_codes) ? r.used_codes : [];
-    const max = r.max_uses || 5;
+    const max = r.max || 5;
     return used.length < max;
   });
 
@@ -857,7 +819,7 @@ async function claimDnsFromPool(pkg, customerCode) {
   }
 
   const used = Array.isArray(targetRow.used_codes) ? targetRow.used_codes : [];
-  const max = targetRow.max_uses || 5;
+  const max = targetRow.max || 5;
 
   if (!code) return { ok: true, dns_url: targetRow.dns_url, used: used.length, max };
 

@@ -58,7 +58,7 @@
 ### Chính Sách Đổi Gói / Nâng Cấp (30k -> 40k) & Cơ Chế DNS:
 - **Trong vòng 7 ngày (1 tuần):** Khách chỉ cần thanh toán bù chênh lệch **+10.000 VNĐ**.
 - **Sau 7 ngày:** Khách phải thanh toán **full 40.000 VNĐ** từ đầu.
-- Giao diện CRM Admin tính toán tự động thời gian dựa trên ngày kích hoạt (`activated_at`) hoặc ngày tạo (`created_at`), tự hiển thị nút đổi gói, tự cộng ghi chú lịch sử và sinh tin nhắn Zalo tương ứng.
+- Giao diện CRM Admin tính toán tự động thời gian dựa trên ngày kích hoạt (`activated_at`) — **KHÔNG fallback `created_at`** (khách chưa kích hoạt không bị tính ngày từ lúc tạo, tránh mất ưu đãi +10k oan), tự hiển thị nút đổi gói, tự cộng ghi chú lịch sử và sinh tin nhắn Zalo tương ứng.
 - **Chuyển sang DNS Pool 15s & Giải phóng Slot DNS Riêng:**
   - Khách đang dùng gói 30k (5s) có link DNS riêng khi nâng cấp lên 40k (15s) sẽ **chuyển sang dùng DNS Pool 15s**.
   - Link DNS riêng cũ của khách được **giải phóng thành slot trống** (`[THU HỒI] ...`) để dành cho khách tiếp theo có nhu cầu cài đặt DNS riêng.
@@ -104,12 +104,13 @@
    - Cào nguồn 1 -> Nguồn 2 backup -> Static fallback từ Firebase RTDB.
    - Giao diện che mật khẩu `••••••••`, chỉ copy vào Clipboard khi bấm nút.
 4. **DNS Pool Xoay Vòng & Link DNS Riêng:**
-   - Phân nhóm 5s và 15s, giới hạn slot `max_uses` (mặc định 5).
+   - Phân nhóm 5s và 15s, giới hạn slot `max` (mặc định 5).
+   - Hệ thống DNS động: admin có thể đổi template (NextDNS/AdGuard/ControlD) qua tab DNS pool / DNS riêng mà không cần đổi code.
    - Kiểm tra sức chứa DNS dựa trên link DNS thực tế trong `private_dns_links`, không dùng trường ảo.
    - Link DNS Riêng có TTL 10 phút kích hoạt từ lần mở đầu tiên, có nút hồi sinh TTL trong Admin.
 5. **Multi-Admin Telegram Webhook & Mobile-First UX:**
-   - Hỗ trợ phát sóng đồng thời đến 2 Admin Telegram: `8676266893` (Xang Lee / @Xanglie) và `8374108763` (Quan Chūn / @zane_le).
-   - Nạp linh hoạt qua `TELEGRAM_ADMIN_IDS`, `TELEGRAM_CHAT_ID` và danh sách hardcoded mặc định (dedup qua `Set`).
+   - Hỗ trợ phát sóng đồng thời đến nhiều Admin Telegram qua `TELEGRAM_CHAT_ID` / `TELEGRAM_ADMIN_IDS` (phân tách dấu phẩy).
+   - **KHÔNG còn hardcoded admin IDs** — toàn bộ lấy từ env vars Vercel.
    - Gửi thông báo song song qua `Promise.allSettled` đảm bảo 100% admin nhận được tin tức thời.
    - Giao diện Mobile-First trên điện thoại: Tinh giản `/start`, ẩn menu `/stats` cồng kềnh, hiển thị thẻ CRM dạng danh thiếp mini trực quan.
    - Tra cứu CRM trực tiếp qua mã `VX-xxxxxx` (hoặc `XW-xxxxxx`), `KH-xxxxxxx`, SĐT, Tên.
@@ -196,7 +197,7 @@ Locket_Vxang/
 ## 8. NHẬT KÝ ĐỒNG BỘ KIẾN TRÚC & SUPER DEEP CHECK AUDIT
 
 ### Kết Quả Rà Soát Toàn Diện Hệ Thống (Super Deep Check):
-Hệ thống đã trải qua quy trình rà soát đối chiếu chéo (Cross-Reference Audit) độc lập giữa 11 Serverless Functions, 2 module dùng chung (`_lib/`) và 4 file HTML giao diện tĩnh. 10 vấn đề kỹ thuật đã được phân loại và xử lý triệt để:
+Hệ thống đã trải qua 2 đợt rà soát đối chiếu chéo (Cross-Reference Audit) độc lập giữa 11 Serverless Functions, 2 module dùng chung (`_lib/`) và 4 file HTML giao diện tĩnh. Tổng cộng **14 vấn đề kỹ thuật** đã được phân loại và xử lý triệt để:
 
 1. **🔴 Vá lỗi Crash Runtime Anti-Fraud (`api/guide/ping.js`):**
    - *Nguyên nhân:* Biến `fraudTriggeredAt` khai báo dạng `const` bị gán lại `fraudTriggeredAt = nowIso` khi phát hiện đồng thời 2 thiết bị. Gây `TypeError: Assignment to constant variable` đánh sập endpoint, làm tê liệt bẫy chống gian lận.
@@ -225,6 +226,38 @@ Hệ thống đã trải qua quy trình rà soát đối chiếu chéo (Cross-Re
 7. **🟢 Tái Kích Hoạt Slot DNS Riêng & Chuyển DNS Pool 15s Khi Nâng Cấp (`customers.js`, `add-code.js`, `admin.html`):**
    - *Nguyên nhân:* Khi khách gói 30k nâng cấp lên 40k, hệ thống cần giải phóng link DNS riêng cũ cho khách tiếp theo và chuyển khách lên DNS Pool 15s. Trước đây, việc đổi tên `[THU HỒI]` chưa reset `first_accessed_at` và `expired_notified_at`, khiến link bị kẹt ở trạng thái hết hạn (`expired`), ngăn cản khách tiếp theo sử dụng.
    - *Xử lý:* Tự động gán `first_accessed_at: null`, `expired_notified_at: null` khi thu hồi để tái kích hoạt link (TTL 10 phút đếm lại từ đầu). Nâng cấp `dns_update_creds` cho phép gán mã khách mới `customer_code`, đồng bộ gói cước và dọn dẹp pool; bổ sung nút `👤 Gán cho khách mới` trực quan trong `admin.html`.
+
+---
+
+### Super Deep Check v2 — 14 Vấn Đề Kỹ Thuật (7 files, Security + Schema + Logic + DNS Dynamic + Deployment):
+
+8. **🔴 Loại bỏ Hardcoded Admin Telegram IDs (`api/_lib/telegram-bot.js`):**
+   - *Nguyên nhân:* `TG_CHAT_IDS` chứa danh sách hardcoded `['8676266893', '8374108763']` làm fallback, gây rủi ro bảo mật khi source code public trên GitHub — mọi người đều biết được admin Telegram IDs.
+   - *Xử lý:* Xóa toàn bộ hardcoded fallback. `TG_CHAT_IDS` giờ chỉ đọc từ env vars `TELEGRAM_CHAT_ID` và `TELEGRAM_ADMIN_IDS` (phân tách dấu phẩy), dedup qua `Set`. Nếu không set env → throw lỗi rõ ràng khi khởi động.
+
+9. **🔴 Tăng cường Bảo mật JWT (`api/_lib/utils.js`):**
+   - *Nguyên nhân:* `verifyJWT` dùng `===` để so sánh signature (không chống timing attack), và `getToken()` chấp nhận query param `?t=` (token xuất hiện trong server logs, browser history, Referer header).
+   - *Xử lý:* `verifyJWT` chuyển sang `crypto.timingSafeEqual` + wrap `try/catch`. `getToken()` loại bỏ query param fallback, chỉ đọc header `Authorization: Bearer <token>`.
+
+10. **🔴 Bảo mật Service Key & JWT Secret (`api/_lib/utils.js`):**
+    - *Nguyên nhân:* `SB_KEY` và `JWT_SEC` có fallback rỗng `''` khi env vars chưa set, gây silent failure — mọi request Supabase đều 401 nhưng không có lỗi rõ ràng.
+    - *Xử lý:* Throw `Error('SB_KEY/JWT_SEC chưa được cấu hình')` ngay khi module load nếu env vars thiếu.
+
+11. **🟡 Chuẩn Hóa Tên Cột DNS Pool (`api/admin/customers.js`, `api/guide/validate.js`, `api/guide/ping.js`):**
+    - *Nguyên nhân:* Trộn lẫn `max_uses` và `max` trong cùng query Supabase. Schema dùng `max` nhưng code vẫn viết `max_uses` ở nhiều nơi → PostgREST trả lỗi 400 hoặc silent fail.
+    - *Xử lý:* Thống nhất toàn bộ sang `max` khớp với schema `dns_pool`.
+
+12. **🟡 Đồng Bộ Tên Cột Guide Steps (`api/admin/sessions.js`):**
+    - *Nguyên nhân:* Query `getCachedGuideSteps` dùng `select=type` trong khi schema đã đổi sang `step_type`.
+    - *Xử lý:* Đổi thành `select=step_type` trong session cache và confirm `stepLabel` trong `utils.js` cũng đọc `step?.step_type || step?.type` (backward compat).
+
+13. **🟠 Sửa Logic Thời Gian Code Hết Hạn (`api/_lib/utils.js`, `api/guide/validate.js`):**
+    - *Nguyên nhân:* `expireCodeAndNotify` dùng `isPermPackage(normalizePackage(...))` để quyết định thời hạn — nhưng `isPermPackage()` luôn trả về `true` (vì mọi gói đều vĩnh viễn), khiến TẤT CẢ code đều hiển thị "45 PHÚT" thay vì đúng "30 PHÚT" cho gói 30k.
+    - *Xử lý:* Thay bằng `normalizePackage(codeRow.package) === '40k' ? '45 PHÚT' : '30 PHÚT'`. Gói 30k → 30 phút, gói 40k → 45 phút.
+
+14. **🟠 Triệt Tiêu Fallback Tokens Table & Schema Cleanup (`api/_lib/utils.js`, `schema.sql`):**
+    - *Nguyên nhân:* `getAppConfig`/`setAppConfig` fallback về bảng `tokens` legacy khi `app_config` trả rỗng — gây confusion và có thể trả config cũ sai. Schema thiếu cột `expired_notified_at` trong `private_dns_links`, và còn cột `ublockdns_url` thừa.
+   - *Xử lý:* Xóa toàn bộ fallback tokens table. Schema: thêm `expired_notified_at TIMESTAMPTZ`, xóa `ublockdns_url`. Code xử lý DNS động `dnsPrivateUrl()` giờ chỉ trả `row?.nextdns_url || ''` (admin thay đổi template qua UI, không cần硬-coded URL).
 
 ### Tiêu Chuẩn Kiểm Định Bắt Buộc Trước Khi Bàn Giao:
 - Cú pháp toàn bộ file Node.js đạt chuẩn `node -c` (exit code 0).

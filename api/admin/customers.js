@@ -53,7 +53,7 @@ module.exports = async (req, res) => {
 
     // ── POST ?action=dns_create — tạo link DNS riêng cho 1 khách hàng ──
     // Gói 180 giờ được chấp nhận (map về '15s' theo dnsPoolKey) vì gói 180 cũng
-    // có bước DNS. ublockdns_url vẫn giữ nguyên '' (default cột) — code dnsPrivateUrl
+    // có bước DNS. Code dnsPrivateUrl chỉ đọc nextdns_url, cột ublockdns_url là legacy
     // ưu tiên nextdns_url nên không cần xoá cột cũ, link cũ đang trong tay khách vẫn hoạt động.
     // 2026-08-25: Tự động hiểu mã ngắn theo Mẫu DNS (dns_template) hoặc giữ nguyên URL đầy đủ.
     if (req.method === 'POST' && action === 'dns_create') {
@@ -82,9 +82,8 @@ module.exports = async (req, res) => {
         body: {
           token,
           customer_code,
-          ublockdns_url: resolvedUrl,
-          dashboard_key: '',
           nextdns_url: resolvedUrl,
+          dashboard_key: '',
           nextdns_email: String(nextdns_email || '').trim(),
           nextdns_password: String(nextdns_password || '').trim(),
           package: p,
@@ -114,7 +113,6 @@ module.exports = async (req, res) => {
     }
 
     // ── PATCH ?action=dns_update_creds&id=... — sửa lại thông tin DNS của link ─
-    // Đổi tên từ dns_update_key (ublockdns) sang dns_update_creds (NextDNS).
     // Cho phép sửa từng phần: chỉ gửi field nào muốn thay, field không gửi giữ nguyên.
     // 2026-08-25: Tự động hiểu mã ngắn theo Mẫu DNS (dns_template) hoặc giữ nguyên URL đầy đủ.
     if (req.method === 'PATCH' && action === 'dns_update_creds') {
@@ -129,7 +127,6 @@ module.exports = async (req, res) => {
           return res.status(400).json({ error: 'Link DNS không đúng định dạng — dán URL đầy đủ hoặc mã ngắn hợp lệ' });
         }
         patch.nextdns_url = resolvedUrl;
-        patch.ublockdns_url = resolvedUrl;
       }
       if (body.nextdns_email !== undefined) patch.nextdns_email = String(body.nextdns_email).trim();
       if (body.nextdns_password !== undefined) patch.nextdns_password = String(body.nextdns_password).trim();
@@ -174,7 +171,7 @@ module.exports = async (req, res) => {
     // Xoá luôn expired_notified_at để lần hết hạn sau vẫn báo Telegram được
     // (checkAndNotifyDnsExpiry bỏ qua row đã có expired_notified_at).
     // CỐ Ý chỉ nhận đúng 1 `id` — không làm hàng loạt, tránh admin bấm 1 nút reset
-    // sạch TTL của mọi khách. Token/ublockdns_url/dashboard_key giữ nguyên 100%.
+    // sạch TTL của mọi khách. Token/dashboard_key giữ nguyên 100%.
     if (req.method === 'PATCH' && action === 'dns_reactivate') {
       if (!id) return res.status(400).json({ error: 'Missing id' });
       const rows = await sb('PATCH', 'private_dns_links', {
@@ -216,13 +213,13 @@ module.exports = async (req, res) => {
     // ── GET ?action=dns_pool_list — pool link DNS MẶC ĐỊNH (dùng chung) ─
     // Khác hẳn dns_list ở trên: dns_list là link RIÊNG từng khách (private_dns_links,
     // TTL 10 phút), còn đây là link dùng chung hiện ở bước DNS mặc định của guide.html,
-    // mỗi link phục vụ tối đa max_uses (5) MÃ KHÁCH rồi admin phải thêm link mới.
+    // mỗi link phục vụ tối đa max (5) MÃ KHÁCH rồi admin phải thêm link mới.
     // Trả kèm used = số mã đã dùng để admin biết còn bao nhiêu suất trước khi cạn.
     if (req.method === 'GET' && action === 'dns_pool_list') {
       const rows = await sb('GET', 'dns_pool', { q: `order=created_at.desc&limit=100` }) || [];
       const withUse = rows.map(r => {
         const used = Array.isArray(r.used_codes) ? r.used_codes : [];
-        const max = r.max_uses || 5;
+        const max = r.max || 5;
         return { ...r, used: used.length, max, is_full: used.length >= max };
       });
       return res.json(withUse);
@@ -264,7 +261,7 @@ module.exports = async (req, res) => {
       for (const url of resolved) {
         try {
           await sb('POST', 'dns_pool', {
-            body: { package: p, dns_url: url, max_uses: maxU },
+            body: { package: p, dns_url: url, max: maxU },
             prefer: 'return=minimal',
           });
           added++;
@@ -305,7 +302,7 @@ module.exports = async (req, res) => {
     }
 
     // ── PATCH ?action=dns_pool_remove_customer&id=... — gỡ 1 mã KH khỏi pool link ─
-    // Dùng khi khách cũ dùng ublockdns bị lỗi → admin gỡ mã họ khỏi link ublockdns cũ
+    // Dùng khi khách cũ dùng DNS bị lỗi → admin gỡ mã họ khỏi link DNS cũ
     // → lần sau mở guide.html, claimDnsFromPool không thấy mã ở link cũ nữa → gán
     // vào link NextDNS mới đang active trong pool (tính +1 khách). Nếu link NextDNS đó
     // đã đủ 5 khách thì hệ thống tự chặn tạo mã mới (pool full check).
@@ -429,7 +426,7 @@ module.exports = async (req, res) => {
           if (resolvedUrl) {
             const existingDns = await sb('GET', 'private_dns_links', { q: `customer_code=eq.${encodeURIComponent(cust.customer_code)}&order=created_at.desc&limit=1` });
             if (existingDns && existingDns.length) {
-              const dnsPatch = { nextdns_url: resolvedUrl, ublockdns_url: resolvedUrl };
+              const dnsPatch = { nextdns_url: resolvedUrl };
               if (nextdns_email !== undefined) dnsPatch.nextdns_email = String(nextdns_email).trim();
               if (nextdns_password !== undefined) dnsPatch.nextdns_password = String(nextdns_password).trim();
               await sb('PATCH', 'private_dns_links', { q: `id=eq.${encodeURIComponent(existingDns[0].id)}`, body: dnsPatch });
@@ -439,9 +436,8 @@ module.exports = async (req, res) => {
                 body: {
                   token,
                   customer_code: cust.customer_code,
-                  ublockdns_url: resolvedUrl,
-                  dashboard_key: '',
                   nextdns_url: resolvedUrl,
+                  dashboard_key: '',
                   nextdns_email: String(nextdns_email || '').trim(),
                   nextdns_password: String(nextdns_password || '').trim(),
                   package: cust.package || '40k',

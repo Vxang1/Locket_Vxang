@@ -109,12 +109,12 @@ CREATE TABLE IF NOT EXISTS public.private_dns_links (
     customer_code TEXT NOT NULL,
     package TEXT NOT NULL DEFAULT '5s',
     nextdns_url TEXT NOT NULL,
-    ublockdns_url TEXT NOT NULL DEFAULT '',
     dashboard_key TEXT NOT NULL DEFAULT '',
     nextdns_email TEXT,
     nextdns_password TEXT,
     status TEXT NOT NULL DEFAULT 'unopened',
     first_accessed_at TIMESTAMPTZ,
+    expired_notified_at TIMESTAMPTZ,
     expires_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
 );

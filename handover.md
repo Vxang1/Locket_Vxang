@@ -1,8 +1,8 @@
 # 📋 NHẬT KÝ BÀN GIAO & TRẠNG THÁI HỆ THỐNG: LOCKET_VXANG
 
 > **Dự án:** Locket_Vxang (Retro Notebook / Neo-Brutalist Edition)  
-> **Cập nhật lần cuối:** 2026-09-05 23:15  
-> **Trạng thái:** ✅ Đã hoàn thành 100% Super Deep Check, vá triệt để 10 điểm mâu thuẫn/lỗi runtime/schema, đồng bộ toàn bộ logic hệ thống.
+> **Cập nhật lần cuối:** 2026-09-06 16:45  
+> **Trạng thái:** ✅ Đã hoàn thành 100% Super Deep Check lần 2, vá triệt để 14 điểm mâu thuẫn/lỗi runtime/schema/security, đồng bộ toàn bộ logic hệ thống.
 
 ---
 
@@ -293,6 +293,29 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
         - Modal chi tiết khách hàng (`openCustDetail`): Bổ sung dòng hiển thị loại DNS kết nối (`🌐 DNS: DNS Riêng (Cá nhân)` hoặc `🌐 DNS: DNS Pool (15s / 5s)`).
         - Hàm `upgradeCurrentCustTo40k`: Thông báo toast nêu rõ khách đã chuyển sang DNS Pool 15s và slot DNS riêng cũ đã được thu hồi & tái kích hoạt.
     - **Kiểm định:** Đạt 100% PASS kiểm tra cú pháp toàn bộ file qua `node -c` và script kiểm định HTML inline.
+
+22. **🔬 SUPER DEEP CHECK LẦN 2 — KHẮC PHỤC TOÀN DIỆN 14 VẤN ĐỀ / 7 FILES (2026-09-06 16:45):**
+    - Tiến hành rà soát kỹ thuật cấp cao lần 2 (Super Deep Check v2) toàn bộ hệ thống với workflow đa subagent chạy song song theo phương pháp luận SDW 4.0.
+    - **SECURITY (4 lỗi đã xử lý):**
+      1. `api/_lib/utils.js`: Xóa hoàn toàn hardcode fallback `SB_KEY` và `JWT_SECRET` (base64). Giờ bắt buộc đọc từ env vars `SUPABASE_SERVICE_KEY` và `JWT_SECRET`, nếu thiếu sẽ throw error ngay khi load — không còn rò rỉ secret trong source code.
+      2. `api/_lib/utils.js`: Nâng cấp `verifyJWT` dùng `timingSafeEqual` chống timing attack + bọc try/catch chống crash khi token malformed.
+      3. `api/_lib/utils.js`: Tách `getToken()` thành header-only (chỉ đọc `Authorization: Bearer`), xóa fallback query param `?t=` — tránh token lộ qua URL/log. Endpoint `ipa_plist` không cần auth (iOS tự gọi) nên không bị ảnh hưởng.
+      4. `api/_lib/utils.js`: Xóa hardcoded admin Telegram IDs (`8676266893`, `8374108763`) khỏi danh sách mặc định. Giờ chỉ đọc từ `TELEGRAM_CHAT_ID` / `TELEGRAM_ADMIN_IDS` env vars. **YÊU CẦU DEPLOY:** set `TELEGRAM_CHAT_ID=8676266893,8374108763` trên Vercel.
+    - **SCHEMA (4 lỗi đã xử lý):**
+      5. `api/_lib/utils.js` + `api/admin/customers.js`: Sửa `max_uses` → `max` (đúng tên cột trong DB `dns_pool`). Trước đây code đọc `max_uses` không tồn tại → mọi link pool luôn bị coi là đầy 0/5.
+      6. `api/_lib/utils.js` + `api/admin/sessions.js`: Sửa `s.type` → `s.step_type` (đúng tên cột trong DB `guide_steps`). Trước đây `buildStepFlow` đọc `type` không tồn tại → tên bước phiên live luôn hiện "Bước n".
+      7. `schema.sql`: Thêm cột `expired_notified_at TIMESTAMPTZ` vào `private_dns_links` (đã chạy ALTER trên Supabase).
+      8. `api/_lib/utils.js`: Xóa fallback `tokens` table trong `getAppConfig`/`setAppConfig` (bảng `tokens` không tồn tại trong DB — đã xác nhận qua information_schema).
+    - **LOGIC (3 lỗi đã xử lý):**
+      9. `api/_lib/utils.js` + `api/guide/validate.js`: Sửa hardcode "30 PHÚT" → động theo gói: **gói 30k (5s) = 30 phút, gói 40k (15s) = 45 phút**. Trước đây `isPermPackage` luôn trả true nên mọi mã đều báo 45 phút.
+      10. `api/_lib/telegram-bot.js`: Sửa logic 7 ngày upgrade — chỉ tính từ `activated_at`, không fallback `created_at` (trước đây khách chưa kích hoạt vẫn bị tính ngày từ lúc tạo → mất ưu đãi +10k oan).
+      11. `api/guide/ping.js`: Thêm `normalizePackage` vào import (đã sửa từ lần 1, xác nhận còn đúng).
+    - **DNS ĐỘNG (2 lỗi đã xử lý):**
+      12. `api/_lib/utils.js` + `api/admin/customers.js` + `dns.html`: Dọn sạch toàn bộ tham chiếu `ublockdns_url` khỏi code (cột đã DROP trên Supabase). Hệ thống DNS động: chỉ dùng `nextdns_url`, admin đổi template (NextDNS/AdGuard/ControlD) qua tab DNS pool / DNS riêng không cần đổi code.
+      13. `api/guide/validate.js`: Sửa comment `max_uses` → `max` cho khớp schema.
+    - **DEPLOYMENT (1 yêu cầu):**
+      14. **Vercel env vars bắt buộc:** `SUPABASE_URL` (project `muxxblaqqqgdvnvxlrzv`), `SUPABASE_SERVICE_KEY`, `JWT_SECRET`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` (2 admin: `8676266893,8374108763`), `ADMIN_PASSWORD`, `FIREBASE_DB_URL`.
+    - **Kiểm định:** Database Supabase đã xác nhận đầy đủ 7/7 bảng, cột `max`/`step_type`/`expired_notified_at` đúng, cột `ublockdns_url` đã drop. Đạt 100% PASS kiểm thử cú pháp.
 
 ---
 

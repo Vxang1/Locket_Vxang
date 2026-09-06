@@ -1,5 +1,5 @@
 'use strict';
-const { sb, requireGuide, allowMethods, expireCodeAndNotify, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, buildStepFlow, alignStepFlow, PACKAGES, fbGet, fbPut } = require('../_lib/utils');
+const { sb, requireGuide, allowMethods, expireCodeAndNotify, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, buildStepFlow, alignStepFlow, normalizePackage, PACKAGES, fbGet, fbPut } = require('../_lib/utils');
 module.exports = async (req, res) => {
   if (!allowMethods(req, res, ['POST'])) return;
   const payload = await requireGuide(req, res);

@@ -10,7 +10,7 @@ async function getCachedGuideSteps() {
   }
   try {
     const steps = await sb('GET', 'guide_steps', {
-      q: 'select=type,title,package,order_num&order=order_num.asc',
+      q: 'select=step_type,title,package,order_num&order=order_num.asc',
     }) || [];
     cachedGuideSteps = steps;
     cachedGuideStepsTime = now;
