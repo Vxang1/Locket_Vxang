@@ -1,5 +1,5 @@
 'use strict';
-const { sb, requireGuide, allowMethods, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, setAppConfig, normalizePackage, isPermPackage } = require('../_lib/utils');
+const { sb, requireGuide, allowMethods, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, normalizePackage } = require('../_lib/utils');
 
 module.exports = async (req, res) => {
   if (!allowMethods(req, res, ['POST'])) return;
@@ -9,8 +9,6 @@ module.exports = async (req, res) => {
     return res.status(403).json({ error: 'Thiết bị không hợp lệ' });
   }
 
-  const { choice } = req.body || {};
-
   try {
     const crRows = await sb('GET', 'access_codes', { q: `code=eq.${encodeURIComponent(payload.code)}&select=id,status,fraud_triggered_at` });
     const cr = crRows?.[0];
@@ -19,7 +17,6 @@ module.exports = async (req, res) => {
     }
 
     const updateBody = { completed_at: new Date().toISOString(), is_active: false };
-    if (choice) updateBody.locket_choice = choice;
 
     // PATCH có điều kiện + return=representation: chỉ request nào THỰC SỰ đổi được
     // dòng (mã đang is_active và chưa completed_at) mới coi là "mình là người hoàn
@@ -55,12 +52,9 @@ module.exports = async (req, res) => {
       q: `session_token=eq.${encodeURIComponent(payload.sessionToken)}`,
     });
 
-
     // Thông báo hoàn thành kèm nút bấm Inline tra cứu
     const cust = await lookupCustomerByCode(payload.code);
     const who = cust.name ? escTgHtml(cust.name) : 'Khách';
-    const what = 'đã hoàn thành các bước cài đặt';
-    const pkg = normalizePackage(payload.package || cust?.package || '30k');
 
     // Cập nhật CRM: service_status = 'active'
     if (cust?.id) {

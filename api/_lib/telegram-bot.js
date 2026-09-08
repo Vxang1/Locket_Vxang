@@ -134,6 +134,12 @@ async function handleTelegramWebhook(req, res) {
     // 🔍 DIAGNOSTIC & WEBHOOK REGISTRATION
     // ──────────────────────────────────────────────────
     if (req.query?.diag === '1' || update?.diag === true) {
+      // Chỉ admin mới được xem diagnostic — endpoint này lộ token_prefix, admin_ids,
+      // botInfo, hookInfo nên không thể public.
+      const fromId = update?.message?.from?.id || update?.callback_query?.from?.id;
+      if (TG_CHAT_IDS.length > 0 && !isTgAdmin(fromId)) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
       let botInfo = null;
       let hookInfo = null;
       let testSend = null;

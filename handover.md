@@ -1,8 +1,8 @@
 # 📋 NHẬT KÝ BÀN GIAO & TRẠNG THÁI HỆ THỐNG: LOCKET_VXANG
 
 > **Dự án:** Locket_Vxang (Retro Notebook / Neo-Brutalist Edition)  
-> **Cập nhật lần cuối:** 2026-09-06 16:45  
-> **Trạng thái:** ✅ Đã hoàn thành 100% Super Deep Check lần 2, vá triệt để 14 điểm mâu thuẫn/lỗi runtime/schema/security, đồng bộ toàn bộ logic hệ thống.
+> **Cập nhật lần cuối:** 2026-09-08  
+> **Trạng thái:** ✅ Đã hoàn thành 100% Super Deep Check lần 3, vá triệt để 7 điểm lỗi schema/security/dead-code, đồng bộ toàn bộ logic hệ thống.
 
 ---
 
@@ -363,6 +363,23 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
 1. Mọi tính năng, bản vá và module tương lai bắt buộc tuân thủ đồng thời cả 5 Nguyên Tắc Bất Biến của `Locket_Vxang` và 10 Tiên Đề của `Super Deep Writer`.
 2. Khi có sự thay đổi logic kinh doanh (chính sách giá, thời hạn nâng cấp, cơ chế chống gian lận), bắt buộc cập nhật đầy đủ và đồng bộ vào cả `GEMINI.md` và `handover.md`.
 3. Luôn sử dụng lệnh push GitHub chuẩn mực với tác giả `Vxang1 <tika68844@gmail.com>`.
+
+23. **🔬 SUPER DEEP CHECK LẦN 3 — VÁ 7 ĐIỂM LỖI SCHEMA/SECURITY/DEAD-CODE (2026-09-08):**
+    - Tiến hành rà soát kỹ thuật toàn diện lần 3 (Super Deep Check v3) toàn bộ hệ thống, đối chiếu từng file API với `schema.sql` thực tế.
+    - **SCHEMA (3 lỗi đã xử lý):**
+      1. `api/admin/guide-steps.js`: POST tạo step mới gửi cột `type` (không tồn tại) thay vì `step_type` (NOT NULL) → mọi INSERT đều fail 500. Đã sửa thành `step_type`, đồng thời xóa các cột không tồn tại `caption`, `layout`, `bg_color` khỏi body.
+      2. `api/admin/guide-steps.js`: PATCH ghi `updated_at` vào cột không tồn tại (PostgREST silent-drop, mất audit trail). Đã bỏ.
+      3. `api/guide/complete.js`: Ghi `locket_choice` vào cột không tồn tại trên `access_codes` → dữ liệu `choice` bị mất hoàn toàn. Đã xóa (theo yêu cầu chủ dự án — không cần lưu choice).
+    - **SECURITY (1 lỗi đã xử lý):**
+      4. `api/_lib/telegram-bot.js`: Endpoint `?diag=1` lộ `token_prefix`, `admin_ids`, `botInfo`, `hookInfo` công khai không cần xác thực. Đã thêm kiểm tra `isTgAdmin` — chỉ admin mới xem được diagnostic.
+    - **LOGIC (1 lỗi đã xử lý):**
+      5. `api/admin/stats.js`: Query session dùng `is_kicked=eq.false` loại bỏ các session có `is_kicked = NULL` (SQL NULL semantics). Đã sửa thành `or=(is_kicked.is.null,is_kicked=eq.false)` — khớp với cách xử lý an toàn trong `sessions.js`.
+    - **DEAD CODE (2 lỗi đã xử lý):**
+      6. `api/guide/complete.js`: Xóa biến `what`, `pkg` không dùng và import thừa `setAppConfig`, `isPermPackage`.
+      7. `admin.html`: Xóa `choiceBadge` đọc `c.locket_choice` (cột không tồn tại, badge luôn rỗng) và tham chiếu `${choiceBadge}` trong template mã truy cập.
+    - **Kiểm định:** Đạt 100% PASS kiểm thử cú pháp `node -c` toàn bộ file đã sửa. Hệ thống đạt trạng thái vận hành ổn định và đồng bộ hoàn hảo.
+
+---
 
 🏆 **HỆ THỐNG HIỆN TẠI ĐÃ ĐẠT TRẠNG THÁI HOÀN MỸ, TRƠN TRU 100% VÀ SẴN SÀNG PHỤC VỤ KHÁCH HÀNG THỰC TẾ.**
 

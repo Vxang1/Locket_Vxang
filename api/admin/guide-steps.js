@@ -33,11 +33,11 @@ module.exports = async (req, res) => {
       }
 
       // POST thường → tạo step mới
-      const { type, title, content, image_url, caption, layout, bg_color } = req.body || {};
+      const { step_type, title, content, image_url } = req.body || {};
       const existing = await sb('GET', 'guide_steps', { q: 'select=order_num&order=order_num.desc&limit=1' }) || [];
       const order_num = existing.length ? (existing[0].order_num + 1) : 1;
       const [step] = await sb('POST', 'guide_steps', {
-        body: { type: type||'text', title, content, image_url, caption, layout: layout||'image-left', bg_color: bg_color||'default', order_num },
+        body: { step_type: step_type||'text', title, content, image_url, order_num },
         prefer: 'return=representation',
       });
       return res.json(step);
@@ -46,7 +46,6 @@ module.exports = async (req, res) => {
     if (req.method === 'PATCH') {
       const { id, ...fields } = req.body || {};
       if (!id) return res.status(400).json({ error: 'Missing id' });
-      fields.updated_at = new Date().toISOString();
       await sb('PATCH', 'guide_steps', { q: `id=eq.${id}`, body: fields });
       return res.json({ ok: true });
     }

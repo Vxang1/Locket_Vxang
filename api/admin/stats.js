@@ -38,7 +38,7 @@ module.exports = async (req, res) => {
       sb('GET', 'customers',    { q: 'select=id' }).catch(() => []),
       sb('GET', 'access_codes', { q: 'select=id' }).catch(() => []),
       sb('GET', 'access_codes', { q: 'completed_at=not.is.null&select=id' }).catch(() => []),
-      sb('GET', 'sessions',     { q: `is_kicked=eq.false&last_ping=gt.${encodeURIComponent(now25s)}&select=id` }).catch(() => []),
+      sb('GET', 'sessions',     { q: `or=(is_kicked.is.null,is_kicked=eq.false)&last_ping=gt.${encodeURIComponent(now25s)}&select=id` }).catch(() => []),
       getAppConfig('dev_mode').catch(() => null),
       fbGet('appstore/dev_mode').catch(() => null),
     ]);

@@ -2979,11 +2979,6 @@ window.openCustDetail=async function(id){
       }
       else if(act){cls='cs-active';txt='Đang dùng';}
       else if(c.is_active&&!act){expireBtn=`<button class="btn-expire" onclick="expireCode('${c.id}')">⏹ Expire</button>`;}
-      const choiceBadge = c.locket_choice === 'dns'
-        ? `<span style="background:var(--blue-bg);border:1.5px solid var(--ink);border-radius:20px;padding:2px 9px;font-size:.68rem;font-weight:900;color:var(--accent)">🌐 Mới nhất</span>`
-        : c.locket_choice === 'v280'
-        ? `<span style="background:var(--gold-bg);border:1.5px solid var(--ink);border-radius:20px;padding:2px 9px;font-size:.68rem;font-weight:900;color:var(--warning)">📦 2.8.0</span>`
-        : ``;
       const isPending = cls === 'cs-pending';
       const custCode = cust ? cust.customer_code : '';
       const codeMainHtml = isPending
@@ -2992,7 +2987,7 @@ window.openCustDetail=async function(id){
       const statusHtml = isPending
         ? `<span class="code-status ${cls}" onclick="showCodeMsgModal('${esc(custCode)}','${esc(c.code)}','📋 Mẫu tin nhắn gửi khách',true)" style="cursor:pointer" title="Bấm để xem mẫu gửi khách">${txt}</span>`
         : `<span class="code-status ${cls}">${txt}</span>`;
-      return `<div class="code-row"><div style="flex:1">${codeMainHtml}<div class="code-meta">Tạo: ${fmtVnDateTime(c.created_at)}${act?'<br>Kích hoạt: '+fmtVnDateTime(act):''}${exp&&act?'<br>Hết hạn: '+fmtVnDateTime(exp):''}</div>${timerHtml}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">${statusHtml}${choiceBadge}${expireBtn}</div></div>`;
+      return `<div class="code-row"><div style="flex:1">${codeMainHtml}<div class="code-meta">Tạo: ${fmtVnDateTime(c.created_at)}${act?'<br>Kích hoạt: '+fmtVnDateTime(act):''}${exp&&act?'<br>Hết hạn: '+fmtVnDateTime(exp):''}</div>${timerHtml}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">${statusHtml}${expireBtn}</div></div>`;
     }).join('');
   }catch{document.getElementById('dCodes').innerHTML='<div style="color:var(--red);font-size:.78rem;font-weight:600;">⚠ Lỗi tải mã</div>';}
   if(codeTimerInterval)clearInterval(codeTimerInterval);
