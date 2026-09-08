@@ -128,6 +128,8 @@ async function requireGuide(req, res) {
 }
 function allowMethods(req, res, methods) {
   res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Server-Time', Date.now().toString());
+  res.setHeader('Access-Control-Expose-Headers', 'Date, X-Server-Time');
   if (req.method === 'OPTIONS') { res.status(200).end(); return false; }
   if (!methods.includes(req.method)) { res.status(405).json({ error: 'Method not allowed' }); return false; }
   return true;

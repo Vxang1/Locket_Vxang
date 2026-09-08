@@ -1330,11 +1330,42 @@ const _db=getDatabase(fbApp);
 let adminToken=localStorage.getItem('xwAdminToken')||null,lastCustomerId=null,editingStepId=null,guideSteps=[],sessionRefreshInterval;
 // ── CUSTOMER TAB (gộp từ customer.html) ──────────────────────────
 let allCustomers=[],currentCustomerId=null,codeTimerInterval=null,activeTypeFilter='all',activeStatusFilter='all',customersLoaded=false;
+
+// ── ĐỒNG BỘ THỜI GIAN SERVER & ĐỊNH DẠNG GIỜ VIỆT NAM (UTC+7) ──────
+let serverTimeOffset = 0;
+function nowServer() {
+  return Date.now() + serverTimeOffset;
+}
+const VN_TZ = { timeZone: 'Asia/Ho_Chi_Minh' };
+function fmtVnDateTime(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleString('vi-VN', VN_TZ);
+}
+function fmtVnDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('vi-VN', VN_TZ);
+}
+function fmtVnTime(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleTimeString('vi-VN', VN_TZ);
+}
+
 // token restored — UI shown after switchTab is defined below
 async function api(method,path,body){
   const h={'Content-Type':'application/json'};
   if(adminToken)h['Authorization']=`Bearer ${adminToken}`;
   const r=await fetch(path,{method,headers:h,body:body?JSON.stringify(body):undefined});
+  const sHeader = r.headers.get('x-server-time');
+  if (sHeader) {
+    const sMs = parseInt(sHeader, 10);
+    if (!isNaN(sMs)) serverTimeOffset = sMs - Date.now();
+  } else {
+    const sDate = r.headers.get('date');
+    if (sDate) {
+      const sMs = new Date(sDate).getTime();
+      if (!isNaN(sMs)) serverTimeOffset = sMs - Date.now();
+    }
+  }
   const data=await r.json().catch(()=>({}));
   if(!r.ok){
     if(r.status===401&&adminToken&&path!=='/api/admin/login'){
@@ -2171,7 +2202,7 @@ const STUCK_MS=6*60*1000; // 6 phút — mã chỉ sống 30 phút nên treo 6 p
 const stepSeenAt=new Map();
 function stepIdleMs(sessionId,step){
   const key=sessionId+'#'+step;
-  const now=Date.now();
+  const now=nowServer();
   if(!stepSeenAt.has(key)) stepSeenAt.set(key,now);
   return now-stepSeenAt.get(key);
 }
@@ -2183,7 +2214,7 @@ window.loadSessions=async function(){
   const grid=document.getElementById('sessionsGrid');
   try{
     const rawSessions=await api('GET','/api/admin/sessions');
-    const now=Date.now();
+    const now=nowServer();
     // Khách đã hết hạn hoặc rời web quá 25 giây thì tuyệt đối không được coi là live
     const sessions=(rawSessions||[]).filter(s=>{
       const exp=s.expires_at?new Date(s.expires_at).getTime():null;
@@ -2198,7 +2229,7 @@ window.loadSessions=async function(){
       document.getElementById('statSessions').textContent=0;
       stepSeenAt.clear();
       const lr=document.getElementById('sessionsLastRefresh');
-      if(lr) lr.textContent='· Cập nhật '+new Date().toLocaleTimeString('vi-VN');
+      if(lr) lr.textContent='· Cập nhật '+fmtVnTime(nowServer());
       return;
     }
     // Dọn mốc của phiên đã kết thúc (khách xong / hết hạn / bị kick) để Map không phình
@@ -2212,12 +2243,12 @@ window.loadSessions=async function(){
       const exp=s.expires_at?new Date(s.expires_at):null;
       const card=document.createElement('div');card.className='session-card';
       card.dataset.expires=exp?exp.getTime():'';
-      const lastPingTime=s.last_ping?new Date(s.last_ping).getTime():Date.now();
+      const lastPingTime=s.last_ping?new Date(s.last_ping).getTime():now;
       card.dataset.lastPing=lastPingTime;
-      const rem=exp?exp-Date.now():null;
+      const rem=exp?exp.getTime()-now:null;
       const isCrit=rem&&rem<1800000,isWarn=rem&&rem<3600000;
 
-      const lastPingSec=Math.max(0,Math.floor((Date.now()-lastPingTime)/1000));
+      const lastPingSec=Math.max(0,Math.floor((now-lastPingTime)/1000));
       const isLive=lastPingSec<12;
       const statusTag=isLive
         ?'<span class="sc-status-tag live">🟢 Đang online</span>'
@@ -2256,12 +2287,12 @@ window.loadSessions=async function(){
       const pkgIsFast=s.package==='15s'||s.package==='180';
       const pkgLbl=(isPermPkg(s.package)?'💎 ':pkgIsFast?'⏱ ':'⚡ ')+pkgLabel(s.package);
       const pkgTag=`<span class="sc-pkg ${pkgIsFast?'p15':'p5'}">${pkgLbl}</span>`;
-      card.innerHTML=`<div class="sc-name">${esc(s.customer_name)}</div><div class="sc-code">${esc(s.access_code)} · ${esc(s.customer_code)}</div><div class="sc-tags">${statusTag}${pkgTag}</div><div class="sc-meta">📱 ${esc(s.customer_phone)}<br>🕒 ${new Date(s.started_at).toLocaleTimeString('vi-VN')}</div>${stepHtml}<div class="sc-timer ${isCrit?'crit':isWarn?'warn':''}">⏱ Còn: ${rem?fmtTime(rem):'—'}</div><button class="btn-kick" onclick="kickSession('${esc(s.id)}','${esc(s.access_code)}')">⚡ Kick</button>`;
+      card.innerHTML=`<div class="sc-name">${esc(s.customer_name)}</div><div class="sc-code">${esc(s.access_code)} · ${esc(s.customer_code)}</div><div class="sc-tags">${statusTag}${pkgTag}</div><div class="sc-meta">📱 ${esc(s.customer_phone)}<br>🕒 ${fmtVnTime(s.started_at)}</div>${stepHtml}<div class="sc-timer ${isCrit?'crit':isWarn?'warn':''}">⏱ Còn: ${rem?fmtTime(rem):'—'}</div><button class="btn-kick" onclick="kickSession('${esc(s.id)}','${esc(s.access_code)}')">⚡ Kick</button>`;
       grid.appendChild(card);
     });
     document.getElementById('statSessions').textContent=sessions.length;
     const lr=document.getElementById('sessionsLastRefresh');
-    if(lr) lr.textContent='· Cập nhật '+new Date().toLocaleTimeString('vi-VN');
+    if(lr) lr.textContent='· Cập nhật '+fmtVnTime(nowServer());
   }catch(err){
     console.error('[loadSessions error]', err);
     grid.innerHTML='<div class="empty-sessions">⚠️ Lỗi tải dữ liệu — <a href="#" onclick="loadSessions();return false;" style="color:var(--p1)">thử lại</a></div>';
@@ -2276,7 +2307,7 @@ function fmtTime(ms){if(ms<=0)return'Hết giờ';const h=Math.floor(ms/3600000)
 
 // Tick mỗi giây cập nhật timer & live ping status trực tiếp trên DOM
 setInterval(()=>{
-  const now=Date.now();
+  const now=nowServer();
   let removedAny=false;
   document.querySelectorAll('.session-card').forEach(card=>{
     const expMs=parseInt(card.dataset.expires);
@@ -2689,7 +2720,7 @@ function renderCustTable(data){
       </div>
     </td>
     <td style="text-align:center;">${custSmartBadge(c)}</td>
-    <td style="font-size:.76rem;color:var(--muted);font-weight:600;white-space:nowrap;text-align:right;">${new Date(c.created_at).toLocaleDateString('vi-VN')}</td>
+    <td style="font-size:.76rem;color:var(--muted);font-weight:600;white-space:nowrap;text-align:right;">${fmtVnDate(c.created_at)}</td>
   </tr>`).join('');
   if(mc) mc.innerHTML=data.map((c,i)=>`
     <div class="m-card" onclick="openCustDetail('${c.id}')">
@@ -2703,7 +2734,7 @@ function renderCustTable(data){
         </div>
       </div>
       <div class="m-card-meta">
-        <span>📅 ${new Date(c.created_at).toLocaleDateString('vi-VN')}</span>
+        <span>📅 ${fmtVnDate(c.created_at)}</span>
         ${c.has_private_dns?`<span>${dnsNoteBadge(c)}</span>`:''}
         ${c.special_flow?`<span>${specialFlowBadge(c)}</span>`:''}
         ${c.notes?`<span>📝 ${esc(c.notes)}</span>`:''}
@@ -2719,7 +2750,7 @@ window.exportXLSX=function(){
     'Gói':pkgLabel(c.package),
     'Trạng thái':ssText(c.service_status||'pending_gold',c.package).replace(/[🛡️💰✅🔧🏁🛒]/gu,'').trim(),
     'Ghi chú cọc':c.deposit_note||'','Ghi chú':c.notes||'',
-    'Ngày tạo':new Date(c.created_at).toLocaleDateString('vi-VN')
+    'Ngày tạo':fmtVnDate(c.created_at)
   }));
   const ws=XLSX.utils.json_to_sheet(rows);
   ws['!cols']=[{wch:12},{wch:20},{wch:14},{wch:12},{wch:28},{wch:14},{wch:18},{wch:24},{wch:24},{wch:12}];
@@ -2785,9 +2816,9 @@ window.openCustDetail=async function(id){
       <div class="info-item"><div class="info-label">DNS kết nối</div><div class="info-val">${privDns ? '<span style="color:#16a34a;font-weight:800">🌐 DNS Riêng (Cá nhân)</span>' : `<span style="color:var(--muted);font-weight:700">🌐 DNS Pool (${is40k ? '15s' : '5s'})</span>`}</div></div>
       <div class="info-item"><div class="info-label">Trạng thái &amp; Thanh toán</div><div class="info-val">${custSmartBadge(c)}</div></div>
       <div class="info-item"><div class="info-label">Flow hướng dẫn</div><div class="info-val">${c.special_flow?'<span style="color:#7c3aed;font-weight:800">🛡️ Đặc biệt (có IPA)</span>':'<span style="color:var(--muted);font-weight:700">Mặc định</span>'}</div></div>
-      <div class="info-item"><div class="info-label">Kích hoạt lúc</div><div class="info-val">${(c.activated_at || c.first_code_completed_at) ? `⏱ ${new Date(c.activated_at || c.first_code_completed_at).toLocaleString('vi-VN')}` : '<span style="color:var(--muted);font-weight:600">— Chưa kích hoạt —</span>'}</div></div>
+      <div class="info-item"><div class="info-label">Kích hoạt lúc</div><div class="info-val">${(c.activated_at || c.first_code_completed_at) ? `⏱ ${fmtVnDateTime(c.activated_at || c.first_code_completed_at)}` : '<span style="color:var(--muted);font-weight:600">— Chưa kích hoạt —</span>'}</div></div>
       <div class="info-item"><div class="info-label">Ghi chú</div><div class="info-val">${esc(c.notes||'—')}</div></div>
-      <div class="info-item"><div class="info-label">Ngày tạo</div><div class="info-val">${new Date(c.created_at).toLocaleString('vi-VN')}</div></div>`;
+      <div class="info-item"><div class="info-label">Ngày tạo</div><div class="info-val">${fmtVnDateTime(c.created_at)}</div></div>`;
 
     const vpnArea = document.getElementById('dVpnTokenArea');
     if (vpnArea) {
@@ -2808,7 +2839,7 @@ window.openCustDetail=async function(id){
                 <b>Link Sub:</b> <code style="background:#fff;padding:2px 6px;border:1px solid #ccc;border-radius:4px;user-select:all">${esc(subUrl)}</code>
                 <button onclick="navigator.clipboard.writeText('${subUrl}').then(()=>showToast('✓ Đã sao chép link Sub','green'))" class="btn-copy-mini" style="margin-left:6px;cursor:pointer">📋 Copy link</button><br>
                 <b>Thiết bị:</b> ${isBound ? `<span style="color:#0369A1;font-weight:700">${esc(vpnTok.device_ua)}</span> (IP: ${esc(vpnTok.device_ip||'—')})` : '<span style="color:var(--muted)">Chưa kết nối (sẽ tự động khóa vào máy đầu tiên quét link)</span>'}<br>
-                <b>Lần cuối dùng:</b> ${vpnTok.last_used_at ? new Date(vpnTok.last_used_at).toLocaleString('vi-VN') : '—'}
+                <b>Lần cuối dùng:</b> ${vpnTok.last_used_at ? fmtVnDateTime(vpnTok.last_used_at) : '—'}
               </div>
               <div style="display:flex;gap:6px;flex-wrap:wrap">
                 <button onclick="vpnRegenerateCurrent('${c.id}')" style="flex:1;min-width:130px;padding:7px 10px;border:1.5px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;color:var(--ink);font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:.74rem;cursor:pointer;box-shadow:var(--shadow-sm);">🔄 Đổi mã mới (Regenerate)</button>
@@ -2833,7 +2864,7 @@ window.openCustDetail=async function(id){
     if (upArea) {
       if (!is40k) {
         const startTime = c.activated_at || c.first_code_completed_at || c.created_at;
-        const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
+        const diffDays = Math.floor((nowServer() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
         const isWithin7Days = diffDays <= 7;
         const remDays = Math.max(0, 7 - diffDays);
 
@@ -2891,15 +2922,15 @@ window.openCustDetail=async function(id){
     document.getElementById('dCodes').innerHTML=codes.map(c=>{
       let cls='cs-pending',txt='Chưa kích hoạt';
       let timerHtml='',expireBtn='';
-      const now=new Date(),exp=c.expires_at?new Date(c.expires_at):null;
+      const now=nowServer(),exp=c.expires_at?new Date(c.expires_at):null;
       const act=c.activated_at||c.first_used_at;
       if(c.completed_at){cls='cs-used';txt='✓ Đã hoàn thành';}
       else if(!c.is_active&&c.fraud_triggered_at){cls='cs-fraud';txt='🚨 Khóa do share mã';}
       else if(!c.is_active){cls='cs-expired';txt='Vô hiệu';}
-      else if(exp&&exp<now){cls='cs-expired';txt='Hết hạn';}
+      else if(exp&&exp.getTime()<now){cls='cs-expired';txt='Hết hạn';}
       else if(act&&exp){
         cls='cs-active';txt='Đang dùng';
-        const rem=exp-now;
+        const rem=exp.getTime()-now;
         const h=Math.floor(rem/3600000),m=Math.floor((rem%3600000)/60000),s=Math.floor((rem%60000)/1000);
         const remStr=(h?h+'g ':'')+m+'p '+s+'s';
         const tcls=rem<600000?'crit':rem<1800000?'warn':'ok';
@@ -2921,13 +2952,13 @@ window.openCustDetail=async function(id){
       const statusHtml = isPending
         ? `<span class="code-status ${cls}" onclick="showCodeMsgModal('${esc(custCode)}','${esc(c.code)}','📋 Mẫu tin nhắn gửi khách',true)" style="cursor:pointer" title="Bấm để xem mẫu gửi khách">${txt}</span>`
         : `<span class="code-status ${cls}">${txt}</span>`;
-      return `<div class="code-row"><div style="flex:1">${codeMainHtml}<div class="code-meta">Tạo: ${new Date(c.created_at).toLocaleString('vi-VN')}${act?'<br>Kích hoạt: '+new Date(act).toLocaleString('vi-VN'):''}${exp&&act?'<br>Hết hạn: '+exp.toLocaleString('vi-VN'):''}</div>${timerHtml}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">${statusHtml}${choiceBadge}${expireBtn}</div></div>`;
+      return `<div class="code-row"><div style="flex:1">${codeMainHtml}<div class="code-meta">Tạo: ${fmtVnDateTime(c.created_at)}${act?'<br>Kích hoạt: '+fmtVnDateTime(act):''}${exp&&act?'<br>Hết hạn: '+fmtVnDateTime(exp):''}</div>${timerHtml}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">${statusHtml}${choiceBadge}${expireBtn}</div></div>`;
     }).join('');
   }catch{document.getElementById('dCodes').innerHTML='<div style="color:var(--red);font-size:.78rem;font-weight:600;">⚠ Lỗi tải mã</div>';}
   if(codeTimerInterval)clearInterval(codeTimerInterval);
   codeTimerInterval=setInterval(()=>{
     document.querySelectorAll('.code-timer[data-exp]').forEach(el=>{
-      const exp=new Date(el.dataset.exp),rem=exp-Date.now();
+      const exp=new Date(el.dataset.exp),rem=exp.getTime()-nowServer();
       if(rem<=0){el.textContent='⏱ Hết hạn';el.className='code-timer crit';return;}
       const h=Math.floor(rem/3600000),m=Math.floor((rem%3600000)/60000),s=Math.floor((rem%60000)/1000);
       el.textContent='⏱ Còn: '+(h?h+'g ':'')+m+'p '+s+'s';
@@ -2956,7 +2987,7 @@ window.updateEditPrice=function(){
 
   if (isOriginal30k && pkg === '40k') {
     const startTime = currentCust.activated_at || currentCust.first_code_completed_at || currentCust.created_at;
-    const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor((nowServer() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
     const isWithin7Days = diffDays <= 7;
     const remDays = Math.max(0, 7 - diffDays);
     if (isWithin7Days) {
@@ -2987,9 +3018,9 @@ window.saveEditCust=async function(){
 
   if (isOriginal30k && targetPkg === '40k') {
     const startTime = currentCust.activated_at || currentCust.first_code_completed_at || currentCust.created_at;
-    const diffDays = Math.floor((Date.now() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor((nowServer() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24));
     const isWithin7Days = diffDays <= 7;
-    const noteUpgrade = `[Đổi gói 40k]: ${isWithin7Days ? 'Thu bù +10k (trong 7 ngày)' : 'Thu full 40k (quá 7 ngày)'} ngày ${new Date().toLocaleDateString('vi-VN')}`;
+    const noteUpgrade = `[Đổi gói 40k]: ${isWithin7Days ? 'Thu bù +10k (trong 7 ngày)' : 'Thu full 40k (quá 7 ngày)'} ngày ${fmtVnDate(nowServer())}`;
     if (!notes.includes('[Đổi gói 40k]')) {
       notes = notes ? `${notes} | ${noteUpgrade}` : noteUpgrade;
     }
@@ -3022,7 +3053,7 @@ window.upgradeCurrentCustTo40k = async function(isWithin7Days) {
   const promptFee = isWithin7Days ? '+10.000đ (bù chênh lệch trong hạn 7 ngày)' : '40.000đ (thanh toán full do đã quá 7 ngày)';
   if (!confirm(`Xác nhận đổi khách "${cust.name}" sang Gói 40k (15s Vĩnh viễn)?\n\n💰 Phí cần thu: ${promptFee}\n\nHệ thống sẽ cập nhật gói và cấp ngay 1 mã truy cập mới (30 phút) cho khách.`)) return;
 
-  const noteUpgrade = `[Đổi gói 40k]: ${isWithin7Days ? 'Thu bù +10k (trong hạn 7 ngày)' : 'Thu full 40k (quá 7 ngày)'} ngày ${new Date().toLocaleDateString('vi-VN')}`;
+  const noteUpgrade = `[Đổi gói 40k]: ${isWithin7Days ? 'Thu bù +10k (trong hạn 7 ngày)' : 'Thu full 40k (quá 7 ngày)'} ngày ${fmtVnDate(nowServer())}`;
   const newNotes = cust.notes ? `${cust.notes} | ${noteUpgrade}` : noteUpgrade;
 
   try {
@@ -3120,7 +3151,7 @@ function getCodeStatus(c){
   if(!c.is_active && c.fraud_triggered_at) return 'fraud';
   if(!c.is_active) return 'inactive';
   if(!c.activated_at && !c.first_used_at) return 'pending';
-  if(c.expires_at && new Date(c.expires_at)<new Date()) return 'dead';
+  if(c.expires_at && new Date(c.expires_at).getTime() < nowServer()) return 'dead';
   return 'active';
 }
 const CODE_STATUS={
@@ -3171,10 +3202,10 @@ function renderCodes(){
     const st=getCodeStatus(c);
     const sv=CODE_STATUS[st];
     const cust=c.customer;
-    const createdDate=new Date(c.created_at).toLocaleDateString('vi-VN');
+    const createdDate=fmtVnDate(c.created_at);
     const actDate = c.activated_at || c.first_used_at;
-    const activatedDate=actDate?new Date(actDate).toLocaleString('vi-VN'):'—';
-    const completedDate=c.completed_at?new Date(c.completed_at).toLocaleString('vi-VN'):'—';
+    const activatedDate=actDate?fmtVnDateTime(actDate):'—';
+    const completedDate=c.completed_at?fmtVnDateTime(c.completed_at):'—';
     const entryCount = c.entry_count || 0;
     const entryBadge = entryCount >= 4
       ? `<span style="background:var(--coral-bg);border:1.5px solid var(--ink);border-radius:20px;padding:2px 9px;font-size:.68rem;font-weight:900;color:var(--red)">⚠️ ${entryCount} lần vào</span>`

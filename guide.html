@@ -679,7 +679,7 @@ function initFraudListener(code) {
       const val = snapshot.val();
       if (!val) return;
       if (val.fraud_triggered_at) {
-        const elapsed = Date.now() - new Date(val.fraud_triggered_at).getTime();
+        const elapsed = nowServer() - new Date(val.fraud_triggered_at).getTime();
         if (elapsed < 15000 && !val.destroyed && val.status !== 'fraud') {
           const sec = Math.max(1, Math.ceil((15000 - elapsed) / 1000));
           showFraudModal(sec, isOriginalDevice);
@@ -796,10 +796,26 @@ function defaultStepsForPkg(p, special) {
   return norm === '40k' ? DEFAULT_STEPS_40K : DEFAULT_STEPS_30K;
 }
 
+let serverTimeOffset = 0;
+function nowServer() {
+  return Date.now() + serverTimeOffset;
+}
+
 async function api(path, opts = {}) {
   const headers = { 'Content-Type': 'application/json' };
   if (guideToken) headers['Authorization'] = `Bearer ${guideToken}`;
   const r = await fetch(path, { ...opts, headers });
+  const sHeader = r.headers.get('x-server-time');
+  if (sHeader) {
+    const sMs = parseInt(sHeader, 10);
+    if (!isNaN(sMs)) serverTimeOffset = sMs - Date.now();
+  } else {
+    const sDate = r.headers.get('date');
+    if (sDate) {
+      const sMs = new Date(sDate).getTime();
+      if (!isNaN(sMs)) serverTimeOffset = sMs - Date.now();
+    }
+  }
   const data = await r.json();
   if (!r.ok) {
     const err = new Error(data.error || r.status);
@@ -1024,7 +1040,7 @@ window.addEventListener('load', async () => {
 
   const savedToken = sessionStorage.getItem('xwGuideToken');
   const savedExpires = sessionStorage.getItem('xwGuideExpires');
-  if (savedToken && savedExpires && new Date(savedExpires) > new Date()) {
+  if (savedToken && savedExpires && new Date(savedExpires).getTime() > nowServer()) {
     guideToken = savedToken;
     expiresAt = new Date(savedExpires);
     const savedCode = sessionStorage.getItem('xwGuideCode') || code || '';
@@ -1825,7 +1841,7 @@ function startPing() {
 function startTimer() {
   function update() {
     if (!expiresAt || isCompleted) return;
-    const rem = expiresAt - Date.now();
+    const rem = expiresAt - nowServer();
     const chip = document.getElementById('timerChip');
     if (rem <= 0) { chip.textContent = '⏱ Hết giờ'; chip.className = 'timer-chip crit'; stopAll(); setTimeout(() => { if (!isCompleted) alert('⚠ Hết giờ.'); window.location.href = '/'; }, 500); return; }
     const h = Math.floor(rem / 3600000), m = Math.floor((rem % 3600000) / 60000), s = Math.floor((rem % 60000) / 1000);

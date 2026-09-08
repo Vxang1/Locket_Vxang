@@ -264,9 +264,18 @@ Hệ thống đã trải qua 2 đợt rà soát đối chiếu chéo (Cross-Refe
     - *Nguyên nhân:* `getAppConfig`/`setAppConfig` fallback về bảng `tokens` legacy khi `app_config` trả rỗng — gây confusion và có thể trả config cũ sai. Schema thiếu cột `expired_notified_at` trong `private_dns_links`, và còn cột `ublockdns_url` thừa.
    - *Xử lý:* Xóa toàn bộ fallback tokens table. Schema: thêm `expired_notified_at TIMESTAMPTZ`, xóa `ublockdns_url`. Code xử lý DNS động `dnsPrivateUrl()` giờ chỉ trả `row?.nextdns_url || ''` (admin thay đổi template qua UI, không cần硬-coded URL).
 
+15. **🔴 Khắc Phục Triệt Để Sai Lệch Thời Gian & Múi Giờ (Client Clock Skew & Timezone Resilience):**
+    - *Hiện tượng:* Khách đang làm trên điện thoại bình thường nhưng trên máy tính Admin báo "⚠️ Hết hạn chưa xong" và Tab Phiên Live trống trơn (`🟢 Không có phiên nào đang active`).
+    - *Nguyên nhân cốt lõi:* Hệ điều hành máy tính bị đặt múi giờ Pacific Time (UTC-7) trong khi đồng hồ hiển thị giờ Việt Nam. JavaScript `new Date()` trên PC tính ra giờ UTC là `20:20`, lệch 14 tiếng so với giờ UTC của server Vercel (`06:20`). Khi `admin.html` so sánh `exp <= now` và `now - lp >= 25000` bằng `Date.now()` cục bộ, 100% các phiên live bị loại bỏ oan uổng và mã truy cập bị đánh dấu thành `dead` (Hết hạn).
+    - *Xử lý triệt để 3 lớp:*
+      1. **Tự động đồng bộ giờ Server (`nowServer()`):** Endpoint backend gắn header `X-Server-Time` và `Date`. Client `admin.html` và `guide.html` tự tính toán `serverTimeOffset = serverTime - Date.now()`. Mọi so sánh thời hạn, kiểm tra online 25s, và đếm ngược ticker đều sử dụng `nowServer()`.
+      2. **Chuẩn hóa hiển thị giờ Việt Nam (`timeZone: 'Asia/Ho_Chi_Minh'`):** Sử dụng các hàm `fmtVnDateTime`, `fmtVnDate`, `fmtVnTime` cố định múi giờ UTC+7. Dù máy Admin ở bất kỳ múi giờ nào trên thế giới cũng luôn hiển thị giờ Việt Nam chính xác 100%.
+      3. **Đồng bộ hệ thống Windows:** Chuyển TimeZone Windows về `SE Asia Standard Time` (UTC+07:00 Bangkok, Hanoi, Jakarta) và đồng bộ đồng hồ hệ thống khớp từng giây với server.
+
 ### Tiêu Chuẩn Kiểm Định Bắt Buộc Trước Khi Bàn Giao:
 - Cú pháp toàn bộ file Node.js đạt chuẩn `node -c` (exit code 0).
 - Toàn bộ script inline trong HTML (`admin.html`, `guide.html`, `index.html`) vượt qua kiểm tra cú pháp độc lập (`validate_html_scripts.js`).
 - Hạn mức tuyệt đối đúng 11 Serverless Functions Vercel được duy trì nguyên vẹn.
 - Mọi thay đổi logic kinh doanh phải được ghi nhận đầy đủ, chi tiết vào cả `GEMINI.md` và `handover.md`.
+
 

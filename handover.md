@@ -348,6 +348,14 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
      - Backend Vercel tự động cào trực tiếp từ nguồn `v2nodes.com`, bóc tách key mới nhất và trả về subscription cho Shadowrocket mà không cần thông qua bất kỳ domain ngoài nào.
      - Tự động bind thiết bị theo User-Agent trong lần quét đầu tiên; so sánh khung UA ở các lần sau. Chặn HTTP 403 đối với thiết bị lạ.
      - Giữ nguyên số lượng đúng 11 Serverless Functions của dự án.
+  10. **Khắc Phục Triệt Để Sai Lệch Thời Gian & Múi Giờ (Client Clock Skew & Timezone Resilience):**
+      - **Hiện tượng:** Khách làm trên điện thoại bình thường nhưng trên máy tính Admin báo "⚠️ Hết hạn chưa xong" và Tab Phiên Live trống trơn (`🟢 Không có phiên nào đang active`).
+      - **Nguyên nhân gốc rễ:** Hệ điều hành máy tính bị cấu hình múi giờ Pacific Time (UTC-7) trong khi đồng hồ hiển thị giờ Việt Nam. JavaScript `new Date()` trên PC tính ra giờ UTC là `20:20`, lệch 14 tiếng so với giờ UTC của server Vercel (`06:20`). Khi `admin.html` so sánh `exp <= now` và `now - lp >= 25000` bằng `Date.now()` cục bộ, 100% các phiên live bị loại bỏ oan uổng và mã truy cập bị đánh dấu thành `dead` (Hết hạn).
+      - **Xử lý triệt để 3 lớp:**
+        - Backend: `allowMethods` trong `api/_lib/utils.js` tự động gắn header `X-Server-Time` và `Date` trên 100% phản hồi API.
+        - Client: `admin.html` và `guide.html` tự động tính `serverTimeOffset = serverTime - Date.now()` qua hàm `api()`. Toàn bộ so sánh thời hạn, kiểm tra online 25s, và đếm ngược ticker đều sử dụng `nowServer()`.
+        - Chuẩn hóa hiển thị giờ Việt Nam (`timeZone: 'Asia/Ho_Chi_Minh'`): Các hàm `fmtVnDateTime`, `fmtVnDate`, `fmtVnTime` cố định múi giờ UTC+7. Dù máy Admin ở bất kỳ múi giờ nào trên thế giới cũng luôn hiển thị giờ Việt Nam chính xác 100%.
+        - Hệ thống Windows: Đã đồng bộ TimeZone Windows về `SE Asia Standard Time` (UTC+07:00 Bangkok, Hanoi, Jakarta) và đồng bộ đồng hồ hệ thống khớp từng giây với server.
 
 ---
 
