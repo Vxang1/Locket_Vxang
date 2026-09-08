@@ -2780,6 +2780,24 @@ window.vpnUnbindCurrent=async function(custId){
   }catch(e){showToast('⚠ Lỗi: '+e.message,'red');}
 };
 
+window.copyVpnSubUrl=function(url,btn){
+  if(!url)return;
+  navigator.clipboard.writeText(url).then(()=>{
+    if(btn){
+      const orig=btn.innerHTML;
+      btn.innerHTML='✓ Đã chép!';
+      btn.style.background='var(--green)';
+      btn.style.color='#FFFFFF';
+      setTimeout(()=>{
+        btn.innerHTML=orig;
+        btn.style.background='var(--gold)';
+        btn.style.color='var(--ink)';
+      },2000);
+    }
+    showToast('✓ Đã sao chép link Sub VPN','green');
+  }).catch(()=>showToast('⚠ Không copy được','red'));
+};
+
 window.vpnRevokeCurrent=async function(custId){
   if(!confirm('Xác nhận THU HỒI token VPN của khách này?\n\nKhách sẽ không thể tải sub VPN nữa.'))return;
   try{
@@ -2828,30 +2846,52 @@ window.openCustDetail=async function(id){
           const subUrl = `${window.location.origin}/s/${vpnTok.token}`;
           const isBound = !!vpnTok.device_ua;
           vpnArea.innerHTML = `
-            <div style="padding:12px 14px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#F0F7FF;box-shadow:var(--shadow-sm);">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:6px;flex-wrap:wrap">
-                <span style="font-weight:900;font-size:.84rem;color:var(--ink)">🔌 VPN USA Sub Token (15s):</span>
-                <span style="background:${isBound ? '#E0F2FE' : '#FEF3C7'};color:${isBound ? '#0369A1' : '#92400E'};border:1.5px solid var(--ink);border-radius:20px;padding:2px 8px;font-size:.68rem;font-weight:900;">
-                  ${isBound ? '🔒 Đã khóa thiết bị' : '🔓 Chưa bind thiết bị'}
+            <div style="padding:14px 16px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:var(--gold-bg);box-shadow:var(--shadow-sm);margin-top:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span style="font-size:1rem">🔌</span>
+                  <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.84rem;color:var(--ink);text-transform:uppercase;letter-spacing:.03em">VPN USA Sub Token (15s)</span>
+                </div>
+                <span style="background:${isBound ? 'var(--green-bg)' : '#FFFFFF'};color:${isBound ? 'var(--green)' : 'var(--warning)'};border:1.5px solid var(--ink);border-radius:20px;padding:2px 10px;font-size:.68rem;font-weight:900;font-family:'Space Grotesk',sans-serif;box-shadow:1px 1px 0 var(--ink);">
+                  ${isBound ? '🔒 Đã khóa thiết bị 1:1' : '🔓 Chưa kết nối (Chờ quét)'}
                 </span>
               </div>
-              <div style="font-size:.78rem;color:var(--ink);line-height:1.6;margin-bottom:8px;word-break:break-all">
-                <b>Link Sub:</b> <code style="background:#fff;padding:2px 6px;border:1px solid #ccc;border-radius:4px;user-select:all">${esc(subUrl)}</code>
-                <button onclick="navigator.clipboard.writeText('${subUrl}').then(()=>showToast('✓ Đã sao chép link Sub','green'))" class="btn-copy-mini" style="margin-left:6px;cursor:pointer">📋 Copy link</button><br>
-                <b>Thiết bị:</b> ${isBound ? `<span style="color:#0369A1;font-weight:700">${esc(vpnTok.device_ua)}</span> (IP: ${esc(vpnTok.device_ip||'—')})` : '<span style="color:var(--muted)">Chưa kết nối (sẽ tự động khóa vào máy đầu tiên quét link)</span>'}<br>
-                <b>Lần cuối dùng:</b> ${vpnTok.last_used_at ? fmtVnDateTime(vpnTok.last_used_at) : '—'}
+              <div style="margin-bottom:10px;">
+                <div style="font-size:.68rem;color:var(--muted);font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px;">Link Subscription Shadowrocket:</div>
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <input type="text" readonly value="${esc(subUrl)}" style="flex:1;background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700;color:var(--ink);box-shadow:inset 1px 1px 0 rgba(0,0,0,0.05);outline:none;user-select:all;" onclick="this.select()" />
+                  <button type="button" onclick="copyVpnSubUrl('${subUrl}', this)" style="padding:8px 14px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:var(--gold);color:var(--ink);font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.76rem;cursor:pointer;box-shadow:var(--shadow-sm);white-space:nowrap;display:inline-flex;align-items:center;gap:4px;transition:all .12s;">📋 Copy link</button>
+                </div>
               </div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap">
-                <button onclick="vpnRegenerateCurrent('${c.id}')" style="flex:1;min-width:130px;padding:7px 10px;border:1.5px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;color:var(--ink);font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:.74rem;cursor:pointer;box-shadow:var(--shadow-sm);">🔄 Đổi mã mới (Regenerate)</button>
-                ${isBound ? `<button onclick="vpnUnbindCurrent('${c.id}')" style="flex:1;min-width:130px;padding:7px 10px;border:1.5px solid var(--ink);border-radius:var(--radius-sm);background:#FEF3C7;color:#92400E;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:.74rem;cursor:pointer;box-shadow:var(--shadow-sm);">🔓 Gỡ khóa thiết bị</button>` : ''}
-                <button onclick="vpnRevokeCurrent('${c.id}')" style="padding:7px 10px;border:1.5px solid var(--ink);border-radius:var(--radius-sm);background:#FEE2E2;color:#B91C1C;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:.74rem;cursor:pointer;box-shadow:var(--shadow-sm);">⛔ Thu hồi token</button>
+              <div style="background:#FFFFFF;border:1.5px solid var(--ink);border-radius:var(--radius-sm);padding:8px 12px;font-size:.75rem;line-height:1.6;margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #D2BEA0;padding-bottom:3px;margin-bottom:3px;gap:8px;">
+                  <span style="color:var(--muted);font-weight:700;">📱 Thiết bị khóa:</span>
+                  <span style="font-weight:800;text-align:right;word-break:break-all;">
+                    ${isBound ? `<span style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${esc(vpnTok.device_ua)}</span>` : '<span style="color:var(--muted);font-style:italic;">Chưa kết nối (Tự động khóa vào máy đầu tiên quét link)</span>'}
+                  </span>
+                </div>
+                <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #D2BEA0;padding-bottom:3px;margin-bottom:3px;gap:8px;">
+                  <span style="color:var(--muted);font-weight:700;">🌐 IP kết nối gần nhất:</span>
+                  <span style="font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--ink);">${esc(vpnTok.device_ip||'—')}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;gap:8px;">
+                  <span style="color:var(--muted);font-weight:700;">⏱ Lần cuối cập nhật Sub:</span>
+                  <span style="font-weight:800;color:var(--ink);">${vpnTok.last_used_at ? fmtVnDateTime(vpnTok.last_used_at) : '—'}</span>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:flex-end;">
+                <button onclick="vpnRevokeCurrent('${c.id}')" style="padding:6px 12px;border:1.5px solid var(--ink);border-radius:var(--radius-sm);background:var(--coral-bg);color:var(--red);font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.72rem;cursor:pointer;box-shadow:var(--shadow-sm);transition:all .12s;">⛔ Thu hồi token</button>
               </div>
             </div>`;
         } else {
           vpnArea.innerHTML = `
-            <div style="padding:12px 14px;border:2px dashed var(--ink);border-radius:var(--radius-sm);background:#F0F7FF;">
-              <div style="font-size:.78rem;color:var(--muted);margin-bottom:8px">Khách gói 15s này chưa có token VPN Sub. Bấm nút dưới để cấp token.</div>
-              <button onclick="vpnRegenerateCurrent('${c.id}')" style="width:100%;padding:8px 12px;border:1.5px solid var(--ink);border-radius:var(--radius-sm);background:var(--gold);color:var(--ink);font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:.78rem;cursor:pointer;box-shadow:var(--shadow-sm);">➕ Cấp token VPN Sub (15s)</button>
+            <div style="padding:14px 16px;border:2px dashed var(--ink);border-radius:var(--radius-sm);background:var(--gold-bg);margin-top:12px;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                <span style="font-size:1rem">🔌</span>
+                <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.84rem;color:var(--ink);text-transform:uppercase;letter-spacing:.03em">VPN USA Sub Token (15s)</span>
+              </div>
+              <div style="font-size:.76rem;color:var(--muted);font-weight:600;margin-bottom:10px;">Khách gói 15s này chưa có token VPN Sub. Bấm nút dưới để cấp token:</div>
+              <button onclick="vpnRegenerateCurrent('${c.id}')" style="width:100%;padding:9px 12px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:var(--gold);color:var(--ink);font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.78rem;cursor:pointer;box-shadow:var(--shadow-sm);transition:all .12s;">➕ Cấp token VPN Sub (15s)</button>
             </div>`;
         }
       } else {
