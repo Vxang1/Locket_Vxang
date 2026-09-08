@@ -31,8 +31,8 @@
   --radius-sm: 6px;
   --radius-lg: 14px;
   --grid-line: rgba(210, 190, 160, 0.3);
-  --topbar-h: 48px;
-  --navbar-h: 72px;
+  --topbar-h: 38px;
+  --navbar-h: 56px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
@@ -160,81 +160,81 @@ body::after {
   position:relative;z-index:20;
   background:var(--bg);
   border-bottom:var(--border-ink);
-  display:flex;align-items:center;justify-content:space-between;padding:12px 18px;gap:12px;
+  display:flex;align-items:center;justify-content:space-between;padding:6px 14px;gap:10px;
 }
-.topbar-logo{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.1rem;
+.topbar-logo{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.95rem;
   color:var(--ink);}
 .topbar-logo span {
   background:linear-gradient(transparent 55%, var(--gold) 55%);
-  padding:0 4px;display:inline;
+  padding:0 3px;display:inline;
 }
 .timer-chip{
   background:#FFFFFF;border:1.5px solid var(--ink);border-radius:var(--radius-sm);
-  padding:5px 12px;font-size:.8rem;color:var(--ink);font-weight:800;font-family:'JetBrains Mono',monospace;
-  white-space:nowrap;box-shadow:2px 2px 0 var(--ink);
+  padding:3px 9px;font-size:.72rem;color:var(--ink);font-weight:800;font-family:'JetBrains Mono',monospace;
+  white-space:nowrap;box-shadow:1.5px 1.5px 0 var(--ink);
 }
 .timer-chip.warn{background:#FFF8E1;border-color:var(--gold);color:#B8891A;}
 .timer-chip.crit{background:#FFF0F0;border-color:var(--coral);color:#C62828;animation:timerFlash .8s infinite;}
 @keyframes timerFlash{50%{opacity:.4;}}
 
-.guide-content{padding:calc(var(--topbar-h,48px) + 12px) 14px calc(var(--navbar-h,72px) + 14px);max-width:580px;margin:0 auto;}
+.guide-content{padding:calc(var(--topbar-h,38px) + 8px) 12px calc(var(--navbar-h,56px) + 8px);max-width:580px;margin:0 auto;}
 
 /* STEP CARD */
 .step-card{
   background:var(--card);border:var(--border-ink);border-radius:var(--radius);
-  padding:26px 22px;margin-bottom:16px;
+  padding:16px 14px;margin-bottom:10px;
   box-shadow:var(--shadow-base);
   animation:stepCardBounce .45s cubic-bezier(.34,1.56,.64,1) both;
   position:relative;
 }
-.step-title{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.25rem;
-  color:var(--ink);margin-bottom:12px;line-height:1.3;}
-.step-content{font-size:.92rem;color:var(--charcoal);line-height:1.75;white-space:pre-wrap;}
+.step-title{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.1rem;
+  color:var(--ink);margin-bottom:8px;line-height:1.25;}
+.step-content{font-size:.9rem;color:var(--charcoal);line-height:1.6;white-space:pre-wrap;}
 
 /* RETRO NOTEBOOK CALLOUTS & NOTICES */
 .notice-box{
   background:var(--bg-warm);border:var(--border-ink);
-  border-radius:var(--radius-sm);padding:12px 14px;display:flex;align-items:flex-start;gap:10px;margin-top:14px;
+  border-radius:var(--radius-sm);padding:10px 12px;display:flex;align-items:flex-start;gap:8px;margin-top:10px;
   box-shadow:var(--shadow-sm);box-sizing:border-box;position:relative;
 }
-.notice-box p{font-size:.84rem;color:var(--ink);line-height:1.6;font-weight:600;margin:0;}
+.notice-box p{font-size:.82rem;color:var(--ink);line-height:1.5;font-weight:600;margin:0;}
 .notice-box b{color:var(--ink);font-weight:900;}
-.notice-box .notice-icon{font-size:1.15rem;flex-shrink:0;line-height:1.2;}
+.notice-box .notice-icon{font-size:1.05rem;flex-shrink:0;line-height:1.2;}
 .notice-box.notice-alert{background:#FFE5E5;border:2px solid var(--ink);box-shadow:var(--shadow-sm);}
 .notice-box.notice-alert b{color:#C62828;}
 .notice-box.notice-tip{background:#FEF8E7;border:2px solid var(--ink);box-shadow:var(--shadow-sm);}
 .notice-box.notice-info{background:var(--bg-warm);border:2px solid var(--ink);box-shadow:var(--shadow-sm);}
 
 /* STEP INDICATOR */
-.step-indicator{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
-.step-indicator-bar{flex:1;height:8px;background:var(--bg-warm);border:1.5px solid var(--ink);border-radius:99px;overflow:hidden;}
+.step-indicator{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.step-indicator-bar{flex:1;height:6px;background:var(--bg-warm);border:1.5px solid var(--ink);border-radius:99px;overflow:hidden;}
 .step-indicator-fill{height:100%;background:var(--gold);border-radius:99px;transition:width .4s ease;}
 .step-indicator-label{
-  font-size:.74rem;font-weight:900;color:var(--ink);white-space:nowrap;
+  font-size:.68rem;font-weight:900;color:var(--ink);white-space:nowrap;
   background:var(--bg-warm);border:1.5px solid var(--ink);border-radius:99px;
-  padding:3px 12px;font-family:'Space Grotesk',sans-serif;box-shadow:1px 1px 0 var(--ink);
+  padding:2px 9px;font-family:'Space Grotesk',sans-serif;box-shadow:1px 1px 0 var(--ink);
 }
 
 
 /* RETRO NOTEBOOK VIDEO PLACEHOLDER */
 .video-placeholder-box{
   background:var(--bg-warm);border:2px dashed var(--ink);border-radius:var(--radius);
-  padding:24px 16px;text-align:center;margin-top:6px;box-shadow:var(--shadow-sm);
+  padding:16px 14px;text-align:center;margin-top:6px;box-shadow:var(--shadow-sm);
   position:relative;box-sizing:border-box;
 }
 .vph-tape{
-  position:absolute;top:-8px;left:50%;transform:translateX(-50%) rotate(-1.2deg);
-  width:70px;height:16px;background:rgba(245, 200, 66, 0.9);
+  position:absolute;top:-7px;left:50%;transform:translateX(-50%) rotate(-1.2deg);
+  width:60px;height:14px;background:rgba(245, 200, 66, 0.9);
   border:1px dashed rgba(26,26,26,0.4);box-shadow:1px 1px 2px rgba(0,0,0,0.06);
 }
-.vph-icon{font-size:2.2rem;margin-bottom:6px;line-height:1;}
-.vph-title{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1rem;color:var(--ink);margin-bottom:8px;}
+.vph-icon{font-size:1.8rem;margin-bottom:4px;line-height:1;}
+.vph-title{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.92rem;color:var(--ink);margin-bottom:6px;}
 .vph-badge{
-  display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:var(--gold);
+  display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:var(--gold);
   border:1.5px solid var(--ink);border-radius:99px;font-family:'Space Grotesk',sans-serif;
-  font-size:.82rem;font-weight:900;color:var(--ink);box-shadow:2px 2px 0 var(--ink);margin-bottom:8px;
+  font-size:.78rem;font-weight:900;color:var(--ink);box-shadow:1.5px 1.5px 0 var(--ink);margin-bottom:6px;
 }
-.vph-sub{font-size:.8rem;color:var(--charcoal);font-weight:600;line-height:1.55;}
+.vph-sub{font-size:.76rem;color:var(--charcoal);font-weight:600;line-height:1.5;}
 .video-label{
   background:var(--bg-warm);color:var(--ink);border:1.5px solid var(--ink);border-radius:6px;
   padding:3px 8px;font-size:.7rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em;
@@ -304,20 +304,20 @@ body::after {
 .nav-bar{
   position:fixed;bottom:0;left:50%;transform:translateX(-50%);z-index:20;
   background:#FFFFFF;border-top:var(--border-ink);
-  padding:7px 16px 10px;
-  display:flex;flex-direction:column;gap:5px;
+  padding:5px 14px calc(5px + env(safe-area-inset-bottom, 0px));
+  display:flex;flex-direction:column;gap:3px;
   width:100%;max-width:580px;
-  border-radius:14px 14px 0 0;
-  box-shadow:0 -4px 0 rgba(26,26,26,0.1);
+  border-radius:12px 12px 0 0;
+  box-shadow:0 -3px 0 rgba(26,26,26,0.08);
 }
 @media(max-width:640px){
-  .nav-bar{left:0;transform:none;max-width:100%;border-radius:0;padding:6px 12px 9px;gap:4px;}
+  .nav-bar{left:0;transform:none;max-width:100%;border-radius:0;padding:4px 10px calc(4px + env(safe-area-inset-bottom, 0px));gap:3px;}
 }
 .nav-hint{
   text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  font-family:'Space Grotesk',sans-serif;font-size:.72rem;font-weight:800;color:var(--ink);letter-spacing:.02em;
-  background:var(--bg-warm);border:1.5px solid var(--ink);
-  border-radius:var(--radius-sm);padding:4px 10px;line-height:1.3;
+  font-family:'Space Grotesk',sans-serif;font-size:.66rem;font-weight:800;color:var(--ink);letter-spacing:.01em;
+  background:var(--bg-warm);border:1.2px solid var(--ink);
+  border-radius:var(--radius-sm);padding:2px 8px;line-height:1.2;
   box-shadow:1px 1px 0 var(--ink);
 }
 .nav-hint.hint-complete{
@@ -326,17 +326,17 @@ body::after {
 
 .nav-btns{display:flex;align-items:center;gap:6px;}
 .btn-nav{
-  flex:1;padding:12px 16px;border-radius:var(--radius-sm);
-  font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:900;letter-spacing:.02em;
+  flex:1;padding:8px 12px;border-radius:var(--radius-sm);
+  font-family:'Space Grotesk',sans-serif;font-size:.86rem;font-weight:900;letter-spacing:.01em;
   cursor:pointer;transition:all .15s ease;border:var(--border-ink);
 }
 .btn-complete{
   background:var(--gold);color:var(--ink);
-  box-shadow:var(--shadow-base);font-size:.95rem;font-weight:900;
-  border:var(--border-ink);letter-spacing:.02em;
+  box-shadow:var(--shadow-sm);font-size:.86rem;font-weight:900;
+  border:var(--border-ink);letter-spacing:.01em;
 }
-.btn-complete:hover{background:var(--gold-hover);box-shadow:5px 5px 0 #1A1A1A;transform:translate(-1px,-1px);}
-.btn-complete:active{transform:translate(2px,2px);box-shadow:var(--shadow-active);}
+.btn-complete:hover{background:var(--gold-hover);box-shadow:3px 3px 0 #1A1A1A;transform:translate(-1px,-1px);}
+.btn-complete:active{transform:translate(1px,1px);box-shadow:var(--shadow-active);}
 .btn-complete:disabled{background:var(--bg-warm);color:var(--muted);box-shadow:none;opacity:.5;cursor:not-allowed;transform:none;}
 
 /* TOAST */
@@ -384,9 +384,17 @@ body::after {
 .confirm-ok:active{transform:translate(2px,2px);box-shadow:var(--shadow-active);}
 
 @media(max-width:640px){
-  .entry-box{padding:28px 20px;}
-  .step-card{padding:20px 16px;}
-  .guide-content{padding-left:12px;padding-right:12px;}
+  .entry-box{padding:24px 18px;}
+  .step-card{padding:12px 10px;margin-bottom:8px;}
+  .step-title{font-size:1.02rem;margin-bottom:6px;}
+  .guide-content{padding-left:10px;padding-right:10px;}
+  .video-placeholder-box{padding:14px 10px;margin-top:4px;}
+  .vph-icon{font-size:1.6rem;margin-bottom:3px;}
+  .vph-title{font-size:.86rem;margin-bottom:4px;}
+  .vph-badge{padding:3px 9px;font-size:.72rem;margin-bottom:4px;}
+  .vph-sub{font-size:.72rem;}
+  .btn-download, .btn-inject-gold{padding:10px 12px;font-size:.86rem;margin-top:10px;}
+  .acct-copy-card{padding:9px 12px;}
 }
 </style>
 
@@ -1411,9 +1419,20 @@ window._copyGoldConfig = function(el) {
   copyToClipboardEl(url, el);
 };
 window._copyVpnSub = function(el) {
-  const url = el?.dataset?.url || '';
-  if (!url) return;
-  copyToClipboardEl(url, el);
+  let url = el?.dataset?.url || vpnSubUrl || '';
+  if (!url) {
+    showToast('⏳ Đang lấy link VPN, vui lòng thử lại...');
+    api('/api/guide/steps').then(r => {
+      applyStepsResponse(r);
+      if (vpnSubUrl) {
+        const fullUrl = vpnSubUrl.startsWith('/') ? (window.location.origin + vpnSubUrl) : vpnSubUrl;
+        copyToClipboardEl(fullUrl, el);
+      }
+    }).catch(() => {});
+    return;
+  }
+  const fullUrl = url.startsWith('/') ? (window.location.origin + url) : url;
+  copyToClipboardEl(fullUrl, el);
 };
 
 function renderStep() {
@@ -1443,6 +1462,20 @@ function renderStep() {
       <div class="step-content">⏳ Đang lấy link DNS...</div>
     </div>`;
     loadDnsPoolData().then(() => { if (steps[currentStep] === s) renderStep(); });
+    updateNavBar();
+    return;
+  }
+  // Bước vpn: nếu chưa có link sub thì tải lại từ /api/guide/steps
+  if (s.type === 'vpn' && !vpnSubUrl) {
+    document.getElementById('stepContainer').innerHTML = `
+    <div class="step-card">
+      <div class="step-title">${esc(s.title||'Cài đặt VPN (Mỹ)')}</div>
+      <div class="step-content">⏳ Đang lấy link VPN...</div>
+    </div>`;
+    api('/api/guide/steps').then(r => {
+      applyStepsResponse(r);
+      if (steps[currentStep] === s) renderStep();
+    }).catch(() => {});
     updateNavBar();
     return;
   }
@@ -1486,33 +1519,19 @@ function renderStep() {
       </div>`;
     }
   } else if (s.type === 'vpn') {
+    const vpnUrl = vpnSubUrl ? (vpnSubUrl.startsWith('/') ? (window.location.origin + vpnSubUrl) : vpnSubUrl) : '';
     inner += `
     <div class="step-card">
       <div class="step-title">${esc(s.title||'Cài đặt VPN (Mỹ)')}</div>
-      <div class="step-content" style="margin-bottom:14px">Sao chép link VPN bên dưới rồi mở app <b>Shadowrocket</b> → dán vào mục <b>Subscribe</b> để kết nối VPN server <b>Mỹ (US)</b>.</div>
 
-      ${vpnSubUrl ? `
-      <div class="acct-copy-wrap">
-        <div class="acct-copy-label">Sao chép link VPN vào Shadowrocket</div>
-        <div class="acct-copy-card" onclick="_copyVpnSub(this)" data-url="${esc(vpnSubUrl.startsWith('/') ? (window.location.origin + vpnSubUrl) : vpnSubUrl)}">
+      <div class="acct-copy-wrap" style="margin-top:8px;margin-bottom:12px;">
+        <div class="acct-copy-label">Sao chép link VPN</div>
+        <div class="acct-copy-card" onclick="_copyVpnSub(this)" data-url="${esc(vpnUrl)}">
           <span class="acct-copy-value" style="font-size:.88rem;font-weight:700">📋 VPN USA Subscription</span>
           <span class="acct-copy-badge">⧉ Copy</span>
         </div>
-        <div class="acct-copy-hint">Link riêng của bạn — tự động cập nhật node mới nhất</div>
+        <div class="acct-copy-hint">Link riêng của bạn — tự động kết nối server Mỹ (US)</div>
       </div>
-      ` : ''}
-
-      <div class="notice-box notice-alert" style="margin-bottom:14px;">
-        <span class="notice-icon">⛔</span>
-        <p><b>LƯU Ý QUAN TRỌNG:</b> Giữ lại app <b>VPN USA</b> trên máy, <b>tuyệt đối không được xóa</b> app VPN USA đi.</p>
-      </div>
-
-      ${(specialFlow && (pkgType === '40k' || pkgType === '180' || pkgType === '15s')) ? `
-      <div class="notice-box notice-tip" style="margin-bottom:14px;">
-        <span class="notice-icon">⚠️</span>
-        <p><b>LƯU Ý:</b> Hãy <b>bỏ qua bước xóa và cài đặt lại Locket</b> ở trong video.</p>
-      </div>
-      ` : ''}
 
       ${renderVideoPlaceholder('Video hướng dẫn cài đặt VPN (Mỹ)')}
     </div>`;

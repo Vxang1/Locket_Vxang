@@ -766,7 +766,9 @@ module.exports = async (req, res) => {
     const custInfo = await getCustomerInfo();
     const pkg = normalizePackage(custInfo?.package || codeRow.package || '30k');
     const specialFlow = !!custInfo?.specialFlow;
-    const guideToken = signJWT({ role: 'guide', code: upperCode, sessionToken, package: pkg, specialFlow, isOriginal, exp });
+    const customerId = codeRow.customer_id || custInfo?.id || null;
+    const customerCode = custInfo?.customerCode || null;
+    const guideToken = signJWT({ role: 'guide', code: upperCode, sessionToken, package: pkg, specialFlow, isOriginal, exp, customerId, customerCode });
 
     res.json({ token: guideToken, expires_at: expiresAt, package: pkg, is_original: isOriginal });
   } catch (e) { res.status(500).json({ error: e.message }); }
