@@ -3,10 +3,10 @@
  * 🤖 LOCKET VXANG TELEGRAM BOT
  * Bot Thông Báo + Tra Cứu CRM
  */
-const { sb, lookupCustomerByCode, TG_CHAT_IDS, TG_CHAT_ID, isTgAdmin, escTgHtml, normalizePackage } = require('./utils');
+const { sb, lookupCustomerByCode, TG_CHAT_IDS, TG_CHAT_ID, isTgAdmin, escTgHtml, normalizePackage, TG_DIVIDER } = require('./utils');
 
 const TG_BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
-const DIVIDER = '━━━━━━━━━━━━━━━━━━━━';
+const DIVIDER = TG_DIVIDER || '━━━━━━━━━━';
 
 const escHtml = escTgHtml; // alias giữ tương thích với các chỗ gọi cũ
 

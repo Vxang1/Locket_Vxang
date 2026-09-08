@@ -299,6 +299,8 @@ async function notifyTelegram(text, extra = {}) {
   return results.some(r => r.status === 'fulfilled' && r.value === true);
 }
 
+const TG_DIVIDER = '━━━━━━━━━━';
+
 // parse_mode 'HTML' coi <, >, & là ký tự đặc biệt — tên khách do admin nhập tự do
 // nên phải escape trước khi nhét vào tin nhắn, giống nguyên tắc esc() trước khi
 // nhét vào template HTML ở admin.html.
@@ -389,7 +391,7 @@ async function checkAndNotifyDnsExpiry(row) {
   const who = cust?.name ? escTgHtml(cust.name) : 'Khách';
   await notifyTelegram(
     `⏰ <b>LINK DNS RIÊNG HẾT HẠN (10 PHÚT)</b>\n` +
-    `━━━━━━━━━━━━━━━━━━━━\n` +
+    `${TG_DIVIDER}\n` +
     `👤 <b>Khách:</b> <b>${who}</b>\n` +
     `🆔 <b>Mã KH:</b> <code>${escTgHtml(row.customer_code)}</code>\n` +
     `<i>Link DNS cá nhân đã tự động khóa sau 10 phút kích hoạt.</i>`
@@ -503,7 +505,7 @@ function codeDetailLines(code, pkg, cust) {
   const pkgEmoji = p === '40k' ? '⚡' : '✨';
   const pkgDisplay = p === '40k' ? '15s Vĩnh viễn' : '5s Vĩnh viễn';
   const lines = [
-    '━━━━━━━━━━━━━━━━━━━━',
+    TG_DIVIDER,
     `👤 <b>Khách:</b> <b>${escTgHtml(cust?.name || 'Chưa đặt tên')}</b> | <code>${escTgHtml(cust?.customerCode || '—')}</code>`,
     `🔑 <b>Mã:</b> <code>${escTgHtml(code)}</code>`,
     `📦 <b>Gói:</b> ${pkgEmoji} <b>${p}</b> <i>(${pkgDisplay})</i>`,
@@ -906,4 +908,4 @@ function parseContactInput(input) {
   return { phone: '', social_link: str, social_platform: 'zalo' };
 }
 
-module.exports = { sb, signJWT, verifyJWT, getToken, requireAdmin, requireGuide, allowMethods, genCode, PACKAGES, PACKAGE_KEYS, normalizePackage, isPermPackage, PRICING, getPrice, getPriceLabel, durationMonths, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, expireCodeAndNotify, sweepExpiredCodes, DEFAULT_STEP_FLOW, DEFAULT_STEP_FLOW_SPECIAL, STEP_TYPE_LABELS, stepLabel, buildStepFlow, alignStepFlow, lookupCustomerByDnsCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, dnsPrivateUrl, getAppConfig, setAppConfig, getAppstoreConfig, getEmergencyConfig, maskAppstoreEmail, dnsPoolKey, claimDnsFromPool, releaseCustomerFromDnsPool, dnsPoolHasCapacity, DNS_POOL_FULL_MSG, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, fbGet, fbPut, parseContactInput, TG_CHAT_IDS, TG_CHAT_ID, isTgAdmin, genVpnToken, createVpnToken };
+module.exports = { sb, signJWT, verifyJWT, getToken, requireAdmin, requireGuide, allowMethods, genCode, PACKAGES, PACKAGE_KEYS, normalizePackage, isPermPackage, PRICING, getPrice, getPriceLabel, durationMonths, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, expireCodeAndNotify, sweepExpiredCodes, DEFAULT_STEP_FLOW, DEFAULT_STEP_FLOW_SPECIAL, STEP_TYPE_LABELS, stepLabel, buildStepFlow, alignStepFlow, lookupCustomerByDnsCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, dnsPrivateUrl, getAppConfig, setAppConfig, getAppstoreConfig, getEmergencyConfig, maskAppstoreEmail, dnsPoolKey, claimDnsFromPool, releaseCustomerFromDnsPool, dnsPoolHasCapacity, DNS_POOL_FULL_MSG, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, fbGet, fbPut, parseContactInput, TG_CHAT_IDS, TG_CHAT_ID, isTgAdmin, genVpnToken, createVpnToken, TG_DIVIDER };
