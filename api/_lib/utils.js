@@ -241,8 +241,25 @@ function isTgAdmin(id) {
   return TG_CHAT_IDS.includes(String(id).trim());
 }
 
+// Bộ nhớ đệm chống gửi trùng lặp tin nhắn Telegram (trong vòng 10 giây)
+const recentTgMessages = new Map();
+
 async function notifyTelegram(text, extra = {}) {
   if (!TG_BOT_TOKEN || !TG_CHAT_IDS.length) return false; // chưa cấu hình bot token hoặc admin id — im lặng bỏ qua
+
+  const now = Date.now();
+  const msgKey = String(text || '').trim();
+  const lastSent = recentTgMessages.get(msgKey);
+  if (lastSent && (now - lastSent) < 10000) {
+    return true; // Đã gửi tin nhắn này cách đây chưa đầy 10s -> chặn gửi trùng lặp
+  }
+  recentTgMessages.set(msgKey, now);
+
+  if (recentTgMessages.size > 50) {
+    for (const [k, t] of recentTgMessages.entries()) {
+      if (now - t > 60000) recentTgMessages.delete(k);
+    }
+  }
 
   const sendToChat = async (chatId) => {
     try {

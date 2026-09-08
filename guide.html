@@ -1619,9 +1619,22 @@ function renderStep() {
   updateNavBar();
 }
 
+let pingInFlight = false;
+let doPingFn = null;
+
 function sendStepPing() {
+  if (isCompleted) return;
+  // Reset lại chu kỳ 4s để không bị gửi trùng 2 ping liên tiếp khi chuyển bước
+  if (typeof doPingFn === 'function') {
+    clearInterval(pingInterval);
+    pingInterval = setInterval(doPingFn, 4000);
+  }
+  if (pingInFlight) return;
+  pingInFlight = true;
   const body = { currentStep, totalSteps: steps.length, step3Choice, deviceId: getDeviceId() };
-  api('/api/guide/ping', { method: 'POST', body: JSON.stringify(body) }).catch(()=>{});
+  api('/api/guide/ping', { method: 'POST', body: JSON.stringify(body) })
+    .catch(() => {})
+    .finally(() => { pingInFlight = false; });
 }
 function saveGuideState() {
   sessionStorage.setItem('xwGuideStep', currentStep);
@@ -1799,7 +1812,8 @@ function showFraudModalPermanent(isOriginal) {
 
 function startPing() {
   const doPing = async () => {
-    if (isCompleted) return; // đã hoàn thành rồi, bỏ qua mọi ping còn sót
+    if (isCompleted || pingInFlight) return; // đã hoàn thành rồi hoặc đang có ping bay đi
+    pingInFlight = true;
     try {
       const r = await api('/api/guide/ping', { method: 'POST', body: JSON.stringify({ currentStep, totalSteps: steps.length, step3Choice, deviceId: getDeviceId() }) });
       if (isCompleted) return; // double-check sau khi await xong (tránh race condition)
@@ -1837,8 +1851,10 @@ function startPing() {
         return;
       }
     } catch { console.warn('Ping failed'); }
+    finally { pingInFlight = false; }
   };
 
+  doPingFn = doPing;
   // Gửi ping đầu tiên tức thì (0ms), sau đó lặp lại mỗi 4s
   doPing();
   pingInterval = setInterval(doPing, 4000);

@@ -130,7 +130,10 @@ module.exports = async (req, res) => {
     const nowIso = new Date().toISOString();
     const myDeviceId = body.deviceId || session?.device_id || '';
     const updateData = { last_ping: nowIso };
-    if (typeof body.currentStep === 'number') updateData.current_step = body.currentStep;
+    if (typeof body.currentStep === 'number') {
+      updateData.current_step = body.currentStep;
+      if (session) session.current_step = body.currentStep;
+    }
     if (body.step3Choice) updateData.step_choice = body.step3Choice;
     if (typeof body.totalSteps === 'number') updateData.total_steps = body.totalSteps;
     if (myDeviceId) updateData.device_id = myDeviceId;
@@ -277,25 +280,37 @@ module.exports = async (req, res) => {
     if (typeof body.currentStep === 'number' && typeof body.totalSteps === 'number') {
       const prevStep = session?.current_step;
       const newStep  = body.currentStep;
-      if (prevStep !== null && prevStep !== undefined && prevStep !== newStep) {
+      if (prevStep !== null && prevStep !== undefined && prevStep !== newStep && newStep > 0) {
+        // Khóa chống gửi trùng bước song song qua Firebase RTDB
+        const stepNotifyKey = `step_notified/${payload.code}/${newStep}`;
+        let alreadyNotified = false;
         try {
-          const pkg = payload.package || '30k';
-          const cust = await lookupCustomerByCode(payload.code);
-          const stepsRows = await sb('GET', 'guide_steps', {
-            q: `or=(package.eq.${encodeURIComponent(pkg)},package.is.null)&order=order_num.asc`,
-          });
-          const flow = buildStepFlow(pkg, stepsRows, !!cust?.specialFlow);
-          const aligned = alignStepFlow(flow, body.totalSteps);
-          const label = (aligned && aligned[newStep]) || `Bước ${newStep + 1}`;
-          const name = escTgHtml(cust?.name || 'Khách');
-          const p = normalizePackage(pkg);
-          const pkgEmoji = p === '40k' ? '⚡' : '✨';
-          const pkgDisplay = p === '40k' ? '15s Vĩnh viễn' : '5s Vĩnh viễn';
-          await notifyTelegram(
-            `👣 <b>${name}</b> đang ở <b>Bước ${newStep + 1}/${body.totalSteps}</b>: <i>${escTgHtml(label)}</i>\n` +
-            `📦 Gói: ${pkgEmoji} <b>${p}</b> <i>(${pkgDisplay})</i>`
-          );
+          alreadyNotified = !!(await fbGet(stepNotifyKey));
         } catch {}
+
+        if (!alreadyNotified) {
+          // Ghi nhận ngay để chặn các request song song khác
+          await fbPut(stepNotifyKey, { at: nowIso, s: payload.sessionToken }).catch(() => {});
+
+          try {
+            const pkg = payload.package || '30k';
+            const cust = await lookupCustomerByCode(payload.code);
+            const stepsRows = await sb('GET', 'guide_steps', {
+              q: `or=(package.eq.${encodeURIComponent(pkg)},package.is.null)&order=order_num.asc`,
+            });
+            const flow = buildStepFlow(pkg, stepsRows, !!cust?.specialFlow);
+            const aligned = alignStepFlow(flow, body.totalSteps);
+            const label = (aligned && aligned[newStep]) || `Bước ${newStep + 1}`;
+            const name = escTgHtml(cust?.name || 'Khách');
+            const p = normalizePackage(pkg);
+            const pkgEmoji = p === '40k' ? '⚡' : '✨';
+            const pkgDisplay = p === '40k' ? '15s Vĩnh viễn' : '5s Vĩnh viễn';
+            await notifyTelegram(
+              `👣 <b>${name}</b> đang ở <b>Bước ${newStep + 1}/${body.totalSteps}</b>: <i>${escTgHtml(label)}</i>\n` +
+              `📦 Gói: ${pkgEmoji} <b>${p}</b> <i>(${pkgDisplay})</i>`
+            );
+          } catch {}
+        }
       }
     }
 
