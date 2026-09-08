@@ -137,6 +137,23 @@ CREATE TABLE IF NOT EXISTS public.guide_steps (
     button_url TEXT
 );
 
+-- 8. BẢNG TOKEN VPN SUBSCRIPTION RIÊNG (VPN_TOKENS)
+CREATE TABLE IF NOT EXISTS public.vpn_tokens (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  customer_id UUID NOT NULL REFERENCES public.customers(id) ON DELETE CASCADE,
+  customer_code TEXT NOT NULL,
+  token TEXT NOT NULL UNIQUE,
+  device_ua TEXT,
+  device_ip TEXT,
+  first_used_at TIMESTAMPTZ,
+  last_used_at TIMESTAMPTZ,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+CREATE INDEX IF NOT EXISTS idx_vpn_tokens_token ON public.vpn_tokens(token);
+CREATE INDEX IF NOT EXISTS idx_vpn_tokens_customer ON public.vpn_tokens(customer_id);
+
 -- ==============================================================================
 -- TẮT RLS ĐỂ SERVICE ROLE HOẠT ĐỘNG THÔNG SUỐT
 -- ==============================================================================
@@ -147,4 +164,4 @@ ALTER TABLE public.sessions DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.dns_pool DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.private_dns_links DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.guide_steps DISABLE ROW LEVEL SECURITY;
-
+ALTER TABLE public.vpn_tokens DISABLE ROW LEVEL SECURITY;

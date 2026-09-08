@@ -1,5 +1,5 @@
 'use strict';
-const { sb, requireAdmin, allowMethods, genCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, normalizePackage, isPermPackage, getAppstoreConfig, setAppConfig, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, parseContactInput, releaseCustomerFromDnsPool } = require('../_lib/utils');
+const { sb, requireAdmin, allowMethods, genCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, normalizePackage, isPermPackage, getAppstoreConfig, setAppConfig, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, parseContactInput, releaseCustomerFromDnsPool, createVpnToken } = require('../_lib/utils');
 
 
 module.exports = async (req, res) => {
@@ -343,6 +343,44 @@ module.exports = async (req, res) => {
       return res.json({ ok: true });
     }
 
+    // ── POST ?action=vpn_regenerate ───────────────────────────────────────
+    if (req.method === 'POST' && action === 'vpn_regenerate') {
+      const { customer_id } = req.body;
+      if (!customer_id) return res.status(400).json({ error: 'Missing customer_id' });
+      // Deactivate old tokens
+      await sb('PATCH', 'vpn_tokens', {
+        q: `customer_id=eq.${customer_id}&is_active=eq.true`,
+        body: { is_active: false },
+      }).catch(() => {});
+      // Get customer code
+      const [cust] = await sb('GET', 'customers', { q: `id=eq.${customer_id}&select=customer_code` }) || [];
+      if (!cust) return res.status(404).json({ error: 'Customer not found' });
+      const token = await createVpnToken(customer_id, cust.customer_code);
+      return res.json({ token });
+    }
+
+    // ── POST ?action=vpn_unbind ───────────────────────────────────────
+    if (req.method === 'POST' && action === 'vpn_unbind') {
+      const { customer_id } = req.body;
+      if (!customer_id) return res.status(400).json({ error: 'Missing customer_id' });
+      await sb('PATCH', 'vpn_tokens', {
+        q: `customer_id=eq.${customer_id}&is_active=eq.true`,
+        body: { device_ua: null, device_ip: null, first_used_at: null },
+      });
+      return res.json({ ok: true });
+    }
+
+    // ── POST ?action=vpn_revoke ───────────────────────────────────────
+    if (req.method === 'POST' && action === 'vpn_revoke') {
+      const { customer_id } = req.body;
+      if (!customer_id) return res.status(400).json({ error: 'Missing customer_id' });
+      await sb('PATCH', 'vpn_tokens', {
+        q: `customer_id=eq.${customer_id}&is_active=eq.true`,
+        body: { is_active: false },
+      });
+      return res.json({ ok: true });
+    }
+
     // ── PATCH ?action=update&id=... ────────────────────────────────
     if (req.method === 'PATCH' && (action === 'update' || !action)) {
       const targetId = id || req.body?.id;
@@ -551,7 +589,11 @@ module.exports = async (req, res) => {
         }).catch(() => {});
       }
 
-      return res.json({ customer, codes: codes || [], private_dns: privateDns?.[0] || null });
+      const vpnTokens = await sb('GET', 'vpn_tokens', {
+        q: `customer_id=eq.${id}&is_active=eq.true&select=*&limit=1`
+      }).catch(() => []);
+
+      return res.json({ customer, codes: codes || [], private_dns: privateDns?.[0] || null, vpn_token: vpnTokens?.[0] || null });
     }
 
     // ── GET → danh sách khách ──────────────────────────────────────

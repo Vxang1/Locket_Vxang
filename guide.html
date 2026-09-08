@@ -700,6 +700,7 @@ let goldInjected = sessionStorage.getItem('xwGoldInjected') === 'true';
 let goldExpiryVal = sessionStorage.getItem('xwGoldExpiry') || '';
 let pkgType = '5s'; // '5s' | '15s' | '150' | '180' — nhận từ /api/guide/steps
 let specialFlow = false; // true = khách đặc biệt (flow có bước IPA + cảnh báo nghiêm trọng)
+let vpnSubUrl = '';       // URL VPN Sub riêng cho khách 40k (token-based, device-locked)
 let isCompleted = false;          // chặn ping xử lý sau khi đã Hoàn thành
 let appstoreData = null;
 let dnsPoolData = null;
@@ -1003,6 +1004,7 @@ function applyStepsResponse(r) {
   const PKG_KEYS = ['30k','40k','5s','15s','150','180'];
   pkgType = PKG_KEYS.includes(r?.package) ? r.package : '30k';
   specialFlow = !!r?.special_flow;
+  vpnSubUrl = r?.vpn_sub_url || '';
   // special_flow=true: LUÔN dùng DEFAULT_STEPS đặc biệt, bỏ qua DB rows (khớp server
   // buildStepFlow — bảng guide_steps không có cột special_flow nên không thể phân biệt).
   let list = (r?.steps?.length && !specialFlow)
@@ -1392,6 +1394,11 @@ window._copyGoldConfig = function(el) {
   const url = el?.dataset?.url || 'https://raw.githubusercontent.com/Vxang1/Locket/main/Locket_Vxang.module';
   copyToClipboardEl(url, el);
 };
+window._copyVpnSub = function(el) {
+  const url = el?.dataset?.url || '';
+  if (!url) return;
+  copyToClipboardEl(url, el);
+};
 
 function renderStep() {
   if (checkInApp()) return;
@@ -1466,7 +1473,18 @@ function renderStep() {
     inner += `
     <div class="step-card">
       <div class="step-title">${esc(s.title||'Cài đặt VPN (Mỹ)')}</div>
-      <div class="step-content" style="margin-bottom:14px">Cài và kết nối VPN vào server <b>Mỹ (US)</b> — bước bắt buộc cho gói 15s để DNS hoạt động ổn định.</div>
+      <div class="step-content" style="margin-bottom:14px">Sao chép link VPN bên dưới rồi mở app <b>Shadowrocket</b> → dán vào mục <b>Subscribe</b> để kết nối VPN server <b>Mỹ (US)</b>.</div>
+
+      ${vpnSubUrl ? `
+      <div class="acct-copy-wrap">
+        <div class="acct-copy-label">Sao chép link VPN vào Shadowrocket</div>
+        <div class="acct-copy-card" onclick="_copyVpnSub(this)" data-url="${esc(vpnSubUrl.startsWith('/') ? (window.location.origin + vpnSubUrl) : vpnSubUrl)}">
+          <span class="acct-copy-value" style="font-size:.88rem;font-weight:700">📋 VPN USA Subscription</span>
+          <span class="acct-copy-badge">⧉ Copy</span>
+        </div>
+        <div class="acct-copy-hint">Link riêng của bạn — tự động cập nhật node mới nhất</div>
+      </div>
+      ` : ''}
 
       <div class="notice-box notice-alert" style="margin-bottom:14px;">
         <span class="notice-icon">⛔</span>

@@ -1202,6 +1202,7 @@ window.addEventListener('DOMContentLoaded', () => {
     <div class="modal-head"><div class="modal-title" id="dName"></div><button class="modal-close" onclick="closeDetail()">✕</button></div>
     <div class="modal-body">
       <div class="info-grid" id="dInfoGrid"></div>
+      <div id="dVpnTokenArea" style="display:none;margin-top:10px;"></div>
       <div class="codes-title">Mã truy cập</div>
       <div id="dCodes"></div>
       <div class="field-sm" style="margin-top:8px">
@@ -2728,16 +2729,45 @@ window.exportXLSX=function(){
   showToast('✓ Đã xuất file Excel','green');
 };
 let currentCustPrivateDns = null;
+let currentCustVpnToken = null;
+
+window.vpnRegenerateCurrent=async function(custId){
+  if(!confirm('Xác nhận tạo token VPN mới cho khách này?\n\nToken cũ sẽ bị vô hiệu hóa lập tức.'))return;
+  try{
+    await api('POST','/api/admin/customers?action=vpn_regenerate',{customer_id:custId});
+    showToast('✓ Đã cấp token VPN mới','green');
+    openCustDetail(custId);
+  }catch(e){showToast('⚠ Lỗi: '+e.message,'red');}
+};
+
+window.vpnUnbindCurrent=async function(custId){
+  if(!confirm('Xác nhận gỡ khóa thiết bị cho token VPN này?\n\nKhách có thể dùng thiết bị mới để kết nối.'))return;
+  try{
+    await api('POST','/api/admin/customers?action=vpn_unbind',{customer_id:custId});
+    showToast('✓ Đã gỡ khóa thiết bị','green');
+    openCustDetail(custId);
+  }catch(e){showToast('⚠ Lỗi: '+e.message,'red');}
+};
+
+window.vpnRevokeCurrent=async function(custId){
+  if(!confirm('Xác nhận THU HỒI token VPN của khách này?\n\nKhách sẽ không thể tải sub VPN nữa.'))return;
+  try{
+    await api('POST','/api/admin/customers?action=vpn_revoke',{customer_id:custId});
+    showToast('✓ Đã thu hồi token VPN','green');
+    openCustDetail(custId);
+  }catch(e){showToast('⚠ Lỗi: '+e.message,'red');}
+};
 
 window.openCustDetail=async function(id){
   if (!id) return;
   currentCustomerId=id;
   currentCustPrivateDns=null;
+  currentCustVpnToken=null;
   document.getElementById('newCodeBox')?.classList.remove('show');
   document.getElementById('dCodes').innerHTML='<div style="font-size:.78rem;color:var(--muted);padding:8px 0;font-weight:600;">Đang tải mã...</div>';
   document.getElementById('detailModal').classList.add('open');
 
-  function renderHeader(c, privDns = currentCustPrivateDns) {
+  function renderHeader(c, privDns = currentCustPrivateDns, vpnTok = currentCustVpnToken) {
     if (!c) return;
     document.getElementById('dName').textContent=c.name || 'Khách hàng';
     const genPkgEl=document.getElementById('genPkg');
@@ -2758,6 +2788,46 @@ window.openCustDetail=async function(id){
       <div class="info-item"><div class="info-label">Kích hoạt lúc</div><div class="info-val">${(c.activated_at || c.first_code_completed_at) ? `⏱ ${new Date(c.activated_at || c.first_code_completed_at).toLocaleString('vi-VN')}` : '<span style="color:var(--muted);font-weight:600">— Chưa kích hoạt —</span>'}</div></div>
       <div class="info-item"><div class="info-label">Ghi chú</div><div class="info-val">${esc(c.notes||'—')}</div></div>
       <div class="info-item"><div class="info-label">Ngày tạo</div><div class="info-val">${new Date(c.created_at).toLocaleString('vi-VN')}</div></div>`;
+
+    const vpnArea = document.getElementById('dVpnTokenArea');
+    if (vpnArea) {
+      if (is40k || vpnTok) {
+        vpnArea.style.display = 'block';
+        if (vpnTok) {
+          const subUrl = `${window.location.origin}/s/${vpnTok.token}`;
+          const isBound = !!vpnTok.device_ua;
+          vpnArea.innerHTML = `
+            <div style="padding:12px 14px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#F0F7FF;box-shadow:var(--shadow-sm);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:6px;flex-wrap:wrap">
+                <span style="font-weight:900;font-size:.84rem;color:var(--ink)">🔌 VPN USA Sub Token (15s):</span>
+                <span style="background:${isBound ? '#E0F2FE' : '#FEF3C7'};color:${isBound ? '#0369A1' : '#92400E'};border:1.5px solid var(--ink);border-radius:20px;padding:2px 8px;font-size:.68rem;font-weight:900;">
+                  ${isBound ? '🔒 Đã khóa thiết bị' : '🔓 Chưa bind thiết bị'}
+                </span>
+              </div>
+              <div style="font-size:.78rem;color:var(--ink);line-height:1.6;margin-bottom:8px;word-break:break-all">
+                <b>Link Sub:</b> <code style="background:#fff;padding:2px 6px;border:1px solid #ccc;border-radius:4px;user-select:all">${esc(subUrl)}</code>
+                <button onclick="navigator.clipboard.writeText('${subUrl}').then(()=>showToast('✓ Đã sao chép link Sub','green'))" class="btn-copy-mini" style="margin-left:6px;cursor:pointer">📋 Copy link</button><br>
+                <b>Thiết bị:</b> ${isBound ? `<span style="color:#0369A1;font-weight:700">${esc(vpnTok.device_ua)}</span> (IP: ${esc(vpnTok.device_ip||'—')})` : '<span style="color:var(--muted)">Chưa kết nối (sẽ tự động khóa vào máy đầu tiên quét link)</span>'}<br>
+                <b>Lần cuối dùng:</b> ${vpnTok.last_used_at ? new Date(vpnTok.last_used_at).toLocaleString('vi-VN') : '—'}
+              </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <button onclick="vpnRegenerateCurrent('${c.id}')" style="flex:1;min-width:130px;padding:7px 10px;border:1.5px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;color:var(--ink);font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:.74rem;cursor:pointer;box-shadow:var(--shadow-sm);">🔄 Đổi mã mới (Regenerate)</button>
+                ${isBound ? `<button onclick="vpnUnbindCurrent('${c.id}')" style="flex:1;min-width:130px;padding:7px 10px;border:1.5px solid var(--ink);border-radius:var(--radius-sm);background:#FEF3C7;color:#92400E;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:.74rem;cursor:pointer;box-shadow:var(--shadow-sm);">🔓 Gỡ khóa thiết bị</button>` : ''}
+                <button onclick="vpnRevokeCurrent('${c.id}')" style="padding:7px 10px;border:1.5px solid var(--ink);border-radius:var(--radius-sm);background:#FEE2E2;color:#B91C1C;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:.74rem;cursor:pointer;box-shadow:var(--shadow-sm);">⛔ Thu hồi token</button>
+              </div>
+            </div>`;
+        } else {
+          vpnArea.innerHTML = `
+            <div style="padding:12px 14px;border:2px dashed var(--ink);border-radius:var(--radius-sm);background:#F0F7FF;">
+              <div style="font-size:.78rem;color:var(--muted);margin-bottom:8px">Khách gói 15s này chưa có token VPN Sub. Bấm nút dưới để cấp token.</div>
+              <button onclick="vpnRegenerateCurrent('${c.id}')" style="width:100%;padding:8px 12px;border:1.5px solid var(--ink);border-radius:var(--radius-sm);background:var(--gold);color:var(--ink);font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:.78rem;cursor:pointer;box-shadow:var(--shadow-sm);">➕ Cấp token VPN Sub (15s)</button>
+            </div>`;
+        }
+      } else {
+        vpnArea.style.display = 'none';
+        vpnArea.innerHTML = '';
+      }
+    }
 
     const upArea = document.getElementById('upgradePkgArea');
     if (upArea) {
@@ -2805,6 +2875,7 @@ window.openCustDetail=async function(id){
     const res=await api('GET',`/api/admin/customers?id=${id}`);
     const codes = res?.codes || [];
     currentCustPrivateDns = res?.private_dns || null;
+    currentCustVpnToken = res?.vpn_token || null;
     if(res?.customer){
       cust = res.customer;
       cust.codes = codes;
@@ -2813,7 +2884,7 @@ window.openCustDetail=async function(id){
         target.first_code_completed_at = cust.first_code_completed_at;
         target.codes = codes;
       }
-      renderHeader(cust, currentCustPrivateDns);
+      renderHeader(cust, currentCustPrivateDns, currentCustVpnToken);
     }
 
     if(!codes.length){document.getElementById('dCodes').innerHTML='<div style="font-size:.78rem;color:var(--muted);font-weight:600;">Chưa có mã nào</div>';return;}

@@ -53,10 +53,25 @@ module.exports = async (req, res) => {
 
     const steps = (stepsRes || []).filter(s => s.step_type !== 'username' && s.type !== 'username');
 
+    let vpnSubUrl = null;
+    const norm = (pkg === '40k' || pkg === '15s' || pkg === '180') ? '40k' : '30k';
+    if (norm === '40k' && payload.customerId) {
+      const vpnRows = await sb('GET', 'vpn_tokens', {
+        q: `customer_id=eq.${payload.customerId}&is_active=eq.true&select=token&limit=1`
+      }).catch(() => []);
+      if (vpnRows?.[0]?.token) {
+        const proto = req.headers['x-forwarded-proto'] || 'https';
+        const host = req.headers['x-forwarded-host'] || req.headers.host || process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL || 'locketvxang.vercel.app';
+        const base = host ? `${proto}://${host}` : 'https://locketvxang.vercel.app';
+        vpnSubUrl = `${base}/s/${vpnRows[0].token}`;
+      }
+    }
+
     res.json({
       steps,
       package: pkg,
-      special_flow: !!payload.specialFlow
+      special_flow: !!payload.specialFlow,
+      vpn_sub_url: vpnSubUrl
     });
   } catch (e) { res.status(500).json({ error: e.message }); }
 };

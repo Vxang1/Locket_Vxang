@@ -77,12 +77,12 @@
 3. **Gói 40k Thường (`special_flow = false` - 4 bước):**
    - Bước 1: Cài Shadowrocket
    - Bước 2: Cài đặt DNS 15s (Tải profile từ DNS Pool 15s)
-   - Bước 3: Cài đặt VPN USA (Giữ app VPN trên máy)
+   - Bước 3: Cài đặt VPN USA (Sao chép link VPN Sub Token riêng dạng `https://locketvxang.vercel.app/s/{token}` dán vào Subscribe Shadowrocket, khóa thiết bị 1:1)
    - Bước 4: Lên Locket Gold
 4. **Gói 40k Đặc Biệt (`special_flow = true` - 5 bước):**
    - Bước 1: Cài Shadowrocket (Giữ đăng nhập tài khoản shop)
    - Bước 2: Cài Locket IPA Hạ Cấp
-   - Bước 3: Cài đặt VPN USA (Bỏ qua bước xóa cài lại trong video)
+   - Bước 3: Cài đặt VPN USA (Sao chép link VPN Sub Token riêng 1:1)
    - Bước 4: Cài đặt DNS 15s
    - Bước 5: Lên Locket Gold
 
@@ -116,6 +116,11 @@
    - Tra cứu CRM trực tiếp qua mã `VX-xxxxxx` (hoặc `XW-xxxxxx`), `KH-xxxxxxx`, SĐT, Tên.
 6. **Đường Dẫn Module Locket Gold Chính Thức:**
    - URL tải thô: `https://raw.githubusercontent.com/Vxang1/Locket/main/Locket_Vxang.module` (Kho lưu trữ `Vxang1/Locket`, nhánh `main`). Khách cài đặt bằng cách sao chép liên kết vào Shadowrocket.
+7. **VPN USA Sub Token Riêng Biệt & Khóa Thiết Bị 1:1 (Vercel Native):**
+   - Mỗi khách hàng gói 40k (15s) được cấp 1 Token duy nhất (`vx-15s-XXXXXX`) với URL subscription mang chính tên miền của shop dạng `https://{domain}/s/{token}`.
+   - **Tích hợp Native vào Vercel:** Vercel định tuyến `/s/:token` về `/api/guide/validate?action=vpn_sub&token=:token`. Serverless function tự động cào trực tiếp từ nguồn `v2nodes.com`, bóc tách key mới nhất tức thời và trả về file sub cho Shadowrocket mà không để lộ bất kỳ dấu vết hay domain cào ra ngoài.
+   - **Khóa thiết bị 1:1 (Device Binding):** Ở lần quét link đầu tiên, hệ thống tự động ghi nhận User-Agent (`device_ua`) và IP vào bảng `vpn_tokens` trên Supabase. Ở các lần cập nhật sub tiếp theo, hệ thống so sánh User-Agent, nếu phát hiện thiết bị khác (ví dụ: khách gói 5s sao chép link) sẽ lập tức chặn HTTP 403 `This subscription is bound to another device`.
+   - **Quản trị toàn diện trên CRM:** Admin có quyền xem tình trạng thiết bị, IP kết nối, lần cuối sử dụng, và thao tác 3 nút: Cấp mã mới (`vpn_regenerate`), Gỡ khóa thiết bị (`vpn_unbind`), và Thu hồi vĩnh viễn (`vpn_revoke`).
 
 ---
 

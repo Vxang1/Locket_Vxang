@@ -319,9 +319,42 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
 
 ---
 
+### Đợt 3: Tích Hợp Token-Based VPN Sub (`/s/{token}`) & Khóa Thiết Bị 1:1 Cho Gói 40k (15s)
+- **Bối cảnh & Yêu cầu:**
+  - Khách hàng gói 40k (15s) cần kết nối VPN server Mỹ để DNS hoạt động ổn định.
+  - Thay vì cung cấp link sub cố định (dễ bị khách gói 30k copy dùng chùa), mỗi khách 40k được cấp 1 **Token VPN riêng** (`vx-15s-XXXXXX`) với link mang chính domain shop dạng `https://locketvxang.vercel.app/s/{token}`.
+  - Token tự động khóa thiết bị 1:1 (Device Binding) theo User-Agent của Shadowrocket. Máy lạ hoặc khách gói 5s có link cũng bị chặn HTTP 403.
+  - Admin có toàn quyền thu hồi, cấp mới (regenerate), hoặc gỡ khóa thiết bị (unbind) trên CRM Dashboard.
+- **Chi tiết các thành phần đã triển khai:**
+  1. **Schema CSDL (`schema.sql`):** Thêm bảng `vpn_tokens` (quan hệ 1:N với `customers`, khóa ngoại CASCADE, đánh chỉ mục `token` và `customer_id`, tắt RLS).
+  2. **Tiện ích lõi (`api/_lib/utils.js`):** Thêm `genVpnToken()` sinh mã `vx-15s-XXXXXX` và `createVpnToken(customerId, customerCode)` ghi nhận vào Supabase.
+  3. **Tạo khách hàng mới (`api/admin/create-customer.js`):** Tự động sinh `vpn_token` khi tạo khách gói `40k`, trả về trong response.
+  4. **Nâng cấp gói (`api/admin/add-code.js`):** Khi nâng cấp từ 30k (5s) lên 40k (15s), tự động kiểm tra và cấp mới `vpn_token` nếu chưa có.
+  5. **API hướng dẫn (`api/guide/steps.js`):** Khách gói 40k tự động nhận trường `vpn_sub_url` chứa link sub hoàn chỉnh mang chính tên miền của shop dạng `https://{domain}/s/{token}`.
+  6. **Quản trị CRM (`api/admin/customers.js`):**
+     - Endpoint chi tiết khách hàng trả về thông tin `vpn_token`.
+     - Thêm action `vpn_regenerate`: Vô hiệu hóa token cũ, sinh token mới tức thì.
+     - Thêm action `vpn_unbind`: Xóa `device_ua`/`device_ip` để khách liên kết thiết bị mới.
+     - Thêm action `vpn_revoke`: Thu hồi token VPN (vô hiệu hóa, không cấp lại).
+  7. **Giao diện Hướng Dẫn (`guide.html`):**
+     - Tại Bước VPN (Mỹ), bổ sung thẻ sao chép Neo-Brutalist `📋 VPN USA Subscription` (tương tự thẻ copy Config Gold).
+     - Bấm 1 chạm sao chép link sub riêng để dán vào mục Subscribe trong Shadowrocket.
+  8. **Giao diện Quản Trị (`admin.html`):**
+     - Trong Modal chi tiết khách hàng, tự động hiển thị thẻ quản trị `🔌 VPN USA Sub Token (15s)` khi khách là gói 40k.
+     - Hiển thị link sub đầy đủ (mang tên miền shop), nút sao chép nhanh, trạng thái khóa thiết bị (User-Agent + IP), thời gian truy cập gần nhất.
+     - Bộ 3 nút điều khiển: `🔄 Đổi mã mới (Regenerate)`, `🔓 Gỡ khóa thiết bị (Unbind)`, và `⛔ Thu hồi token (Revoke)`.
+  9. **Tích Hợp Vercel Native (`vercel.json` & `api/guide/validate.js`):**
+     - Định tuyến rewrite `/s/:token` về `/api/guide/validate?action=vpn_sub&token=:token`.
+     - Backend Vercel tự động cào trực tiếp từ nguồn `v2nodes.com`, bóc tách key mới nhất và trả về subscription cho Shadowrocket mà không cần thông qua bất kỳ domain ngoài nào.
+     - Tự động bind thiết bị theo User-Agent trong lần quét đầu tiên; so sánh khung UA ở các lần sau. Chặn HTTP 403 đối với thiết bị lạ.
+     - Giữ nguyên số lượng đúng 11 Serverless Functions của dự án.
+
+---
+
 ## 🎯 NEXT STEPS & QUY CHUẨN DUY TRÌ
 1. Mọi tính năng, bản vá và module tương lai bắt buộc tuân thủ đồng thời cả 5 Nguyên Tắc Bất Biến của `Locket_Vxang` và 10 Tiên Đề của `Super Deep Writer`.
 2. Khi có sự thay đổi logic kinh doanh (chính sách giá, thời hạn nâng cấp, cơ chế chống gian lận), bắt buộc cập nhật đầy đủ và đồng bộ vào cả `GEMINI.md` và `handover.md`.
 3. Luôn sử dụng lệnh push GitHub chuẩn mực với tác giả `Vxang1 <tika68844@gmail.com>`.
 
 🏆 **HỆ THỐNG HIỆN TẠI ĐÃ ĐẠT TRẠNG THÁI HOÀN MỸ, TRƠN TRU 100% VÀ SẴN SÀNG PHỤC VỤ KHÁCH HÀNG THỰC TẾ.**
+

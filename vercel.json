@@ -3,7 +3,8 @@
     { "source": "/admin",        "destination": "/admin.html" },
     { "source": "/guide",        "destination": "/guide.html" },
     { "source": "/dns",          "destination": "/dns.html" },
-    { "source": "/shadowrocket", "destination": "/guide.html" }
+    { "source": "/shadowrocket", "destination": "/guide.html" },
+    { "source": "/s/:token",     "destination": "/api/guide/validate?action=vpn_sub&token=:token" }
   ],
   "crons": [
     {

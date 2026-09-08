@@ -1,5 +1,5 @@
 'use strict';
-const { sb, requireAdmin, allowMethods, genCode, PRICING, isPermPackage, dnsPoolHasCapacity, parseContactInput } = require('../_lib/utils');
+const { sb, requireAdmin, allowMethods, genCode, PRICING, isPermPackage, dnsPoolHasCapacity, parseContactInput, createVpnToken } = require('../_lib/utils');
 
 // Chống double-submit: admin bấm nút "Tạo" 2 lần liên tiếp (double-click, mạng
 // chậm chưa kịp disable nút) tạo ra 2 khách hàng trùng dữ liệu. Chặn khi có khách
@@ -68,6 +68,11 @@ module.exports = async (req, res) => {
       prefer: 'return=minimal',
     });
 
-    res.json({ customer_code, access_code, customer_id: cust.id });
+    let vpn_token = null;
+    if (pkg === '40k') {
+      vpn_token = await createVpnToken(cust.id, customer_code).catch(() => null);
+    }
+
+    res.json({ customer_code, access_code, customer_id: cust.id, vpn_token });
   } catch (e) { res.status(500).json({ error: e.message }); }
 };

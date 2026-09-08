@@ -354,7 +354,87 @@ async function handleDnsPoolClaim(req, res) {
   } catch (e) { res.status(500).json({ error: e.message }); }
 }
 
+// ── GET ?action=vpn_sub — cào live sub US từ v2nodes với token riêng và khóa thiết bị 1:1 ──
+async function handleVpnSub(req, res) {
+  const token = (req.query?.token || '').trim();
+  if (!token || token.length < 8) {
+    return res.status(400).send('Invalid token');
+  }
+
+  try {
+    const rows = await sb('GET', 'vpn_tokens', {
+      q: `token=eq.${encodeURIComponent(token)}&is_active=eq.true&select=*`,
+    });
+    if (!rows || !rows.length) {
+      return res.status(403).send('Invalid or revoked token');
+    }
+
+    const row = rows[0];
+    const reqUa = req.headers['user-agent'] || '';
+    const reqIp = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim();
+    const now = new Date().toISOString();
+
+    // Device binding: so sánh khung UA (bỏ version số để tránh khóa oan khi app update)
+    const uaBase = (ua) => String(ua || '').replace(/\/[\d.]+/g, '').trim();
+
+    if (row.device_ua) {
+      // Đã khóa thiết bị trước đó
+      if (uaBase(row.device_ua) !== uaBase(reqUa)) {
+        return res.status(403).send('This subscription is bound to another device');
+      }
+      // Cập nhật nhịp tim sử dụng ngầm
+      sb('PATCH', 'vpn_tokens', {
+        q: `id=eq.${row.id}`,
+        body: { device_ip: reqIp, last_used_at: now },
+      }).catch(() => {});
+    } else {
+      // Khóa thiết bị trong lần quét đầu tiên
+      await sb('PATCH', 'vpn_tokens', {
+        q: `id=eq.${row.id}`,
+        body: {
+          device_ua: reqUa,
+          device_ip: reqIp,
+          first_used_at: now,
+          last_used_at: now,
+        },
+      }).catch(() => {});
+    }
+
+    // Cào trực tiếp node US mới nhất từ v2nodes.com
+    const targetUrl = 'https://www.v2nodes.com/country/us/';
+    const scrapeRes = await fetch(targetUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
+      cache: 'no-store',
+    });
+    if (!scrapeRes.ok) {
+      return res.status(502).send('Error fetching upstream node provider');
+    }
+    const html = await scrapeRes.text();
+    const match = html.match(/data-config="([^"]+subscriptions\/country\/[^"]+)"/i);
+    if (!match?.[1]) {
+      return res.status(404).send('No active subscription found on upstream');
+    }
+
+    const subRes = await fetch(match[1], { cache: 'no-store' });
+    if (!subRes.ok) {
+      return res.status(502).send('Error fetching upstream subscription data');
+    }
+    const data = await subRes.text();
+
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('X-Token', token.slice(0, 8) + '...');
+    return res.send(data);
+  } catch (e) {
+    return res.status(500).send('System error: ' + e.message);
+  }
+}
+
 module.exports = async (req, res) => {
+  // ── GET ?action=vpn_sub — cào VPN Sub US trực tiếp cho Shadowrocket (qua rewrite /s/:token)
+  if (req.method === 'GET' && req.query?.action === 'vpn_sub') {
+    return handleVpnSub(req, res);
+  }
   // ── GET ?action=warmup — đánh thức function này TRƯỚC khi khách bấm link DNS ──
   // Trước đây function chỉ được gọi lúc dns.html load, nên khách là người phải chịu
   // cold start của lambda (chờ vài giây mới thấy nút). Giờ admin mở trang admin, hoặc

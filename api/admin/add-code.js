@@ -1,5 +1,5 @@
 'use strict';
-const { sb, requireAdmin, allowMethods, genCode, PRICING, dnsPoolHasCapacity } = require('../_lib/utils');
+const { sb, requireAdmin, allowMethods, genCode, PRICING, dnsPoolHasCapacity, createVpnToken } = require('../_lib/utils');
 
 module.exports = async (req, res) => {
   if (!allowMethods(req, res, ['POST'])) return;
@@ -33,6 +33,13 @@ module.exports = async (req, res) => {
             expired_notified_at: null
           }
         }).catch(() => {});
+
+        const existingVpn = await sb('GET', 'vpn_tokens', {
+          q: `customer_id=eq.${customer_id}&is_active=eq.true&select=token&limit=1`
+        }).catch(() => []);
+        if (!existingVpn?.length) {
+          await createVpnToken(customer_id, customerCode).catch(() => {});
+        }
       }
     }
 
