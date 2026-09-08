@@ -272,6 +272,32 @@ Hệ thống đã trải qua 2 đợt rà soát đối chiếu chéo (Cross-Refe
       2. **Chuẩn hóa hiển thị giờ Việt Nam (`timeZone: 'Asia/Ho_Chi_Minh'`):** Sử dụng các hàm `fmtVnDateTime`, `fmtVnDate`, `fmtVnTime` cố định múi giờ UTC+7. Dù máy Admin ở bất kỳ múi giờ nào trên thế giới cũng luôn hiển thị giờ Việt Nam chính xác 100%.
       3. **Đồng bộ hệ thống Windows:** Chuyển TimeZone Windows về `SE Asia Standard Time` (UTC+07:00 Bangkok, Hanoi, Jakarta) và đồng bộ đồng hồ hệ thống khớp từng giây với server.
 
+### Super Deep Check v3 — 7 Vấn Đề Kỹ Thuật (5 files, Schema + Security + Logic + Dead-code):
+
+16. **🔴 Sửa POST Tạo Step Guide Sai Cột (`api/admin/guide-steps.js`):**
+    - *Nguyên nhân:* POST tạo step mới gửi cột `type` (không tồn tại trong `guide_steps`) thay vì `step_type` (NOT NULL) → mọi INSERT đều fail 500. Đồng thời gửi các cột không tồn tại `caption`, `layout`, `bg_color` bị PostgREST silent-drop.
+    - *Xử lý:* Đổi sang `step_type`, xóa toàn bộ cột không tồn tại khỏi body.
+
+17. **🟡 Bỏ Ghi `updated_at` Vào Cột Không Tồn Tại (`api/admin/guide-steps.js`):**
+    - *Nguyên nhân:* PATCH step ghi `updated_at` nhưng `guide_steps` không có cột này → PostgREST silent-drop, mất audit trail.
+    - *Xử lý:* Xóa dòng gán `fields.updated_at`.
+
+18. **🔴 Xóa Ghi `locket_choice` Vào Cột Không Tồn Tại (`api/guide/complete.js`):**
+    - *Nguyên nhân:* Ghi `locket_choice` vào `access_codes` (cột không tồn tại) → dữ liệu `choice` bị mất hoàn toàn.
+    - *Xử lý:* Xóa theo yêu cầu chủ dự án — không cần lưu choice. Đồng thời dọn biến `what`, `pkg` dead code và import thừa `setAppConfig`, `isPermPackage`.
+
+19. **🔴 Bảo mật Endpoint Diagnostic Telegram (`api/_lib/telegram-bot.js`):**
+    - *Nguyên nhân:* Endpoint `?diag=1` lộ `token_prefix`, `admin_ids`, `botInfo`, `hookInfo` công khai không cần xác thực.
+    - *Xử lý:* Thêm kiểm tra `isTgAdmin` — chỉ admin mới xem được diagnostic.
+
+20. **🟠 Sửa NULL Semantics Trong Đếm Session (`api/admin/stats.js`):**
+    - *Nguyên nhân:* Query `is_kicked=eq.false` loại bỏ các session có `is_kicked = NULL` (SQL NULL semantics) → đếm thiếu session.
+    - *Xử lý:* Đổi thành `or=(is_kicked.is.null,is_kicked=eq.false)` — khớp với cách xử lý an toàn trong `sessions.js`.
+
+21. **🟢 Xóa Dead Code Badge Choice (`admin.html`):**
+    - *Nguyên nhân:* `choiceBadge` đọc `c.locket_choice` (cột không tồn tại) → badge luôn rỗng.
+    - *Xử lý:* Xóa toàn bộ khối `choiceBadge` và tham chiếu `${choiceBadge}` trong template mã truy cập.
+
 ### Tiêu Chuẩn Kiểm Định Bắt Buộc Trước Khi Bàn Giao:
 - Cú pháp toàn bộ file Node.js đạt chuẩn `node -c` (exit code 0).
 - Toàn bộ script inline trong HTML (`admin.html`, `guide.html`, `index.html`) vượt qua kiểm tra cú pháp độc lập (`validate_html_scripts.js`).
