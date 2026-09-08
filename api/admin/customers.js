@@ -536,6 +536,7 @@ module.exports = async (req, res) => {
         const codeList = codes.map(c => `"${c.code}"`).join(',');
         await sb('DELETE', 'sessions', { q: `access_code=in.(${codeList})` });
       }
+      await sb('DELETE', 'vpn_tokens', { q: `customer_id=eq.${id}` }).catch(() => {});
       await sb('DELETE', 'access_codes', { q: `customer_id=eq.${id}` });
       await sb('DELETE', 'customers', { q: `id=eq.${id}` });
       return res.json({ ok: true });
