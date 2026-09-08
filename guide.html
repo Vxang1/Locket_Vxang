@@ -1545,11 +1545,6 @@ function renderStep() {
         ${renderAppstoreAccountBox(d, specialFlow)}
       </div>
 
-      <div class="notice-box notice-alert" style="margin-top:14px;">
-        <span class="notice-icon">⛔</span>
-        <p><b>LƯU Ý QUAN TRỌNG:</b> Giữ lại app <b>Shadowrocket</b> trên máy, <b>tuyệt đối không được xóa</b> app Shadowrocket đi.</p>
-      </div>
-
       ${specialFlow ? `
       <div class="notice-box notice-tip" style="margin-top:10px;">
         <span class="notice-icon">⚠️</span>
@@ -1585,10 +1580,6 @@ function renderStep() {
 
         ${d.has_ipa ? `<a class="btn-download" href="itms-services://?action=download-manifest&url=${encodeURIComponent(plistUrl)}">⬇ Tải Locket IPA</a>` : `<div class="notice-box notice-alert" style="margin-top:14px"><span class="notice-icon">⚠️</span><p>File IPA chưa được cấu hình. <b>Liên hệ Vxang qua Zalo</b> để được gửi link cài trực tiếp.</p></div>`}
         ${d.has_ipa ? `
-        <div class="notice-box notice-alert" style="margin-top:14px;">
-          <span class="notice-icon">⛔</span>
-          <p style="font-size:.88rem;line-height:1.5"><b>LƯU Ý CỰC KỲ QUAN TRỌNG:</b> Tuyệt đối <b>KHÔNG ĐƯỢC XÓA ỨNG DỤNG LOCKET</b> sau khi đã tải/cài đặt xong! Nếu xóa bạn sẽ bị mất bản hạ cấp và không thể tự cài lại được.</p>
-        </div>
         <div class="notice-box notice-tip" style="margin-top:10px;">
           <span class="notice-icon">💡</span>
           <p style="font-size:.86rem;line-height:1.5">Tải xong Locket thì bạn hãy <b>đăng xuất tài khoản App Store của shop rồi đăng nhập lại tài khoản App Store cá nhân của bạn</b>.</p>
@@ -1616,11 +1607,6 @@ function renderStep() {
           <span class="acct-copy-value" style="font-size:.88rem;font-weight:700">📋 Config Locket Gold</span>
           <span class="acct-copy-badge">⧉ Copy</span>
         </div>
-      </div>
-
-      <div class="notice-box notice-alert" style="margin-top:16px;">
-        <span class="notice-icon">⚠️</span>
-        <p style="font-size:.9rem;line-height:1.5"><b>CẢNH BÁO QUAN TRỌNG:</b><br>Đây là <b>bước bắt buộc</b> để kích hoạt Gold.${(pkgType==='40k'||pkgType==='180'||pkgType==='15s')?' Chưa lên Gold thì DNS đã cài ở bước trước <b>sẽ không có tác dụng</b>.':''}</p>
       </div>
 
       ${renderVideoPlaceholder('Video hướng dẫn lên Locket Gold')}
