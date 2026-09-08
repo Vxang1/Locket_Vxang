@@ -299,7 +299,7 @@ async function notifyTelegram(text, extra = {}) {
   return results.some(r => r.status === 'fulfilled' && r.value === true);
 }
 
-const TG_DIVIDER = '━━━━━━━━━━';
+const TG_DIVIDER = '━━━━━━━━━━━━━━━';
 
 // parse_mode 'HTML' coi <, >, & là ký tự đặc biệt — tên khách do admin nhập tự do
 // nên phải escape trước khi nhét vào tin nhắn, giống nguyên tắc esc() trước khi
