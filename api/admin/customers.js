@@ -1,5 +1,5 @@
 'use strict';
-const { sb, requireAdmin, allowMethods, genCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, normalizePackage, isPermPackage, getAppstoreConfig, setAppConfig, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, parseContactInput, releaseCustomerFromDnsPool, createVpnToken } = require('../_lib/utils');
+const { sb, requireAdmin, allowMethods, genCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, normalizePackage, isPermPackage, getAppstoreConfig, setAppConfig, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, parseContactInput, releaseCustomerFromDnsPool, createVpnToken, createNextDnsAccountHelper } = require('../_lib/utils');
 
 
 module.exports = async (req, res) => {
@@ -379,6 +379,84 @@ module.exports = async (req, res) => {
         body: { is_active: false },
       });
       return res.json({ ok: true });
+    }
+
+    // ── GET ?action=nextdns_list — danh sách tài khoản NextDNS tự động ─
+    if (req.method === 'GET' && action === 'nextdns_list') {
+      const rows = await sb('GET', 'nextdns_accounts', { q: 'order=created_at.desc&limit=200' }) || [];
+      return res.json(rows);
+    }
+
+    // ── POST ?action=nextdns_create — tự động tạo 1 tài khoản NextDNS ──
+    if (req.method === 'POST' && action === 'nextdns_create') {
+      const { type, email, initial_used } = req.body || {};
+      try {
+        const account = await createNextDnsAccountHelper({
+          type: type || '5s',
+          customEmail: email || null,
+          initialUsed: !!initial_used,
+        });
+        return res.json({ ok: true, account });
+      } catch (err) {
+        console.error('Lỗi createNextDnsAccountHelper:', err);
+        return res.status(500).json({ error: err.message || 'Lỗi khi tạo tài khoản NextDNS' });
+      }
+    }
+
+    // ── PATCH ?action=nextdns_toggle — bật/tắt trạng thái đã sử dụng ──
+    if (req.method === 'PATCH' && action === 'nextdns_toggle') {
+      const targetId = id || req.body?.id;
+      const isUsed = req.body?.is_used !== undefined ? !!req.body.is_used : true;
+      if (!targetId) return res.status(400).json({ error: 'Missing id' });
+      const now = new Date().toISOString();
+      await sb('PATCH', 'nextdns_accounts', {
+        q: `id=eq.${encodeURIComponent(targetId)}`,
+        body: {
+          is_used: isUsed,
+          used_at: isUsed ? now : null,
+        },
+      });
+      return res.json({ ok: true, is_used: isUsed });
+    }
+
+    // ── DELETE ?action=nextdns_delete — xoá tài khoản NextDNS ─────────
+    if (req.method === 'DELETE' && action === 'nextdns_delete') {
+      const targetId = id || req.body?.id;
+      if (!targetId) return res.status(400).json({ error: 'Missing id' });
+      await sb('DELETE', 'nextdns_accounts', { q: `id=eq.${encodeURIComponent(targetId)}` });
+      return res.json({ ok: true });
+    }
+
+    // ── POST ?action=nextdns_push_pool — nạp thẳng vào pool DNS của shop ─
+    if (req.method === 'POST' && action === 'nextdns_push_pool') {
+      const { id: targetId, package: pkg, max } = req.body || {};
+      if (!targetId) return res.status(400).json({ error: 'Missing account id' });
+      
+      const accounts = await sb('GET', 'nextdns_accounts', { q: `id=eq.${encodeURIComponent(targetId)}&limit=1` }) || [];
+      if (!accounts.length) return res.status(404).json({ error: 'Không tìm thấy tài khoản NextDNS này' });
+      
+      const acc = accounts[0];
+      const targetPkg = (pkg === '15s' || pkg === '40k' || acc.package === '15s') ? '15s' : '5s';
+      const maxSlots = Math.max(1, Math.min(50, parseInt(max, 10) || 5));
+
+      const poolRows = await sb('POST', 'dns_pool', {
+        body: {
+          package: targetPkg,
+          dns_url: acc.dns_url,
+          is_active: true,
+          max: maxSlots,
+          used_codes: []
+        },
+        prefer: 'return=representation'
+      });
+
+      const now = new Date().toISOString();
+      await sb('PATCH', 'nextdns_accounts', {
+        q: `id=eq.${encodeURIComponent(targetId)}`,
+        body: { is_used: true, used_at: now }
+      }).catch(() => {});
+
+      return res.json({ ok: true, pool_row: poolRows?.[0] || null, message: `✓ Đã nạp ${acc.dns_url} vào DNS Pool ${targetPkg}!` });
     }
 
     // ── PATCH ?action=update&id=... ────────────────────────────────

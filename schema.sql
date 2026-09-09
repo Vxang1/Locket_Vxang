@@ -154,6 +154,23 @@ CREATE TABLE IF NOT EXISTS public.vpn_tokens (
 CREATE INDEX IF NOT EXISTS idx_vpn_tokens_token ON public.vpn_tokens(token);
 CREATE INDEX IF NOT EXISTS idx_vpn_tokens_customer ON public.vpn_tokens(customer_id);
 
+-- 9. BẢNG QUẢN LÝ TÀI KHOẢN NEXTDNS TỰ ĐỘNG (NEXTDNS_ACCOUNTS)
+CREATE TABLE IF NOT EXISTS public.nextdns_accounts (
+  id TEXT PRIMARY KEY,                       -- Profile ID NextDNS (ví dụ: 'dd2eea')
+  package TEXT NOT NULL DEFAULT '5s',        -- Gói: '5s' hoặc '15s'
+  email TEXT NOT NULL,                       -- Email đăng nhập
+  password TEXT NOT NULL,                    -- Mật khẩu đăng nhập
+  dns_url TEXT NOT NULL,                     -- URL cài đặt DNS (https://apple.dns.nextdns.io/{id})
+  denylist JSONB NOT NULL DEFAULT '[]'::jsonb,-- Danh sách domain đã chặn
+  is_used BOOLEAN NOT NULL DEFAULT false,    -- Trạng thái: false = Chưa dùng, true = Đã dùng
+  used_at TIMESTAMPTZ,                       -- Thời điểm đánh dấu sử dụng
+  created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+CREATE INDEX IF NOT EXISTS idx_nextdns_accounts_package ON public.nextdns_accounts(package);
+CREATE INDEX IF NOT EXISTS idx_nextdns_accounts_is_used ON public.nextdns_accounts(is_used);
+CREATE INDEX IF NOT EXISTS idx_nextdns_accounts_created_at ON public.nextdns_accounts(created_at DESC);
+
 -- ==============================================================================
 -- TẮT RLS ĐỂ SERVICE ROLE HOẠT ĐỘNG THÔNG SUỐT
 -- ==============================================================================
@@ -165,3 +182,4 @@ ALTER TABLE public.dns_pool DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.private_dns_links DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.guide_steps DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.vpn_tokens DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.nextdns_accounts DISABLE ROW LEVEL SECURITY;

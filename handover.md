@@ -377,7 +377,20 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
     - **DEAD CODE (2 lỗi đã xử lý):**
       6. `api/guide/complete.js`: Xóa biến `what`, `pkg` không dùng và import thừa `setAppConfig`, `isPermPackage`.
       7. `admin.html`: Xóa `choiceBadge` đọc `c.locket_choice` (cột không tồn tại, badge luôn rỗng) và tham chiếu `${choiceBadge}` trong template mã truy cập.
-    - **Kiểm định:** Đạt 100% PASS kiểm thử cú pháp `node -c` toàn bộ file đã sửa. Hệ thống đạt trạng thái vận hành ổn định và đồng bộ hoàn hảo.
+24. **⚡ TÍCH HỢP QUẢN LÝ NEXTDNS TỰ ĐỘNG (TAB NEXTDNS TRONG ADMIN CRM) (2026-09-09):**
+    - **Mục tiêu:** Tự động hóa hoàn toàn quy trình tạo tài khoản NextDNS riêng cho shop, cấp hòm thư ảo ngẫu nhiên qua API, sinh mật khẩu an toàn, tự động nạp denylist theo từng gói (5s: 2 domain RevenueCat; 15s: 2 domain RevenueCat + 2 domain Firebase).
+    - **Kiến trúc & Ràng buộc:**
+      - Tuyệt đối giữ nguyên 11 Serverless Functions Vercel (không thêm function mới). Mở rộng router `api/admin/customers.js` với các action: `nextdns_list`, `nextdns_create`, `nextdns_toggle`, `nextdns_delete`, `nextdns_push_pool`.
+      - Xây dựng helper trong `api/_lib/utils.js`: `genNextDnsPassword()`, `getTempEmailHelper()`, `createNextDnsAccountHelper()`.
+      - Bảng cơ sở dữ liệu độc lập `public.nextdns_accounts` trên Supabase, không chạm vào cấu trúc các bảng hiện tại.
+    - **Frontend Admin & Trải nghiệm Mobile (iPhone Safari):**
+      - Thêm tab `⚡ NextDNS` vào thanh điều hướng và truy cập nhanh của `admin.html`.
+      - Stats cards: Tổng số tài khoản, Chưa dùng (sẵn sàng), Đã dùng, Phân bổ gói 5s/15s.
+      - Chức năng tạo batch linh hoạt (1, 3, 5, 10 tài khoản) chạy tuần tự phía client kèm progress bar trực quan để chống timeout 10s của Vercel Hobby.
+      - Hỗ trợ nhập email tùy chỉnh hoặc tự động lấy email ảo ngẫu nhiên.
+      - Tự động thích ứng trên điện thoại: Bảng dữ liệu tự chuyển đổi thành các thẻ danh thiếp mini trực quan (`.m-card`), có nút 1-chạm copy Link DNS, copy Pass, đổi trạng thái, xóa, và nút `🚀 Nạp Pool` đẩy thẳng link vào DNS Pool mặc định của shop và tự đánh dấu Đã dùng.
+      - Nút "Copy tất cả link chưa dùng" giúp admin trích xuất nhanh danh sách link phục vụ công việc.
+    - **Kiểm định:** 100% PASS kiểm thử cú pháp `node -c` toàn bộ file Node.js và script inline trong HTML.
 
 ---
 

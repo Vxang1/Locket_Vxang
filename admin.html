@@ -756,6 +756,7 @@ window.addEventListener('DOMContentLoaded', () => {
       <button class="tab" data-tab="dnspool" onclick="switchTab('dnspool')">🌐 DNS mặc định</button>
       <button class="tab" data-tab="appstore" onclick="switchTab('appstore')">🍎 Appstore</button>
       <button class="tab" data-tab="emergency" onclick="switchTab('emergency')">🛡️ Khách đặc biệt</button>
+      <button class="tab" data-tab="nextdns" onclick="switchTab('nextdns')">⚡ NextDNS</button>
     </div>
   </header>
   <div class="page">
@@ -781,8 +782,7 @@ window.addEventListener('DOMContentLoaded', () => {
           <button class="btn-quick" onclick="switchTab('dnspool')">🌐 DNS mặc định</button>
           <button class="btn-quick" onclick="switchTab('appstore')">🍎 Appstore</button>
           <button class="btn-quick" onclick="switchTab('emergency')">🛡️ Khách đặc biệt</button>
-          
-          
+          <button class="btn-quick" onclick="switchTab('nextdns')">⚡ Auto NextDNS</button>
         </div>
       </div>
     </div>
@@ -1066,6 +1066,174 @@ window.addEventListener('DOMContentLoaded', () => {
         <div class="form-card-title">Khách đang bật flow đặc biệt (Gói 150 & 180)</div>
         <div class="section-sub">Bật/tắt từng khách trong phần chi tiết khách (ô "Bật flow đặc biệt")</div>
         <div id="emergencyCustList">Đang tải...</div>
+      </div>
+    </div>
+
+    <!-- NextDNS Automation Tab -->
+    <div class="tab-content" id="tab-nextdns">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+        <div style="flex:1;min-width:240px">
+          <div class="section-title">⚡ NextDNS Tự Động</div>
+          <div class="section-sub">Tự sinh hòm thư ảo · Đăng ký NextDNS & Cấu hình Denylist tức thời · Quản lý trạng thái sử dụng</div>
+        </div>
+        <button class="btn-refresh" onclick="loadNextDnsAdmin()" style="display:flex;align-items:center;gap:6px;">
+          🔄 Làm mới danh sách
+        </button>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid" style="margin-bottom:18px;">
+        <div class="stat-card">
+          <div class="stat-ico">⚡</div>
+          <div class="stat-val" id="ndStatTotal">0</div>
+          <div class="stat-lbl">Tổng tài khoản</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-ico">🟢</div>
+          <div class="stat-val" id="ndStatUnused" style="color:var(--green)">0</div>
+          <div class="stat-lbl">Chưa dùng (Sẵn sàng)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-ico">🔒</div>
+          <div class="stat-val" id="ndStatUsed" style="color:var(--muted)">0</div>
+          <div class="stat-lbl">Đã sử dụng</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-ico">📦</div>
+          <div class="stat-val" id="ndStatSplit" style="font-size:1.1rem;margin-top:4px;">5s: 0 | 15s: 0</div>
+          <div class="stat-lbl">Phân loại gói</div>
+        </div>
+      </div>
+
+      <!-- Form Tạo Mới -->
+      <div class="form-card" style="margin-bottom:20px;">
+        <div class="form-card-title">🚀 Tạo tài khoản NextDNS mới</div>
+        
+        <div class="field" style="margin-bottom:14px;">
+          <label>Loại cấu hình DNS *</label>
+          <div class="pkg-choice-grid">
+            <button type="button" class="pkg-card-btn active" id="btnNdType5s" onclick="selectNdType('5s')">
+              <div class="pkg-card-icon">🟢</div>
+              <div class="pkg-card-info">
+                <div class="pkg-card-title">Gói 5s (30k)</div>
+                <div class="pkg-card-sub">Chặn 2 domain RevenueCat</div>
+              </div>
+              <div class="pkg-card-check">✓</div>
+            </button>
+            <button type="button" class="pkg-card-btn" id="btnNdType15s" onclick="selectNdType('15s')">
+              <div class="pkg-card-icon">🔵</div>
+              <div class="pkg-card-info">
+                <div class="pkg-card-title">Gói 15s (40k)</div>
+                <div class="pkg-card-sub">Chặn RevenueCat + 2 Firebase</div>
+              </div>
+              <div class="pkg-card-check">✓</div>
+            </button>
+          </div>
+          <input type="hidden" id="ndType" value="5s"/>
+        </div>
+
+        <div class="field" style="margin-bottom:14px;">
+          <label>Số lượng tài khoản muốn tạo</label>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+            <button type="button" class="pkg-card-btn active" id="btnNdQty1" onclick="selectNdQty(1)" style="min-height:46px;justify-content:center;padding:8px 10px;">
+              <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.9rem;">1 Acc</span>
+            </button>
+            <button type="button" class="pkg-card-btn" id="btnNdQty3" onclick="selectNdQty(3)" style="min-height:46px;justify-content:center;padding:8px 10px;">
+              <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.9rem;">3 Acc</span>
+            </button>
+            <button type="button" class="pkg-card-btn" id="btnNdQty5" onclick="selectNdQty(5)" style="min-height:46px;justify-content:center;padding:8px 10px;">
+              <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.9rem;">5 Acc</span>
+            </button>
+            <button type="button" class="pkg-card-btn" id="btnNdQty10" onclick="selectNdQty(10)" style="min-height:46px;justify-content:center;padding:8px 10px;">
+              <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.9rem;">10 Acc</span>
+            </button>
+          </div>
+          <input type="hidden" id="ndQty" value="1"/>
+        </div>
+
+        <div class="field" style="margin-bottom:14px;">
+          <label>Email tùy chỉnh (tùy chọn - để trống sẽ tự lấy email ảo)</label>
+          <input type="text" id="ndCustomEmail" placeholder="Bỏ trống để hệ thống tự cấp email ảo ngẫu nhiên"/>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:var(--bg-surface);cursor:pointer;font-weight:800;font-size:.84rem;user-select:none;">
+            <input type="checkbox" id="ndInitialUsed" style="width:18px;height:18px;cursor:pointer"/>
+            <span>🔒 Đánh dấu là "Đã sử dụng" ngay sau khi tạo</span>
+          </label>
+        </div>
+
+        <!-- Batch progress bar & status -->
+        <div id="ndProgressWrap" style="display:none;margin-bottom:14px;padding:12px 14px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:var(--gold-bg);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:.82rem;font-weight:800;">
+            <span id="ndProgressStatus">⏳ Đang khởi tạo...</span>
+            <span id="ndProgressPercent" style="font-family:'JetBrains Mono',monospace;">0%</span>
+          </div>
+          <div style="width:100%;height:8px;background:#FFF;border:1.5px solid var(--ink);border-radius:99px;overflow:hidden;">
+            <div id="ndProgressBar" style="width:0%;height:100%;background:var(--green);transition:width .2s;"></div>
+          </div>
+        </div>
+
+        <button class="btn-action btn-gen" id="btnCreateNd" onclick="startCreateNdBatch()" style="font-size:.95rem;padding:14px;">
+          ⚡ Bắt đầu tạo tài khoản
+        </button>
+
+        <!-- Thẻ kết quả vừa tạo -->
+        <div id="ndLatestCard" style="display:none;margin-top:16px;padding:14px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;box-shadow:var(--shadow-sm);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;color:var(--green);font-size:.95rem;">🎉 Tài khoản vừa tạo:</span>
+            <button class="tl-btn" onclick="document.getElementById('ndLatestCard').style.display='none'" style="padding:2px 8px;font-size:.7rem;">Đóng</button>
+          </div>
+          <div id="ndLatestContent"></div>
+        </div>
+      </div>
+
+      <!-- Danh sách tài khoản -->
+      <div class="form-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+          <div class="form-card-title" style="margin-bottom:0;">📋 Quản lý tài khoản NextDNS đã tạo</div>
+          <button class="btn-quick" onclick="copyAllUnusedNextDnsLinks()" style="padding:8px 12px;font-size:.8rem;">
+            ⧉ Copy tất cả link chưa dùng
+          </button>
+        </div>
+
+        <!-- Filter & Search Bar -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+          <input type="text" id="ndSearchInput" placeholder="🔍 Tìm theo Profile ID, Email, Gói..." oninput="filterNextDnsList()" style="flex:1;min-width:200px;font-size:.85rem;padding:9px 12px;"/>
+          <select id="ndFilterStatus" onchange="filterNextDnsList()" style="width:auto;min-width:140px;font-size:.82rem;padding:8px 30px 8px 12px;">
+            <option value="all">Tất cả trạng thái</option>
+            <option value="unused">🟢 Chưa dùng</option>
+            <option value="used">🔒 Đã dùng</option>
+          </select>
+          <select id="ndFilterPkg" onchange="filterNextDnsList()" style="width:auto;min-width:120px;font-size:.82rem;padding:8px 30px 8px 12px;">
+            <option value="all">Tất cả gói</option>
+            <option value="5s">🟢 Gói 5s</option>
+            <option value="15s">🔵 Gói 15s</option>
+          </select>
+        </div>
+
+        <!-- Desktop Table View -->
+        <div class="table-wrap" id="ndTableWrap" style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;text-align:left;font-size:.82rem;">
+            <thead>
+              <tr style="border-bottom:2px solid var(--ink);background:var(--bg-surface);">
+                <th style="padding:10px 12px;font-weight:900;">Gói</th>
+                <th style="padding:10px 12px;font-weight:900;">Profile ID</th>
+                <th style="padding:10px 12px;font-weight:900;">Email / Pass</th>
+                <th style="padding:10px 12px;font-weight:900;">Link Cài Đặt</th>
+                <th style="padding:10px 12px;font-weight:900;">Trạng Thái</th>
+                <th style="padding:10px 12px;font-weight:900;">Ngày Tạo</th>
+                <th style="padding:10px 12px;font-weight:900;text-align:right;">Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="ndTableBody">
+              <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);font-weight:600;">Đang tải danh sách tài khoản...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile Cards View -->
+        <div id="ndMobileCards" class="mobile-cards" style="margin-top:10px;"></div>
       </div>
     </div>
 
@@ -2437,6 +2605,7 @@ window.switchTab=function(name){
   }
   if(name==='appstore') loadAppstoreAdmin();
   if(name==='emergency') loadEmergencyAdmin();
+  if(name==='nextdns') loadNextDnsAdmin();
   if (window.scrollY > 80) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -3276,10 +3445,335 @@ function renderCodes(){
   }).join('');
 }
 // ─────────────────────────────────────────────────────────────────
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+// NEXTDNS AUTOMATION MANAGEMENT
+// ─────────────────────────────────────────────────────────────────
+let allNextDnsAccounts = [];
 
+window.selectNdType = function(type) {
+  const el = document.getElementById('ndType');
+  if (el) el.value = type;
+  const b5s = document.getElementById('btnNdType5s');
+  const b15s = document.getElementById('btnNdType15s');
+  if (b5s) b5s.classList.toggle('active', type === '5s');
+  if (b15s) b15s.classList.toggle('active', type === '15s');
+};
 
+window.selectNdQty = function(qty) {
+  const el = document.getElementById('ndQty');
+  if (el) el.value = qty;
+  [1, 3, 5, 10].forEach(q => {
+    const btn = document.getElementById('btnNdQty' + q);
+    if (btn) btn.classList.toggle('active', q === qty);
+  });
+  const btnCreate = document.getElementById('btnCreateNd');
+  if (btnCreate) btnCreate.textContent = `⚡ Bắt đầu tạo ${qty} tài khoản`;
+};
 
+window.loadNextDnsAdmin = async function() {
+  try {
+    const res = await api('GET', '/api/admin/customers?action=nextdns_list');
+    allNextDnsAccounts = Array.isArray(res) ? res : [];
+    renderNextDnsStats();
+    filterNextDnsList();
+  } catch (err) {
+    showToast('⚠ Lỗi tải danh sách NextDNS: ' + err.message, 'red');
+  }
+};
+
+window.renderNextDnsStats = function() {
+  const total = allNextDnsAccounts.length;
+  const unused = allNextDnsAccounts.filter(a => !a.is_used).length;
+  const used = allNextDnsAccounts.filter(a => a.is_used).length;
+  const count5s = allNextDnsAccounts.filter(a => a.package === '5s').length;
+  const count15s = allNextDnsAccounts.filter(a => a.package === '15s').length;
+
+  const elTotal = document.getElementById('ndStatTotal');
+  const elUnused = document.getElementById('ndStatUnused');
+  const elUsed = document.getElementById('ndStatUsed');
+  const elSplit = document.getElementById('ndStatSplit');
+
+  if (elTotal) elTotal.textContent = total;
+  if (elUnused) elUnused.textContent = unused;
+  if (elUsed) elUsed.textContent = used;
+  if (elSplit) elSplit.textContent = `5s: ${count5s} | 15s: ${count15s}`;
+};
+
+window.startCreateNdBatch = async function() {
+  const type = document.getElementById('ndType')?.value || '5s';
+  const qty = parseInt(document.getElementById('ndQty')?.value, 10) || 1;
+  const customEmail = (document.getElementById('ndCustomEmail')?.value || '').trim();
+  const initialUsed = !!document.getElementById('ndInitialUsed')?.checked;
+
+  const btnCreate = document.getElementById('btnCreateNd');
+  const pWrap = document.getElementById('ndProgressWrap');
+  const pBar = document.getElementById('ndProgressBar');
+  const pStatus = document.getElementById('ndProgressStatus');
+  const pPercent = document.getElementById('ndProgressPercent');
+
+  if (btnCreate) {
+    btnCreate.disabled = true;
+    btnCreate.style.opacity = '0.6';
+    btnCreate.style.cursor = 'not-allowed';
+  }
+  if (pWrap) pWrap.style.display = 'block';
+
+  const createdAccounts = [];
+  let errorCount = 0;
+
+  for (let i = 0; i < qty; i++) {
+    const currentStep = i + 1;
+    const pct = Math.round((i / qty) * 100);
+    if (pBar) pBar.style.width = pct + '%';
+    if (pPercent) pPercent.textContent = pct + '%';
+    if (pStatus) pStatus.textContent = `⏳ [${currentStep}/${qty}] Đang tạo tài khoản NextDNS (${type.toUpperCase()})...`;
+
+    // Nếu người dùng nhập email tùy chỉnh: chỉ dùng cho tài khoản đầu tiên
+    const emailToUse = (i === 0 && customEmail) ? customEmail : null;
+
+    try {
+      const res = await api('POST', '/api/admin/customers?action=nextdns_create', {
+        type,
+        email: emailToUse,
+        initial_used: initialUsed
+      });
+      if (res && res.account) {
+        createdAccounts.push(res.account);
+      }
+    } catch (err) {
+      console.error(`Lỗi tạo tài khoản ${currentStep}:`, err);
+      errorCount++;
+      showToast(`⚠ Lỗi acc #${currentStep}: ${err.message}`, 'red');
+    }
+  }
+
+  if (pBar) pBar.style.width = '100%';
+  if (pPercent) pPercent.textContent = '100%';
+  if (pStatus) pStatus.textContent = `✓ Đã hoàn tất tạo ${createdAccounts.length}/${qty} tài khoản!`;
+
+  setTimeout(() => {
+    if (pWrap) pWrap.style.display = 'none';
+    if (btnCreate) {
+      btnCreate.disabled = false;
+      btnCreate.style.opacity = '1';
+      btnCreate.style.cursor = 'pointer';
+      btnCreate.textContent = `⚡ Bắt đầu tạo ${qty} tài khoản`;
+    }
+  }, 1200);
+
+  if (createdAccounts.length > 0) {
+    showToast(`✓ Đã tạo thành công ${createdAccounts.length} tài khoản NextDNS!`, 'green');
+    const inputEmail = document.getElementById('ndCustomEmail');
+    if (inputEmail) inputEmail.value = '';
+
+    const latest = createdAccounts[createdAccounts.length - 1];
+    const latestCard = document.getElementById('ndLatestCard');
+    const latestContent = document.getElementById('ndLatestContent');
+    if (latestCard && latestContent) {
+      latestCard.style.display = 'block';
+      latestContent.innerHTML = `
+        <div style="font-size:.82rem;line-height:1.7;">
+          <div><b>Gói:</b> <span class="dp-badge ${latest.package === '15s' ? 'dp-b-15s' : 'dp-b-5s'}">${latest.package.toUpperCase()}</span> · <b>Profile ID:</b> <code style="font-weight:900;background:var(--gold-bg);padding:2px 6px;border:1px solid var(--ink);border-radius:4px;">${esc(latest.id)}</code></div>
+          <div><b>Email:</b> ${esc(latest.email)} <button class="btn-copy-r" style="padding:2px 8px;font-size:.72rem;" onclick="navigator.clipboard.writeText('${esc(latest.email)}');showToast('✓ Đã copy Email','green');">Copy</button></div>
+          <div><b>Mật khẩu:</b> <code>${esc(latest.password)}</code> <button class="btn-copy-r" style="padding:2px 8px;font-size:.72rem;" onclick="navigator.clipboard.writeText('${esc(latest.password)}');showToast('✓ Đã copy Mật khẩu','green');">Copy</button></div>
+          <div style="word-break:break-all;margin-top:4px;"><b>DNS Link:</b> <a href="${esc(latest.dns_url)}" target="_blank" style="color:var(--accent);font-weight:700;">${esc(latest.dns_url)}</a> <button class="btn-copy-r" style="padding:2px 8px;font-size:.72rem;" onclick="navigator.clipboard.writeText('${esc(latest.dns_url)}');showToast('✓ Đã copy Link DNS','green');">Copy Link</button></div>
+          <div style="font-size:.75rem;color:var(--muted);margin-top:4px;"><b>Denylist:</b> ${(latest.denylist || []).join(', ')}</div>
+        </div>
+      `;
+    }
+  }
+
+  await loadNextDnsAdmin();
+};
+
+window.toggleNextDnsStatus = async function(id, currentUsed) {
+  try {
+    const res = await api('PATCH', '/api/admin/customers?action=nextdns_toggle', {
+      id,
+      is_used: !currentUsed
+    });
+    if (res && res.ok) {
+      showToast(currentUsed ? '✓ Đã chuyển về: Chưa sử dụng' : '✓ Đã chuyển sang: Đã sử dụng', 'green');
+      const item = allNextDnsAccounts.find(a => a.id === id);
+      if (item) {
+        item.is_used = !currentUsed;
+        item.used_at = !currentUsed ? new Date().toISOString() : null;
+      }
+      renderNextDnsStats();
+      filterNextDnsList();
+    }
+  } catch (err) {
+    showToast('⚠ Lỗi cập nhật trạng thái: ' + err.message, 'red');
+  }
+};
+
+window.deleteNextDns = async function(id) {
+  if (!confirm(`Bạn có chắc chắn muốn xóa tài khoản NextDNS "${id}" khỏi hệ thống?`)) return;
+  try {
+    const res = await api('DELETE', `/api/admin/customers?action=nextdns_delete&id=${encodeURIComponent(id)}`);
+    if (res && res.ok) {
+      showToast('🗑 Đã xóa tài khoản NextDNS', 'green');
+      allNextDnsAccounts = allNextDnsAccounts.filter(a => a.id !== id);
+      renderNextDnsStats();
+      filterNextDnsList();
+    }
+  } catch (err) {
+    showToast('⚠ Lỗi xóa tài khoản: ' + err.message, 'red');
+  }
+};
+
+window.pushNextDnsToPool = async function(id) {
+  const item = allNextDnsAccounts.find(a => a.id === id);
+  if (!item) return;
+  if (!confirm(`Nạp link của tài khoản "${id}" vào DNS Pool ${item.package.toUpperCase()} của shop?\n(Tài khoản sẽ tự động chuyển sang trạng thái "Đã dùng")`)) return;
+
+  try {
+    const res = await api('POST', '/api/admin/customers?action=nextdns_push_pool', { id });
+    if (res && res.ok) {
+      showToast(res.message || '✓ Đã nạp vào DNS Pool thành công!', 'green');
+      item.is_used = true;
+      item.used_at = new Date().toISOString();
+      renderNextDnsStats();
+      filterNextDnsList();
+    }
+  } catch (err) {
+    showToast('⚠ Lỗi nạp vào pool: ' + err.message, 'red');
+  }
+};
+
+window.copyAllUnusedNextDnsLinks = function() {
+  const unused = allNextDnsAccounts.filter(a => !a.is_used);
+  if (!unused.length) {
+    showToast('ℹ Không có link DNS nào ở trạng thái "Chưa dùng"', 'purple');
+    return;
+  }
+  const text = unused.map(a => a.dns_url).join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    showToast(`✓ Đã sao chép ${unused.length} link DNS chưa dùng!`, 'green');
+  }).catch(() => {
+    showToast('⚠ Không thể truy cập clipboard', 'red');
+  });
+};
+
+function renderNextDnsDesktopTable(list) {
+  const tbody = document.getElementById('ndTableBody');
+  if (!tbody) return;
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);font-weight:600;">Không tìm thấy tài khoản NextDNS nào phù hợp</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(r => {
+    const is15s = r.package === '15s';
+    const pkgBadge = `<span class="dp-badge ${is15s ? 'dp-b-15s' : 'dp-b-5s'}">${r.package.toUpperCase()}</span>`;
+    const statusBadge = r.is_used
+      ? `<span style="display:inline-block;padding:3px 8px;border-radius:6px;background:var(--bg-surface);color:var(--muted);font-weight:800;border:1px solid var(--ink);font-size:.72rem;">🔒 Đã dùng</span>`
+      : `<span style="display:inline-block;padding:3px 8px;border-radius:6px;background:var(--green-bg);color:var(--green);font-weight:900;border:1.5px solid var(--ink);font-size:.72rem;">🟢 Sẵn sàng</span>`;
+    const createdDate = fmtVnDateTime(r.created_at);
+
+    return `
+      <tr style="border-bottom:1px solid rgba(26,26,26,0.1);transition:background .15s;" onmouseover="this.style.background='var(--gold-bg)'" onmouseout="this.style.background='transparent'">
+        <td style="padding:10px 12px;white-space:nowrap;">${pkgBadge}</td>
+        <td style="padding:10px 12px;white-space:nowrap;">
+          <code style="font-weight:800;font-size:.85rem;background:#FFF;padding:2px 6px;border:1px solid var(--ink);border-radius:4px;cursor:pointer;" onclick="navigator.clipboard.writeText('${esc(r.id)}');showToast('✓ Đã copy ID: ${esc(r.id)}','green');" title="Bấm để copy ID">${esc(r.id)}</code>
+        </td>
+        <td style="padding:10px 12px;font-size:.78rem;">
+          <div style="font-weight:700;word-break:break-all;">${esc(r.email)}</div>
+          <div style="color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:2px;">
+            <span>Pass: <code>${esc(r.password)}</code></span>
+            <button class="tl-btn" style="padding:1px 6px;font-size:.65rem;margin-left:4px;" onclick="navigator.clipboard.writeText('${esc(r.password)}');showToast('✓ Đã copy Mật khẩu','green');">Copy</button>
+          </div>
+        </td>
+        <td style="padding:10px 12px;max-width:180px;">
+          <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'JetBrains Mono',monospace;font-size:.76rem;color:var(--accent);font-weight:700;">${esc(r.dns_url)}</div>
+          <button class="btn-copy-r" style="padding:3px 8px;font-size:.7rem;margin-top:3px;" onclick="navigator.clipboard.writeText('${esc(r.dns_url)}');showToast('✓ Đã copy Link DNS','green');">⧉ Copy link</button>
+        </td>
+        <td style="padding:10px 12px;white-space:nowrap;">${statusBadge}</td>
+        <td style="padding:10px 12px;font-size:.74rem;color:var(--muted);white-space:nowrap;">${createdDate}</td>
+        <td style="padding:10px 12px;text-align:right;white-space:nowrap;">
+          <div style="display:flex;gap:4px;justify-content:flex-end;">
+            <button class="tl-btn" title="Nạp trực tiếp link này vào DNS Pool của shop" onclick="pushNextDnsToPool('${esc(r.id)}')" style="padding:5px 8px;font-size:.75rem;background:var(--gold);font-weight:900;">🚀 Nạp Pool</button>
+            <button class="tl-btn" title="Chuyển trạng thái Chưa dùng / Đã dùng" onclick="toggleNextDnsStatus('${esc(r.id)}', ${r.is_used})" style="padding:5px 8px;font-size:.75rem;">${r.is_used ? '🔄 Mở lại' : '🔒 Đã dùng'}</button>
+            <button class="tl-btn" title="Xóa tài khoản" onclick="deleteNextDns('${esc(r.id)}')" style="padding:5px 8px;font-size:.75rem;color:var(--red);border-color:var(--red);">✕</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderNextDnsMobileCards(list) {
+  const container = document.getElementById('ndMobileCards');
+  if (!container) return;
+  if (!list.length) {
+    container.innerHTML = `<div style="text-align:center;padding:24px;color:var(--muted);font-weight:600;">Không tìm thấy tài khoản nào</div>`;
+    return;
+  }
+  container.innerHTML = list.map(r => {
+    const is15s = r.package === '15s';
+    const pkgBadge = `<span class="dp-badge ${is15s ? 'dp-b-15s' : 'dp-b-5s'}">${r.package.toUpperCase()}</span>`;
+    const statusBadge = r.is_used
+      ? `<span style="display:inline-block;padding:2px 6px;border-radius:6px;background:var(--bg-surface);color:var(--muted);font-weight:800;border:1px solid var(--ink);font-size:.7rem;">🔒 Đã dùng</span>`
+      : `<span style="display:inline-block;padding:2px 6px;border-radius:6px;background:var(--green-bg);color:var(--green);font-weight:900;border:1.5px solid var(--ink);font-size:.7rem;">🟢 Sẵn sàng</span>`;
+    const createdDate = fmtVnDateTime(r.created_at);
+
+    return `
+      <div class="m-card">
+        <div class="m-card-top">
+          <div>
+            <div class="m-card-name" style="display:flex;align-items:center;gap:6px;">
+              ${pkgBadge}
+              <span style="font-family:'JetBrains Mono',monospace;font-size:.9rem;">${esc(r.id)}</span>
+            </div>
+            <div class="m-card-codes" style="word-break:break-all;margin-top:4px;">${esc(r.email)}</div>
+          </div>
+          <div class="m-card-badges">
+            ${statusBadge}
+          </div>
+        </div>
+        <div style="font-size:.78rem;margin:6px 0;background:var(--card-inner);padding:8px;border:1px solid var(--ink);border-radius:var(--radius-sm);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span><b>Pass:</b> <code>${esc(r.password)}</code></span>
+            <button class="tl-btn" style="padding:2px 8px;font-size:.7rem;" onclick="navigator.clipboard.writeText('${esc(r.password)}');showToast('✓ Đã copy Mật khẩu','green');">Copy Pass</button>
+          </div>
+          <div style="word-break:break-all;font-size:.74rem;color:var(--accent);font-family:'JetBrains Mono',monospace;">
+            ${esc(r.dns_url)}
+          </div>
+        </div>
+        <div class="m-card-meta">
+          <span>Tạo: ${createdDate}</span>
+          ${r.is_used && r.used_at ? `<span>· Dùng: ${fmtVnDateTime(r.used_at)}</span>` : ''}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;">
+          <button class="btn-copy-r" style="width:100%;text-align:center;padding:8px 6px;font-size:.76rem;" onclick="navigator.clipboard.writeText('${esc(r.dns_url)}');showToast('✓ Đã copy Link DNS','green');">⧉ Copy DNS</button>
+          <button class="tl-btn" style="width:100%;text-align:center;padding:8px 6px;font-size:.76rem;background:var(--gold);font-weight:900;" onclick="pushNextDnsToPool('${esc(r.id)}')">🚀 Nạp Pool</button>
+          <button class="tl-btn" style="width:100%;text-align:center;padding:8px 6px;font-size:.76rem;" onclick="toggleNextDnsStatus('${esc(r.id)}', ${r.is_used})">${r.is_used ? '🔄 Chưa dùng' : '🔒 Đã dùng'}</button>
+          <button class="tl-btn" style="width:100%;text-align:center;padding:8px 6px;font-size:.76rem;color:var(--red);border-color:var(--red);" onclick="deleteNextDns('${esc(r.id)}')">🗑 Xóa</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.filterNextDnsList = function() {
+  const q = (document.getElementById('ndSearchInput')?.value || '').toLowerCase().trim();
+  const statusFilter = document.getElementById('ndFilterStatus')?.value || 'all';
+  const pkgFilter = document.getElementById('ndFilterPkg')?.value || 'all';
+
+  const filtered = allNextDnsAccounts.filter(a => {
+    if (statusFilter === 'unused' && a.is_used) return false;
+    if (statusFilter === 'used' && !a.is_used) return false;
+    if (pkgFilter !== 'all' && a.package !== pkgFilter) return false;
+    if (q) {
+      const matchId = (a.id || '').toLowerCase().includes(q);
+      const matchEmail = (a.email || '').toLowerCase().includes(q);
+      const matchPkg = (a.package || '').toLowerCase().includes(q);
+      if (!matchId && !matchEmail && !matchPkg) return false;
+    }
+    return true;
+  });
+
+  renderNextDnsDesktopTable(filtered);
+  renderNextDnsMobileCards(filtered);
+};
 
 document.addEventListener('DOMContentLoaded',()=>{
   if(adminToken){document.getElementById('loginOverlay').style.display='none';document.getElementById('adminUI').style.display='block';initAdmin();}

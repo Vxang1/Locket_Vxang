@@ -298,6 +298,12 @@ Hệ thống đã trải qua 2 đợt rà soát đối chiếu chéo (Cross-Refe
     - *Nguyên nhân:* `choiceBadge` đọc `c.locket_choice` (cột không tồn tại) → badge luôn rỗng.
     - *Xử lý:* Xóa toàn bộ khối `choiceBadge` và tham chiếu `${choiceBadge}` trong template mã truy cập.
 
+22. **⚡ Tích Hợp Quản Lý NextDNS Tự Động (Tab `⚡ NextDNS` trong Admin Dashboard):**
+    - *Yêu cầu:* Tự động hóa hoàn toàn việc tạo tài khoản NextDNS (hòm thư ảo ngẫu nhiên, tạo mật khẩu mạnh), tự cấu hình Denylist chuẩn theo từng gói (5s: `revenuecat.com`, `api.revenuecat.com`; 15s: thêm `firebaseremoteconfig.googleapis.com`, `firebaseappcheck.googleapis.com`).
+    - *Kiến trúc & Ràng buộc:* Không tạo thêm Serverless Function (giữ đúng 11 endpoint), mở rộng router `api/admin/customers.js` với các action `nextdns_list`, `nextdns_create`, `nextdns_toggle`, `nextdns_delete`, `nextdns_push_pool`.
+    - *Database:* Bảng độc lập `public.nextdns_accounts` trên Supabase (`id`, `package`, `email`, `password`, `dns_url`, `denylist`, `is_used`, `used_at`, `created_at`).
+    - *UX & Hiệu năng:* Client chạy batch tạo 1, 3, 5, 10 tài khoản tuần tự kèm thanh tiến trình trực quan, chống Vercel timeout 10s. Tự động chuyển đổi giao diện Bảng trên Desktop thành thẻ Danh thiếp Mini chuẩn Mobile iPhone Safari. Có nút 1-chạm nạp thẳng vào `dns_pool` của shop và tự đánh dấu đã dùng.
+
 ### Tiêu Chuẩn Kiểm Định Bắt Buộc Trước Khi Bàn Giao:
 - Cú pháp toàn bộ file Node.js đạt chuẩn `node -c` (exit code 0).
 - Toàn bộ script inline trong HTML (`admin.html`, `guide.html`, `index.html`) vượt qua kiểm tra cú pháp độc lập (`validate_html_scripts.js`).

@@ -87,7 +87,7 @@ async function sb(method, table, { body, q = '', prefer } = {}) {
 }
 
 // ─── JWT (HMAC-SHA256, Node crypto) ──────────────────────────
-const { createHmac, timingSafeEqual } = require('crypto');
+const { createHmac, timingSafeEqual, randomBytes } = require('crypto');
 function b64url(str) { return Buffer.from(str).toString('base64url'); }
 function signJWT(payload) {
   const h = b64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
@@ -908,4 +908,161 @@ function parseContactInput(input) {
   return { phone: '', social_link: str, social_platform: 'zalo' };
 }
 
-module.exports = { sb, signJWT, verifyJWT, getToken, requireAdmin, requireGuide, allowMethods, genCode, PACKAGES, PACKAGE_KEYS, normalizePackage, isPermPackage, PRICING, getPrice, getPriceLabel, durationMonths, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, expireCodeAndNotify, sweepExpiredCodes, DEFAULT_STEP_FLOW, DEFAULT_STEP_FLOW_SPECIAL, STEP_TYPE_LABELS, stepLabel, buildStepFlow, alignStepFlow, lookupCustomerByDnsCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, dnsPrivateUrl, getAppConfig, setAppConfig, getAppstoreConfig, getEmergencyConfig, maskAppstoreEmail, dnsPoolKey, claimDnsFromPool, releaseCustomerFromDnsPool, dnsPoolHasCapacity, DNS_POOL_FULL_MSG, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, fbGet, fbPut, parseContactInput, TG_CHAT_IDS, TG_CHAT_ID, isTgAdmin, genVpnToken, createVpnToken, TG_DIVIDER };
+// ─── NextDNS Automation Helpers ──────────────────────────────
+const DENYLISTS_NEXTDNS = {
+  '5s': [
+    'revenuecat.com',
+    'api.revenuecat.com'
+  ],
+  '15s': [
+    'api.revenuecat.com',
+    'revenuecat.com',
+    'firebaseremoteconfig.googleapis.com',
+    'firebaseappcheck.googleapis.com'
+  ]
+};
+
+function genNextDnsPassword() {
+  const charsUpper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const charsLower = 'abcdefghijkmnpqrstuvwxyz';
+  const charsDigits = '23456789';
+  const charsSymbols = '!@#$%^&*';
+  
+  let pwd = '';
+  pwd += charsUpper[Math.floor(Math.random() * charsUpper.length)];
+  pwd += charsLower[Math.floor(Math.random() * charsLower.length)];
+  pwd += charsDigits[Math.floor(Math.random() * charsDigits.length)];
+  pwd += charsSymbols[Math.floor(Math.random() * charsSymbols.length)];
+  
+  const allChars = charsUpper + charsLower + charsDigits + charsSymbols;
+  for (let i = 0; i < 10; i++) {
+    pwd += allChars[Math.floor(Math.random() * allChars.length)];
+  }
+  return pwd.split('').sort(() => 0.5 - Math.random()).join('');
+}
+
+async function getTempEmailHelper() {
+  try {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 4000);
+    const domainsRes = await fetch('https://api.mail.tm/domains', { signal: ctl.signal });
+    clearTimeout(timer);
+    
+    if (domainsRes.ok) {
+      const domains = await domainsRes.json();
+      const domainList = domains['hydra:member'] || [];
+      if (domainList.length > 0) {
+        const domain = domainList[0].domain;
+        const username = 'vx_' + randomBytes(4).toString('hex');
+        const email = `${username}@${domain}`;
+        const pwd = genNextDnsPassword();
+        
+        const regRes = await fetch('https://api.mail.tm/accounts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address: email, password: pwd })
+        });
+        
+        if (regRes.ok || regRes.status === 201) {
+          return email;
+        }
+      }
+    }
+  } catch (err) {
+    // Fallback nếu mail.tm chậm hoặc lỗi mạng
+  }
+  
+  const randomStr = randomBytes(4).toString('hex');
+  return `vxang_dns_${randomStr}@uberip.com`;
+}
+
+async function createNextDnsAccountHelper({ type = '5s', customEmail = null, initialUsed = false } = {}) {
+  const normType = (type === '15s' || type === '40k') ? '15s' : '5s';
+  const denylist = DENYLISTS_NEXTDNS[normType] || DENYLISTS_NEXTDNS['5s'];
+  
+  let email = customEmail ? String(customEmail).trim() : '';
+  if (!email) {
+    email = await getTempEmailHelper();
+  }
+  
+  const password = genNextDnsPassword();
+  
+  // 1. Đăng ký tài khoản NextDNS
+  const signupRes = await fetch('https://api.nextdns.io/accounts', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      'Origin': 'https://my.nextdns.io',
+      'Referer': 'https://my.nextdns.io/signup'
+    },
+    body: JSON.stringify({
+      email,
+      password,
+      profile: {
+        name: `Locket_${normType.toUpperCase()}`,
+        security: { threatIntelligenceFeeds: true, googleSafeBrowsing: true, cryptojacking: true, idnHomographs: true, typosquatting: true, dga: true, csam: true },
+        privacy: { blocklists: [{ id: 'nextdns-recommended' }], disguisedTrackers: true },
+        settings: { logs: { enabled: true }, performance: { ecs: true } }
+      }
+    })
+  });
+  
+  if (!signupRes.ok) {
+    const errText = await signupRes.text().catch(() => '');
+    throw new Error(`Đăng ký NextDNS thất bại (${signupRes.status}): ${errText}`);
+  }
+  
+  const setCookie = signupRes.headers.get('set-cookie');
+  const sid = setCookie ? setCookie.split(';')[0] : '';
+  if (!sid) throw new Error('Không nhận được session cookie từ NextDNS');
+  
+  // 2. Lấy Profile ID
+  const meRes = await fetch('https://api.nextdns.io/accounts/@me?withProfiles=true', {
+    headers: { 'Cookie': sid, 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Origin': 'https://my.nextdns.io' }
+  });
+  if (!meRes.ok) throw new Error(`Không lấy được profile (${meRes.status})`);
+  
+  const meData = await meRes.json();
+  const profile = meData?.profiles?.[0];
+  if (!profile || !profile.id) throw new Error('Không tìm thấy Profile ID trong tài khoản vừa tạo');
+  
+  const profileId = profile.id;
+  const dnsUrl = `https://apple.dns.nextdns.io/${profileId}`;
+  
+  // 3. Đẩy Denylist
+  const blockedDomains = [];
+  for (const domain of denylist) {
+    try {
+      const dRes = await fetch(`https://api.nextdns.io/profiles/${profileId}/denylist`, {
+        method: 'POST',
+        headers: { 'Cookie': sid, 'Content-Type': 'application/json', 'Origin': 'https://my.nextdns.io' },
+        body: JSON.stringify({ id: domain, active: true })
+      });
+      if (dRes.ok || dRes.status === 204) blockedDomains.push(domain);
+    } catch {}
+  }
+  
+  // 4. Lưu vào Supabase bảng nextdns_accounts
+  const now = new Date();
+  const accountRow = {
+    id: profileId,
+    package: normType,
+    email,
+    password,
+    dns_url: dnsUrl,
+    denylist: blockedDomains,
+    is_used: !!initialUsed,
+    used_at: initialUsed ? now.toISOString() : null,
+    created_at: now.toISOString()
+  };
+  
+  await sb('POST', 'nextdns_accounts', {
+    body: accountRow,
+    prefer: 'return=representation'
+  });
+  
+  return accountRow;
+}
+
+module.exports = { sb, signJWT, verifyJWT, getToken, requireAdmin, requireGuide, allowMethods, genCode, PACKAGES, PACKAGE_KEYS, normalizePackage, isPermPackage, PRICING, getPrice, getPriceLabel, durationMonths, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, expireCodeAndNotify, sweepExpiredCodes, DEFAULT_STEP_FLOW, DEFAULT_STEP_FLOW_SPECIAL, STEP_TYPE_LABELS, stepLabel, buildStepFlow, alignStepFlow, lookupCustomerByDnsCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, dnsPrivateUrl, getAppConfig, setAppConfig, getAppstoreConfig, getEmergencyConfig, maskAppstoreEmail, dnsPoolKey, claimDnsFromPool, releaseCustomerFromDnsPool, dnsPoolHasCapacity, DNS_POOL_FULL_MSG, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, fbGet, fbPut, parseContactInput, TG_CHAT_IDS, TG_CHAT_ID, isTgAdmin, genVpnToken, createVpnToken, TG_DIVIDER, DENYLISTS_NEXTDNS, createNextDnsAccountHelper };
