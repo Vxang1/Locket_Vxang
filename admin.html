@@ -164,6 +164,40 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
 }
 .pkg-card-btn.active .pkg-card-check{display:flex;}
 
+/* Neo-Brutalist Auto Pool Controls — Đồng bộ 100% Desktop & Mobile */
+.auto-pool-pkg-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px;height:100%;}
+.auto-pool-pkg-grid .pkg-card-btn{min-height:58px;height:58px;padding:8px 12px;box-sizing:border-box;}
+.auto-pool-qty-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:2px;height:100%;}
+.auto-pool-qty-btn{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 6px;background:#FFFFFF;
+  border:2px solid var(--ink);border-radius:var(--radius-sm);cursor:pointer;text-align:center;
+  transition:all 0.12s ease;box-shadow:var(--shadow-sm);user-select:none;width:100%;
+  min-height:58px;height:58px;box-sizing:border-box;
+}
+.auto-pool-qty-btn:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:var(--bg-surface);}
+.auto-pool-qty-btn:active{transform:translate(2px,2px);box-shadow:none;}
+.auto-pool-qty-btn.active{
+  background:var(--gold) !important;border-color:var(--ink) !important;
+  box-shadow:3px 3px 0 var(--ink) !important;transform:translate(-1px,-1px);
+}
+.auto-pool-qty-top{display:flex;align-items:center;justify-content:center;gap:4px;}
+.auto-pool-qty-icon{font-size:1rem;line-height:1;display:inline-block;}
+.auto-pool-qty-title{font-family:'Space Grotesk',sans-serif;font-size:0.88rem;font-weight:900;color:var(--ink);line-height:1.2;}
+.auto-pool-qty-sub{font-size:0.68rem;font-weight:700;color:var(--muted);margin-top:2px;line-height:1.2;}
+.auto-pool-qty-btn.active .auto-pool-qty-sub{color:var(--ink);opacity:0.85;}
+@media (max-width: 480px){
+  .auto-pool-pkg-grid{gap:8px;}
+  .auto-pool-pkg-grid .pkg-card-btn{padding:6px 8px;gap:6px;}
+  .auto-pool-pkg-grid .pkg-card-icon{font-size:1.1rem;}
+  .auto-pool-pkg-grid .pkg-card-title{font-size:0.8rem;}
+  .auto-pool-pkg-grid .pkg-card-sub{font-size:0.65rem;}
+  .auto-pool-pkg-grid .pkg-card-check{width:16px;height:16px;font-size:0.75rem;}
+  .auto-pool-qty-grid{gap:6px;}
+  .auto-pool-qty-btn{padding:6px 4px;}
+  .auto-pool-qty-title{font-size:0.82rem;}
+  .auto-pool-qty-sub{font-size:0.64rem;}
+}
+
 /* Neo-Brutalist Stepper — Cân bằng hoàn hảo với Nhóm gói (58px) */
 .neo-stepper-wrap{display:flex;flex-direction:column;margin-top:2px;width:100%;}
 .neo-stepper{
@@ -1008,7 +1042,7 @@ window.addEventListener('DOMContentLoaded', () => {
         <div class="form-grid" style="margin-bottom:14px;">
           <div class="field">
             <label>Nhóm gói cần nạp *</label>
-            <div class="pkg-choice-grid">
+            <div class="auto-pool-pkg-grid">
               <button type="button" class="pkg-card-btn active" id="btnAutoPoolPkg5s" onclick="selectAutoPoolPkg('5s')">
                 <div class="pkg-card-icon">🟢</div>
                 <div class="pkg-card-info">
@@ -1021,7 +1055,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 <div class="pkg-card-icon">🔵</div>
                 <div class="pkg-card-info">
                   <div class="pkg-card-title">Gói 15s (40k)</div>
-                  <div class="pkg-card-sub">Chặn RevenueCat + Firebase</div>
+                  <div class="pkg-card-sub">Chặn RC + Firebase</div>
                 </div>
                 <div class="pkg-card-check">✓</div>
               </button>
@@ -1030,16 +1064,28 @@ window.addEventListener('DOMContentLoaded', () => {
           </div>
 
           <div class="field">
-            <label>Số lượng tài khoản muốn tạo</label>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-              <button type="button" class="pkg-card-btn active" id="btnAutoPoolQty1" onclick="selectAutoPoolQty(1)" style="min-height:46px;justify-content:center;padding:8px 10px;">
-                <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.9rem;">1 Acc</span>
+            <label>Số lượng tài khoản muốn tạo *</label>
+            <div class="auto-pool-qty-grid">
+              <button type="button" class="auto-pool-qty-btn active" id="btnAutoPoolQty1" onclick="selectAutoPoolQty(1)">
+                <div class="auto-pool-qty-top">
+                  <span class="auto-pool-qty-icon">⚡</span>
+                  <span class="auto-pool-qty-title">1 Acc</span>
+                </div>
+                <div class="auto-pool-qty-sub">Tạo 1 link</div>
               </button>
-              <button type="button" class="pkg-card-btn" id="btnAutoPoolQty5" onclick="selectAutoPoolQty(5)" style="min-height:46px;justify-content:center;padding:8px 10px;">
-                <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.9rem;">5 Acc</span>
+              <button type="button" class="auto-pool-qty-btn" id="btnAutoPoolQty5" onclick="selectAutoPoolQty(5)">
+                <div class="auto-pool-qty-top">
+                  <span class="auto-pool-qty-icon">🔥</span>
+                  <span class="auto-pool-qty-title">5 Acc</span>
+                </div>
+                <div class="auto-pool-qty-sub">Tạo 5 link</div>
               </button>
-              <button type="button" class="pkg-card-btn" id="btnAutoPoolQty10" onclick="selectAutoPoolQty(10)" style="min-height:46px;justify-content:center;padding:8px 10px;">
-                <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.9rem;">10 Acc</span>
+              <button type="button" class="auto-pool-qty-btn" id="btnAutoPoolQty10" onclick="selectAutoPoolQty(10)">
+                <div class="auto-pool-qty-top">
+                  <span class="auto-pool-qty-icon">🚀</span>
+                  <span class="auto-pool-qty-title">10 Acc</span>
+                </div>
+                <div class="auto-pool-qty-sub">Tạo 10 link</div>
               </button>
             </div>
             <input type="hidden" id="autoPoolQty" value="1"/>
@@ -1047,12 +1093,18 @@ window.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="field" style="margin-bottom:14px;">
-          <label>Số mã khách tối đa mỗi link (mặc định 5 khách xoay vòng)</label>
-          <div class="neo-stepper-wrap" style="max-width:220px;">
-            <div class="neo-stepper">
+          <label>Số mã khách tối đa mỗi link (Mặc định 5 khách xoay vòng)</label>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div class="neo-stepper" style="width:160px;height:50px;">
               <button type="button" class="neo-step-btn" onclick="stepAutoPoolMaxUses(-1)">−</button>
               <input type="number" id="autoPoolMaxUses" min="1" max="50" value="5" class="neo-step-val" readonly/>
               <button type="button" class="neo-step-btn" onclick="stepAutoPoolMaxUses(1)">+</button>
+            </div>
+            <div class="neo-step-presets" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <button type="button" class="preset-pill" id="autoPill3" onclick="setAutoPoolMaxUses(3)">3 mã</button>
+              <button type="button" class="preset-pill active" id="autoPill5" onclick="setAutoPoolMaxUses(5)">5 mã (Chuẩn)</button>
+              <button type="button" class="preset-pill" id="autoPill10" onclick="setAutoPoolMaxUses(10)">10 mã</button>
+              <span style="font-size:.74rem;color:var(--muted);font-weight:600;margin-left:4px;">💡 Mỗi link DNS phục vụ tối đa N khách rồi tự đổi link mới</span>
             </div>
           </div>
         </div>
@@ -1658,7 +1710,25 @@ window.stepAutoPoolMaxUses = function(delta) {
   let val = (parseInt(input.value || '5', 10) || 5) + delta;
   val = Math.max(1, Math.min(50, val));
   input.value = val;
+  updateAutoPoolMaxPresets(val);
 };
+
+window.setAutoPoolMaxUses = function(val) {
+  const input = document.getElementById('autoPoolMaxUses');
+  if (!input) return;
+  val = Math.max(1, Math.min(50, val));
+  input.value = val;
+  updateAutoPoolMaxPresets(val);
+};
+
+function updateAutoPoolMaxPresets(val) {
+  const p3 = document.getElementById('autoPill3');
+  const p5 = document.getElementById('autoPill5');
+  const p10 = document.getElementById('autoPill10');
+  if (p3) p3.classList.toggle('active', val === 3);
+  if (p5) p5.classList.toggle('active', val === 5);
+  if (p10) p10.classList.toggle('active', val === 10);
+}
 
 window.updateAutoPoolBtnText = function() {
   const btn = document.getElementById('btnAutoPoolCreate');
