@@ -691,6 +691,17 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
   .dp-bar{width:30px;}
 }
 #ddCodes code{display:inline-block;background:var(--gold-bg);border:1.5px solid var(--ink);border-radius:5px;padding:1px 6px;margin:2px 3px;font-size:.75rem;color:var(--ink);font-weight:800;font-family:'JetBrains Mono',monospace;}
+
+/* DNS Riêng Responsive Mobile */
+.dns-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px 14px;background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);margin-bottom:8px;box-shadow:var(--shadow-sm);}
+.dns-row-main{min-width:0;flex:1;}
+.dns-row-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;min-width:140px;}
+@media(max-width:600px){
+  .dns-row{flex-direction:column;gap:10px;padding:12px;}
+  .dns-row-main{width:100%;}
+  .dns-row-actions{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:unset;}
+  .dns-row-actions button{width:100%;padding:8px 6px;font-size:.76rem;text-align:center;}
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
@@ -756,7 +767,6 @@ window.addEventListener('DOMContentLoaded', () => {
       <button class="tab" data-tab="dnspool" onclick="switchTab('dnspool')">🌐 DNS mặc định</button>
       <button class="tab" data-tab="appstore" onclick="switchTab('appstore')">🍎 Appstore</button>
       <button class="tab" data-tab="emergency" onclick="switchTab('emergency')">🛡️ Khách đặc biệt</button>
-      <button class="tab" data-tab="nextdns" onclick="switchTab('nextdns')">⚡ NextDNS</button>
     </div>
   </header>
   <div class="page">
@@ -782,7 +792,6 @@ window.addEventListener('DOMContentLoaded', () => {
           <button class="btn-quick" onclick="switchTab('dnspool')">🌐 DNS mặc định</button>
           <button class="btn-quick" onclick="switchTab('appstore')">🍎 Appstore</button>
           <button class="btn-quick" onclick="switchTab('emergency')">🛡️ Khách đặc biệt</button>
-          <button class="btn-quick" onclick="switchTab('nextdns')">⚡ Auto NextDNS</button>
         </div>
       </div>
     </div>
@@ -910,46 +919,62 @@ window.addEventListener('DOMContentLoaded', () => {
           <label>Mã khách hàng *</label>
           <input type="text" id="dnsGenCustCode" placeholder="KH-XXXXXXXX" list="dnsGenCustList" autocomplete="off" oninput="onDnsGenCustCodeInput()"/>
           <datalist id="dnsGenCustList"></datalist>
-          <div id="dnsGenCustHint" style="font-size:.76rem;color:var(--ink);font-weight:800;margin-top:6px;padding:4px 8px;background:var(--gold-bg);border:1.5px solid var(--ink);border-radius:6px;display:none;"></div>
+          <div id="dnsGenCustHint" style="font-size:.76rem;color:var(--ink);font-weight:800;margin-top:6px;padding:6px 10px;background:var(--gold-bg);border:1.5px solid var(--ink);border-radius:6px;display:none;"></div>
         </div>
-        <div class="field">
-          <label>Link DNS *</label>
-          <input type="text" id="dnsGenUrl" placeholder="Nhập mã ngắn (vd: 48f12a) hoặc dán link đầy đủ..."/>
-          <div style="font-size:.74rem;color:var(--muted);margin-top:5px;line-height:1.5;">
-            💡 Nhập mã ngắn (vd: <code>48f12a</code>) sẽ tự ghép theo mẫu: <span id="dnsGenTmplBadge" style="color:var(--p1);font-weight:700;word-break:break-all">https://apple.dns.nextdns.io/{CODE}</span>. Hoặc dán link đầy đủ bất kỳ.
+        <div style="margin-top:6px;margin-bottom:14px;">
+          <button type="button" class="btn-action btn-gen" id="btnAutoDnsGen" onclick="autoGenPrivateDnsLink(this)" style="background:var(--gold);color:var(--ink);width:100%;padding:13px 14px;font-size:.92rem;font-weight:900;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:var(--shadow-sm);">
+            ⚡ Tạo Tự Động DNS Riêng (Theo Gói Khách)
+          </button>
+          <div style="font-size:.74rem;color:var(--muted);margin-top:5px;line-height:1.4;">
+            💡 1-chạm tự sinh email ảo, đăng ký tài khoản NextDNS, cấu hình Denylist chuẩn theo gói (5s / 15s) và lưu thẳng vào hệ thống.
           </div>
         </div>
-        <div class="field">
-          <label>Email tài khoản NextDNS</label>
-          <input type="text" id="dnsGenEmail" placeholder="email@..." autocomplete="off"/>
-        </div>
-        <div class="field">
-          <label>Mật khẩu tài khoản NextDNS</label>
-          <input type="text" id="dnsGenPassword" placeholder="mật khẩu" autocomplete="off"/>
-        </div>
-        <div class="field">
-          <label>Cấu hình DNS (Tự động nhận diện từ mã KH)</label>
-          <div class="pkg-choice-grid">
-            <button type="button" class="pkg-card-btn active" id="btnDnsGen5s" onclick="selectDnsGenPkg('5s')">
-              <div class="pkg-card-icon">🟢</div>
-              <div class="pkg-card-info">
-                <div class="pkg-card-title">DNS 5s</div>
-                <div class="pkg-card-sub">Dành cho Gói 30k</div>
+
+        <details style="margin-bottom:14px;border:1.5px dashed var(--line);border-radius:var(--radius-sm);padding:10px 12px;background:var(--bg-surface);">
+          <summary style="cursor:pointer;font-size:.8rem;font-weight:800;color:var(--ink);user-select:none;">
+            ⚙️ Hoặc tự điền thông tin thủ công (nếu muốn dùng tài khoản riêng)
+          </summary>
+          <div style="margin-top:12px;">
+            <div class="field">
+              <label>Link DNS *</label>
+              <input type="text" id="dnsGenUrl" placeholder="Nhập mã ngắn (vd: 48f12a) hoặc dán link đầy đủ..."/>
+              <div style="font-size:.74rem;color:var(--muted);margin-top:5px;line-height:1.5;">
+                💡 Nhập mã ngắn (vd: <code>48f12a</code>) sẽ tự ghép theo mẫu: <span id="dnsGenTmplBadge" style="color:var(--p1);font-weight:700;word-break:break-all">https://apple.dns.nextdns.io/{CODE}</span>. Hoặc dán link đầy đủ bất kỳ.
               </div>
-              <div class="pkg-card-check">✓</div>
-            </button>
-            <button type="button" class="pkg-card-btn" id="btnDnsGen15s" onclick="selectDnsGenPkg('15s')">
-              <div class="pkg-card-icon">🔵</div>
-              <div class="pkg-card-info">
-                <div class="pkg-card-title">DNS 15s</div>
-                <div class="pkg-card-sub">Dành cho Gói 40k</div>
+            </div>
+            <div class="field">
+              <label>Email tài khoản NextDNS</label>
+              <input type="text" id="dnsGenEmail" placeholder="email@..." autocomplete="off"/>
+            </div>
+            <div class="field">
+              <label>Mật khẩu tài khoản NextDNS</label>
+              <input type="text" id="dnsGenPassword" placeholder="mật khẩu" autocomplete="off"/>
+            </div>
+            <div class="field">
+              <label>Cấu hình DNS</label>
+              <div class="pkg-choice-grid">
+                <button type="button" class="pkg-card-btn active" id="btnDnsGen5s" onclick="selectDnsGenPkg('5s')">
+                  <div class="pkg-card-icon">🟢</div>
+                  <div class="pkg-card-info">
+                    <div class="pkg-card-title">DNS 5s</div>
+                    <div class="pkg-card-sub">Dành cho Gói 30k</div>
+                  </div>
+                  <div class="pkg-card-check">✓</div>
+                </button>
+                <button type="button" class="pkg-card-btn" id="btnDnsGen15s" onclick="selectDnsGenPkg('15s')">
+                  <div class="pkg-card-icon">🔵</div>
+                  <div class="pkg-card-info">
+                    <div class="pkg-card-title">DNS 15s</div>
+                    <div class="pkg-card-sub">Dành cho Gói 40k</div>
+                  </div>
+                  <div class="pkg-card-check">✓</div>
+                </button>
               </div>
-              <div class="pkg-card-check">✓</div>
-            </button>
+              <input type="hidden" id="dnsGenPkg" value="5s"/>
+            </div>
+            <button class="btn-action btn-gen" onclick="genDnsLink(this)" style="background:#FFFFFF;color:var(--ink);">🔗 Tạo link thủ công</button>
           </div>
-          <input type="hidden" id="dnsGenPkg" value="5s"/>
-        </div>
-        <button class="btn-action btn-gen" onclick="genDnsLink(this)">🔗 Tạo link DNS riêng</button>
+        </details>
       </div>
       <div class="section-title" style="margin-top:24px;font-size:1.1rem">Link DNS riêng đã tạo</div>
       <!-- Tìm KH trong danh sách link đã tạo — lọc ngay trên dữ liệu đã tải (dnsListRows),
@@ -971,51 +996,132 @@ window.addEventListener('DOMContentLoaded', () => {
           ⚙️ Mẫu DNS tự hiểu
         </button>
       </div>
-      <div class="form-card">
-        <div class="form-card-title">Thêm link DNS vào pool (hỗ trợ nhiều link cùng lúc)</div>
-        <div class="field">
-          <label>Link DNS * (mỗi dòng 1 link hoặc 1 mã ngắn)</label>
-          <textarea id="dnsPoolUrls" rows="4" placeholder="48f12a&#10;83b9c1&#10;https://d.adguard-dns.com/zzz" style="width:100%;padding:10px;border:1.5px solid var(--line);border-radius:10px;font-family:'Be Vietnam Pro',sans-serif;font-size:.88rem;resize:vertical;line-height:1.6"></textarea>
-          <div style="font-size:.74rem;color:var(--muted);margin-top:5px;line-height:1.5;">
-            💡 Mỗi dòng 1 link hoặc 1 mã ngắn (tự ghép theo mẫu: <span id="dnsPoolTmplBadge" style="color:var(--p1);font-weight:700;word-break:break-all">https://apple.dns.nextdns.io/{CODE}</span>).
-          </div>
+      <!-- Khung Tự Động Tạo Hàng Loạt Vào Pool -->
+      <div class="form-card" style="margin-bottom:18px;background:var(--gold-bg);">
+        <div class="form-card-title" style="display:flex;align-items:center;gap:8px;">
+          <span>⚡ Tự động tạo link nạp vào Pool hàng loạt</span>
         </div>
-        <div class="form-grid">
+        <div style="font-size:.78rem;color:var(--muted);margin-bottom:14px;font-weight:600;">
+          Tự sinh email ảo, tự cấu hình Denylist chuẩn theo gói (5s / 15s) và nạp thẳng các link vào DNS Pool để chia sẻ cho khách.
+        </div>
+
+        <div class="form-grid" style="margin-bottom:14px;">
           <div class="field">
-            <label>Nhóm gói *</label>
+            <label>Nhóm gói cần nạp *</label>
             <div class="pkg-choice-grid">
-              <button type="button" class="pkg-card-btn active" id="btnPoolPkg5s" onclick="selectPoolPkg('5s')">
+              <button type="button" class="pkg-card-btn active" id="btnAutoPoolPkg5s" onclick="selectAutoPoolPkg('5s')">
                 <div class="pkg-card-icon">🟢</div>
                 <div class="pkg-card-info">
                   <div class="pkg-card-title">Gói 5s (30k)</div>
-                  <div class="pkg-card-sub">Pool DNS 5s</div>
+                  <div class="pkg-card-sub">Chặn RevenueCat</div>
                 </div>
                 <div class="pkg-card-check">✓</div>
               </button>
-              <button type="button" class="pkg-card-btn" id="btnPoolPkg15s" onclick="selectPoolPkg('15s')">
+              <button type="button" class="pkg-card-btn" id="btnAutoPoolPkg15s" onclick="selectAutoPoolPkg('15s')">
                 <div class="pkg-card-icon">🔵</div>
                 <div class="pkg-card-info">
                   <div class="pkg-card-title">Gói 15s (40k)</div>
-                  <div class="pkg-card-sub">Pool DNS 15s</div>
+                  <div class="pkg-card-sub">Chặn RevenueCat + Firebase</div>
                 </div>
                 <div class="pkg-card-check">✓</div>
               </button>
             </div>
-            <input type="hidden" id="dnsPoolPkg" value="5s"/>
+            <input type="hidden" id="autoPoolPkg" value="5s"/>
           </div>
+
           <div class="field">
-            <label>Số mã/link tối đa</label>
-            <div class="neo-stepper-wrap">
-              <div class="neo-stepper">
-                <button type="button" class="neo-step-btn" onclick="stepPoolMaxUses(-1)">−</button>
-                <input type="number" id="dnsPoolMaxUses" min="1" max="50" value="5" class="neo-step-val" readonly/>
-                <button type="button" class="neo-step-btn" onclick="stepPoolMaxUses(1)">+</button>
-              </div>
+            <label>Số lượng tài khoản muốn tạo</label>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+              <button type="button" class="pkg-card-btn active" id="btnAutoPoolQty1" onclick="selectAutoPoolQty(1)" style="min-height:46px;justify-content:center;padding:8px 10px;">
+                <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.9rem;">1 Acc</span>
+              </button>
+              <button type="button" class="pkg-card-btn" id="btnAutoPoolQty5" onclick="selectAutoPoolQty(5)" style="min-height:46px;justify-content:center;padding:8px 10px;">
+                <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.9rem;">5 Acc</span>
+              </button>
+              <button type="button" class="pkg-card-btn" id="btnAutoPoolQty10" onclick="selectAutoPoolQty(10)" style="min-height:46px;justify-content:center;padding:8px 10px;">
+                <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.9rem;">10 Acc</span>
+              </button>
+            </div>
+            <input type="hidden" id="autoPoolQty" value="1"/>
+          </div>
+        </div>
+
+        <div class="field" style="margin-bottom:14px;">
+          <label>Số mã khách tối đa mỗi link (mặc định 5 khách xoay vòng)</label>
+          <div class="neo-stepper-wrap" style="max-width:220px;">
+            <div class="neo-stepper">
+              <button type="button" class="neo-step-btn" onclick="stepAutoPoolMaxUses(-1)">−</button>
+              <input type="number" id="autoPoolMaxUses" min="1" max="50" value="5" class="neo-step-val" readonly/>
+              <button type="button" class="neo-step-btn" onclick="stepAutoPoolMaxUses(1)">+</button>
             </div>
           </div>
         </div>
-        <button class="btn-action btn-gen" onclick="addDnsPoolLinksBulk(this)">➕ Thêm vào pool</button>
+
+        <!-- Progress bar khi đang tạo batch -->
+        <div id="autoPoolProgressWrap" style="display:none;margin-bottom:14px;padding:12px 14px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:.82rem;font-weight:800;">
+            <span id="autoPoolProgressStatus">⏳ Đang khởi tạo...</span>
+            <span id="autoPoolProgressPercent" style="font-family:'JetBrains Mono',monospace;">0%</span>
+          </div>
+          <div style="width:100%;height:8px;background:var(--bg-surface);border:1.5px solid var(--ink);border-radius:99px;overflow:hidden;">
+            <div id="autoPoolProgressBar" style="width:0%;height:100%;background:var(--green);transition:width .2s;"></div>
+          </div>
+        </div>
+
+        <button class="btn-action btn-gen" id="btnAutoPoolCreate" onclick="startAutoPoolBatch()" style="font-size:.95rem;padding:14px;width:100%;">
+          ⚡ Bắt đầu tạo 1 link nạp vào Pool 5S
+        </button>
       </div>
+
+      <details style="margin-bottom:18px;border:1.5px dashed var(--line);border-radius:var(--radius-sm);padding:10px 14px;background:#FFFFFF;">
+        <summary style="cursor:pointer;font-size:.8rem;font-weight:800;color:var(--ink);user-select:none;">
+          ⚙️ Hoặc dán link DNS thủ công vào pool
+        </summary>
+        <div style="margin-top:12px;">
+          <div class="field">
+            <label>Link DNS * (mỗi dòng 1 link hoặc 1 mã ngắn)</label>
+            <textarea id="dnsPoolUrls" rows="3" placeholder="48f12a&#10;83b9c1&#10;https://d.adguard-dns.com/zzz" style="width:100%;padding:10px;border:1.5px solid var(--line);border-radius:10px;font-family:'Be Vietnam Pro',sans-serif;font-size:.88rem;resize:vertical;line-height:1.6"></textarea>
+            <div style="font-size:.74rem;color:var(--muted);margin-top:5px;line-height:1.5;">
+              💡 Mỗi dòng 1 link hoặc 1 mã ngắn (tự ghép theo mẫu: <span id="dnsPoolTmplBadge" style="color:var(--p1);font-weight:700;word-break:break-all">https://apple.dns.nextdns.io/{CODE}</span>).
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Nhóm gói *</label>
+              <div class="pkg-choice-grid">
+                <button type="button" class="pkg-card-btn active" id="btnPoolPkg5s" onclick="selectPoolPkg('5s')">
+                  <div class="pkg-card-icon">🟢</div>
+                  <div class="pkg-card-info">
+                    <div class="pkg-card-title">Gói 5s (30k)</div>
+                    <div class="pkg-card-sub">Pool DNS 5s</div>
+                  </div>
+                  <div class="pkg-card-check">✓</div>
+                </button>
+                <button type="button" class="pkg-card-btn" id="btnPoolPkg15s" onclick="selectPoolPkg('15s')">
+                  <div class="pkg-card-icon">🔵</div>
+                  <div class="pkg-card-info">
+                    <div class="pkg-card-title">Gói 15s (40k)</div>
+                    <div class="pkg-card-sub">Pool DNS 15s</div>
+                  </div>
+                  <div class="pkg-card-check">✓</div>
+                </button>
+              </div>
+              <input type="hidden" id="dnsPoolPkg" value="5s"/>
+            </div>
+            <div class="field">
+              <label>Số mã/link tối đa</label>
+              <div class="neo-stepper-wrap">
+                <div class="neo-stepper">
+                  <button type="button" class="neo-step-btn" onclick="stepPoolMaxUses(-1)">−</button>
+                  <input type="number" id="dnsPoolMaxUses" min="1" max="50" value="5" class="neo-step-val" readonly/>
+                  <button type="button" class="neo-step-btn" onclick="stepPoolMaxUses(1)">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button class="btn-action btn-gen" onclick="addDnsPoolLinksBulk(this)" style="background:var(--bg-surface);color:var(--ink);">➕ Thêm thủ công vào pool</button>
+        </div>
+      </details>
       <div class="section-title" style="margin-top:24px;font-size:1.1rem">Link đang hoạt động trong pool</div>
       <div id="dnsPoolListWrap"><div style="text-align:center;padding:20px;color:var(--muted);font-size:.82rem;font-weight:600;">Đang tải...</div></div>
     </div>
@@ -1066,174 +1172,6 @@ window.addEventListener('DOMContentLoaded', () => {
         <div class="form-card-title">Khách đang bật flow đặc biệt (Gói 150 & 180)</div>
         <div class="section-sub">Bật/tắt từng khách trong phần chi tiết khách (ô "Bật flow đặc biệt")</div>
         <div id="emergencyCustList">Đang tải...</div>
-      </div>
-    </div>
-
-    <!-- NextDNS Automation Tab -->
-    <div class="tab-content" id="tab-nextdns">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
-        <div style="flex:1;min-width:240px">
-          <div class="section-title">⚡ NextDNS Tự Động</div>
-          <div class="section-sub">Tự sinh hòm thư ảo · Đăng ký NextDNS & Cấu hình Denylist tức thời · Quản lý trạng thái sử dụng</div>
-        </div>
-        <button class="btn-refresh" onclick="loadNextDnsAdmin()" style="display:flex;align-items:center;gap:6px;">
-          🔄 Làm mới danh sách
-        </button>
-      </div>
-
-      <!-- Stats Grid -->
-      <div class="stats-grid" style="margin-bottom:18px;">
-        <div class="stat-card">
-          <div class="stat-ico">⚡</div>
-          <div class="stat-val" id="ndStatTotal">0</div>
-          <div class="stat-lbl">Tổng tài khoản</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-ico">🟢</div>
-          <div class="stat-val" id="ndStatUnused" style="color:var(--green)">0</div>
-          <div class="stat-lbl">Chưa dùng (Sẵn sàng)</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-ico">🔒</div>
-          <div class="stat-val" id="ndStatUsed" style="color:var(--muted)">0</div>
-          <div class="stat-lbl">Đã sử dụng</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-ico">📦</div>
-          <div class="stat-val" id="ndStatSplit" style="font-size:1.1rem;margin-top:4px;">5s: 0 | 15s: 0</div>
-          <div class="stat-lbl">Phân loại gói</div>
-        </div>
-      </div>
-
-      <!-- Form Tạo Mới -->
-      <div class="form-card" style="margin-bottom:20px;">
-        <div class="form-card-title">🚀 Tạo tài khoản NextDNS mới</div>
-        
-        <div class="field" style="margin-bottom:14px;">
-          <label>Loại cấu hình DNS *</label>
-          <div class="pkg-choice-grid">
-            <button type="button" class="pkg-card-btn active" id="btnNdType5s" onclick="selectNdType('5s')">
-              <div class="pkg-card-icon">🟢</div>
-              <div class="pkg-card-info">
-                <div class="pkg-card-title">Gói 5s (30k)</div>
-                <div class="pkg-card-sub">Chặn 2 domain RevenueCat</div>
-              </div>
-              <div class="pkg-card-check">✓</div>
-            </button>
-            <button type="button" class="pkg-card-btn" id="btnNdType15s" onclick="selectNdType('15s')">
-              <div class="pkg-card-icon">🔵</div>
-              <div class="pkg-card-info">
-                <div class="pkg-card-title">Gói 15s (40k)</div>
-                <div class="pkg-card-sub">Chặn RevenueCat + 2 Firebase</div>
-              </div>
-              <div class="pkg-card-check">✓</div>
-            </button>
-          </div>
-          <input type="hidden" id="ndType" value="5s"/>
-        </div>
-
-        <div class="field" style="margin-bottom:14px;">
-          <label>Số lượng tài khoản muốn tạo</label>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
-            <button type="button" class="pkg-card-btn active" id="btnNdQty1" onclick="selectNdQty(1)" style="min-height:46px;justify-content:center;padding:8px 10px;">
-              <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.9rem;">1 Acc</span>
-            </button>
-            <button type="button" class="pkg-card-btn" id="btnNdQty3" onclick="selectNdQty(3)" style="min-height:46px;justify-content:center;padding:8px 10px;">
-              <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.9rem;">3 Acc</span>
-            </button>
-            <button type="button" class="pkg-card-btn" id="btnNdQty5" onclick="selectNdQty(5)" style="min-height:46px;justify-content:center;padding:8px 10px;">
-              <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.9rem;">5 Acc</span>
-            </button>
-            <button type="button" class="pkg-card-btn" id="btnNdQty10" onclick="selectNdQty(10)" style="min-height:46px;justify-content:center;padding:8px 10px;">
-              <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.9rem;">10 Acc</span>
-            </button>
-          </div>
-          <input type="hidden" id="ndQty" value="1"/>
-        </div>
-
-        <div class="field" style="margin-bottom:14px;">
-          <label>Email tùy chỉnh (tùy chọn - để trống sẽ tự lấy email ảo)</label>
-          <input type="text" id="ndCustomEmail" placeholder="Bỏ trống để hệ thống tự cấp email ảo ngẫu nhiên"/>
-        </div>
-
-        <div style="margin-bottom:16px;">
-          <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:var(--bg-surface);cursor:pointer;font-weight:800;font-size:.84rem;user-select:none;">
-            <input type="checkbox" id="ndInitialUsed" style="width:18px;height:18px;cursor:pointer"/>
-            <span>🔒 Đánh dấu là "Đã sử dụng" ngay sau khi tạo</span>
-          </label>
-        </div>
-
-        <!-- Batch progress bar & status -->
-        <div id="ndProgressWrap" style="display:none;margin-bottom:14px;padding:12px 14px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:var(--gold-bg);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:.82rem;font-weight:800;">
-            <span id="ndProgressStatus">⏳ Đang khởi tạo...</span>
-            <span id="ndProgressPercent" style="font-family:'JetBrains Mono',monospace;">0%</span>
-          </div>
-          <div style="width:100%;height:8px;background:#FFF;border:1.5px solid var(--ink);border-radius:99px;overflow:hidden;">
-            <div id="ndProgressBar" style="width:0%;height:100%;background:var(--green);transition:width .2s;"></div>
-          </div>
-        </div>
-
-        <button class="btn-action btn-gen" id="btnCreateNd" onclick="startCreateNdBatch()" style="font-size:.95rem;padding:14px;">
-          ⚡ Bắt đầu tạo tài khoản
-        </button>
-
-        <!-- Thẻ kết quả vừa tạo -->
-        <div id="ndLatestCard" style="display:none;margin-top:16px;padding:14px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;box-shadow:var(--shadow-sm);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-            <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;color:var(--green);font-size:.95rem;">🎉 Tài khoản vừa tạo:</span>
-            <button class="tl-btn" onclick="document.getElementById('ndLatestCard').style.display='none'" style="padding:2px 8px;font-size:.7rem;">Đóng</button>
-          </div>
-          <div id="ndLatestContent"></div>
-        </div>
-      </div>
-
-      <!-- Danh sách tài khoản -->
-      <div class="form-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
-          <div class="form-card-title" style="margin-bottom:0;">📋 Quản lý tài khoản NextDNS đã tạo</div>
-          <button class="btn-quick" onclick="copyAllUnusedNextDnsLinks()" style="padding:8px 12px;font-size:.8rem;">
-            ⧉ Copy tất cả link chưa dùng
-          </button>
-        </div>
-
-        <!-- Filter & Search Bar -->
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
-          <input type="text" id="ndSearchInput" placeholder="🔍 Tìm theo Profile ID, Email, Gói..." oninput="filterNextDnsList()" style="flex:1;min-width:200px;font-size:.85rem;padding:9px 12px;"/>
-          <select id="ndFilterStatus" onchange="filterNextDnsList()" style="width:auto;min-width:140px;font-size:.82rem;padding:8px 30px 8px 12px;">
-            <option value="all">Tất cả trạng thái</option>
-            <option value="unused">🟢 Chưa dùng</option>
-            <option value="used">🔒 Đã dùng</option>
-          </select>
-          <select id="ndFilterPkg" onchange="filterNextDnsList()" style="width:auto;min-width:120px;font-size:.82rem;padding:8px 30px 8px 12px;">
-            <option value="all">Tất cả gói</option>
-            <option value="5s">🟢 Gói 5s</option>
-            <option value="15s">🔵 Gói 15s</option>
-          </select>
-        </div>
-
-        <!-- Desktop Table View -->
-        <div class="table-wrap" id="ndTableWrap" style="overflow-x:auto;">
-          <table style="width:100%;border-collapse:collapse;text-align:left;font-size:.82rem;">
-            <thead>
-              <tr style="border-bottom:2px solid var(--ink);background:var(--bg-surface);">
-                <th style="width:58px;text-align:center;padding:10px 4px;font-weight:900;">Gói</th>
-                <th style="width:90px;text-align:center;padding:10px 6px;font-weight:900;">Profile ID</th>
-                <th style="min-width:180px;padding:10px 10px;font-weight:900;">Email / Pass</th>
-                <th style="min-width:160px;padding:10px 10px;font-weight:900;">Link Cài Đặt</th>
-                <th style="width:98px;text-align:center;padding:10px 6px;font-weight:900;">Trạng Thái</th>
-                <th style="width:90px;text-align:center;padding:10px 6px;font-weight:900;">Ngày Tạo</th>
-                <th style="width:205px;text-align:right;padding:10px 10px;font-weight:900;">Thao Tác</th>
-              </tr>
-            </thead>
-            <tbody id="ndTableBody">
-              <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);font-weight:600;">Đang tải danh sách tài khoản...</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Mobile Cards View -->
-        <div id="ndMobileCards" class="mobile-cards" style="margin-top:10px;"></div>
       </div>
     </div>
 
@@ -1692,6 +1630,44 @@ window.selectDnsGenPkg=function(pkg){
   if(btn15) btn15.classList.toggle('active', pkg==='15s');
 };
 
+window.selectAutoPoolPkg = function(pkg) {
+  const input = document.getElementById('autoPoolPkg');
+  if (input) input.value = pkg;
+  const btn5 = document.getElementById('btnAutoPoolPkg5s');
+  const btn15 = document.getElementById('btnAutoPoolPkg15s');
+  if (btn5) btn5.classList.toggle('active', pkg === '5s');
+  if (btn15) btn15.classList.toggle('active', pkg === '15s');
+  updateAutoPoolBtnText();
+};
+
+window.selectAutoPoolQty = function(qty) {
+  const input = document.getElementById('autoPoolQty');
+  if (input) input.value = qty;
+  const btn1 = document.getElementById('btnAutoPoolQty1');
+  const btn5 = document.getElementById('btnAutoPoolQty5');
+  const btn10 = document.getElementById('btnAutoPoolQty10');
+  if (btn1) btn1.classList.toggle('active', qty === 1);
+  if (btn5) btn5.classList.toggle('active', qty === 5);
+  if (btn10) btn10.classList.toggle('active', qty === 10);
+  updateAutoPoolBtnText();
+};
+
+window.stepAutoPoolMaxUses = function(delta) {
+  const input = document.getElementById('autoPoolMaxUses');
+  if (!input) return;
+  let val = (parseInt(input.value || '5', 10) || 5) + delta;
+  val = Math.max(1, Math.min(50, val));
+  input.value = val;
+};
+
+window.updateAutoPoolBtnText = function() {
+  const btn = document.getElementById('btnAutoPoolCreate');
+  if (!btn) return;
+  const pkg = (document.getElementById('autoPoolPkg')?.value || '5s').toUpperCase();
+  const qty = document.getElementById('autoPoolQty')?.value || 1;
+  btn.textContent = `⚡ Bắt đầu tạo ${qty} link nạp vào Pool ${pkg}`;
+};
+
 window.selectPoolPkg=function(pkg){
   const input=document.getElementById('dnsPoolPkg');
   if(input) input.value=pkg;
@@ -2004,8 +1980,10 @@ window.closeDnsMsgModal=function(){
 window.onDnsGenCustCodeInput=function(){
   const code = (document.getElementById('dnsGenCustCode')?.value || '').trim().toUpperCase();
   const hintEl = document.getElementById('dnsGenCustHint');
+  const btnAuto = document.getElementById('btnAutoDnsGen');
   if (!code) {
     if (hintEl) { hintEl.style.display = 'none'; hintEl.textContent = ''; }
+    if (btnAuto) btnAuto.textContent = '⚡ Tạo Tự Động DNS Riêng (Theo Gói Khách)';
     return;
   }
   const cust = allCustomers.find(c => c.customer_code === code);
@@ -2016,9 +1994,66 @@ window.onDnsGenCustCodeInput=function(){
       hintEl.textContent = `👤 ${cust.name || 'Khách'} · Gói hiện tại: ${pkgLabel}`;
       hintEl.style.display = 'block';
     }
+    if (btnAuto) {
+      btnAuto.textContent = `⚡ Tạo Tự Động DNS Riêng (${pkgLabel})`;
+    }
     selectDnsGenPkg(is15s ? '15s' : '5s');
-  } else if (hintEl) {
-    hintEl.style.display = 'none';
+  } else {
+    if (hintEl) { hintEl.style.display = 'none'; }
+    if (btnAuto) btnAuto.textContent = '⚡ Tạo Tự Động DNS Riêng (Theo Gói Khách)';
+  }
+};
+
+window.autoGenPrivateDnsLink = async function(btn) {
+  const custCode = (document.getElementById('dnsGenCustCode')?.value || '').trim().toUpperCase();
+  if (!custCode) {
+    showToast('⚠ Vui lòng chọn hoặc nhập mã khách hàng (KH-...)!', 'red');
+    return;
+  }
+  const targetCust = allCustomers.find(c => c.customer_code === custCode);
+  if (!targetCust) {
+    showToast('⚠ Không tìm thấy mã khách hàng này trong CRM!', 'red');
+    return;
+  }
+
+  const origText = btn ? btn.textContent : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+    btn.textContent = '⏳ Đang đăng ký NextDNS & Cấu hình Denylist...';
+  }
+
+  try {
+    const res = await api('POST', '/api/admin/customers?action=dns_auto_create_private', {
+      customer_code: custCode
+    });
+    if (!res || !res.token) throw new Error('Không nhận được token từ server');
+
+    const link = `${location.origin}/dns.html?t=${encodeURIComponent(res.token)}`;
+    const custDisplayName = custCode + (targetCust.name ? ` (${targetCust.name})` : '');
+
+    document.getElementById('dnsMsgResKH').textContent = custDisplayName;
+    document.getElementById('dnsMsgResUrl').textContent = link;
+    document.getElementById('dnsMsgText').value = buildDnsZaloMsg(custCode, link);
+    document.getElementById('dnsMsgCopied').style.display = 'none';
+    document.getElementById('dnsMsgModal').classList.add('open');
+
+    // Xóa trắng input & hint
+    document.getElementById('dnsGenCustCode').value = '';
+    const hintEl = document.getElementById('dnsGenCustHint');
+    if (hintEl) { hintEl.style.display = 'none'; hintEl.textContent = ''; }
+    if (btn) btn.textContent = '⚡ Tạo Tự Động DNS Riêng (Theo Gói Khách)';
+
+    showToast('✓ Đã tạo tự động NextDNS riêng thành công!', 'green');
+    await loadDnsList();
+  } catch (err) {
+    showToast('⚠ Lỗi: ' + err.message, 'red');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.textContent = origText || '⚡ Tạo Tự Động DNS Riêng (Theo Gói Khách)';
+    }
   }
 };
 
@@ -2189,8 +2224,8 @@ window.renderDnsList=function(){
       const emailSafe=esc(email).replace(/'/g,"\\'");
       const passSafe=esc(password).replace(/'/g,"\\'");
       const custCodeSafe=esc(r.customer_code||'').replace(/'/g,"\\'");
-      return `<div class="dns-row" style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:12px 14px;background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);margin-bottom:8px;flex-wrap:wrap;box-shadow:var(--shadow-sm);">
-        <div style="min-width:0;flex:1 1 280px;">
+      return `<div class="dns-row">
+        <div class="dns-row-main">
           <div style="font-weight:800;font-size:.85rem;display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
             ${isThuHoi ? '<span style="color:#16a34a">🟢 Còn trống (Có thể tái sử dụng)</span>' : esc(r.customer_code) + (custName ? ' — ' + esc(custName) : '')}
             ${pkgBadge(r.package)}
@@ -2200,11 +2235,11 @@ window.renderDnsList=function(){
           <div style="color:var(--muted);font-size:.75rem;word-break:break-all;margin-top:2px;">Link DNS: <b style="color:var(--fg);">${esc(dnsUrl)}</b></div>
           <div style="color:var(--muted);font-size:.75rem;word-break:break-all;margin-top:2px;">TK DNS: <b style="color:var(--fg);">${esc(email)||'(chưa có)'}</b>${password?' / '+esc(password):''}</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;min-width:140px;">
+        <div class="dns-row-actions">
           <button class="btn-copy-r" onclick="navigator.clipboard.writeText('${link}');showToast('✓ Đã copy link','green');">⧉ Copy link</button>
-          ${isThuHoi ? `<button class="btn-copy-r" style="background:#E8F5E9;color:#1B5E20;border-color:#2E7D32;font-weight:800;" onclick="assignDnsSlotToCustomer('${r.id}')">👤 Gán cho khách mới</button>` : ''}
-          <button class="btn-copy-r" onclick="editDnsCreds('${r.id}','${urlSafe}','${emailSafe}','${passSafe}','${custCodeSafe}')">✎ Sửa thông tin DNS</button>
-          ${r.status==='unopened'?'':`<button class="btn-copy-r" onclick="reactivateDnsLink('${r.id}','${esc(r.customer_code)}')">↻ Hồi sinh TTL</button>`}
+          ${isThuHoi ? `<button class="btn-copy-r" style="background:#E8F5E9;color:#1B5E20;border-color:#2E7D32;font-weight:800;" onclick="assignDnsSlotToCustomer('${r.id}')">👤 Gán khách</button>` : ''}
+          <button class="btn-copy-r" onclick="editDnsCreds('${r.id}','${urlSafe}','${emailSafe}','${passSafe}','${custCodeSafe}')">✎ Sửa</button>
+          ${r.status==='unopened'?'':`<button class="btn-copy-r" onclick="reactivateDnsLink('${r.id}','${esc(r.customer_code)}')">↻ Hồi sinh</button>`}
           <button class="btn-copy-r" style="color:var(--red);border-color:rgba(239,68,68,.3)" onclick="deletePrivateDnsLink('${r.id}','${esc(r.customer_code)}')">🗑 Xóa</button>
         </div>
       </div>`;
@@ -2213,10 +2248,73 @@ window.renderDnsList=function(){
 };
 
 // ── TAB "DNS mặc định" (dns_pool) — link NextDNS dùng chung, rotate mỗi N mã KH ──
-// Khác hẳn tab "DNS riêng" ở trên: pool không gắn với 1 khách cụ thể, guide.html
-// tự claim link đang active của đúng nhóm gói (dnsPoolKey: '5s' hoặc '15s', trong
-// đó '15s' dùng chung cho cả gói 180) qua GET /api/guide/validate?action=dns_pool_claim.
-// Yêu cầu #5: bulk add nhiều link cùng lúc thay vì từng cái một.
+// Tự động tạo tài khoản NextDNS và nạp link thẳng vào dns_pool theo lô (1, 5, 10)
+window.startAutoPoolBatch = async function() {
+  const pkg = document.getElementById('autoPoolPkg')?.value || '5s';
+  const qty = parseInt(document.getElementById('autoPoolQty')?.value, 10) || 1;
+  const maxUses = Math.max(1, Math.min(50, parseInt(document.getElementById('autoPoolMaxUses')?.value || '5', 10) || 5));
+
+  const btnCreate = document.getElementById('btnAutoPoolCreate');
+  const pWrap = document.getElementById('autoPoolProgressWrap');
+  const pBar = document.getElementById('autoPoolProgressBar');
+  const pStatus = document.getElementById('autoPoolProgressStatus');
+  const pPercent = document.getElementById('autoPoolProgressPercent');
+
+  const origText = btnCreate ? btnCreate.textContent : '';
+  if (btnCreate) {
+    btnCreate.disabled = true;
+    btnCreate.style.opacity = '0.6';
+    btnCreate.style.cursor = 'not-allowed';
+  }
+  if (pWrap) pWrap.style.display = 'block';
+
+  let successCount = 0;
+  let errorCount = 0;
+
+  for (let i = 0; i < qty; i++) {
+    const currentStep = i + 1;
+    const pct = Math.round((i / qty) * 100);
+    if (pBar) pBar.style.width = pct + '%';
+    if (pPercent) pPercent.textContent = pct + '%';
+    if (pStatus) pStatus.textContent = `⏳ [${currentStep}/${qty}] Đang tạo NextDNS & nạp vào Pool (${pkg.toUpperCase()})...`;
+
+    try {
+      const res = await api('POST', '/api/admin/customers?action=dns_auto_create_pool', {
+        package: pkg,
+        max_uses: maxUses
+      });
+      if (res && res.ok) {
+        successCount++;
+      } else {
+        throw new Error(res?.error || 'Lỗi không xác định');
+      }
+    } catch (err) {
+      console.error(`Lỗi tạo pool link ${currentStep}:`, err);
+      errorCount++;
+      showToast(`⚠ Lỗi link #${currentStep}: ${err.message}`, 'red');
+    }
+  }
+
+  if (pBar) pBar.style.width = '100%';
+  if (pPercent) pPercent.textContent = '100%';
+  if (pStatus) pStatus.textContent = `✓ Đã hoàn tất tạo và nạp ${successCount}/${qty} link!`;
+
+  setTimeout(() => {
+    if (pWrap) pWrap.style.display = 'none';
+    if (btnCreate) {
+      btnCreate.disabled = false;
+      btnCreate.style.opacity = '1';
+      btnCreate.style.cursor = 'pointer';
+      btnCreate.textContent = origText || `⚡ Bắt đầu tạo ${qty} link nạp vào Pool ${pkg.toUpperCase()}`;
+    }
+  }, 1200);
+
+  if (successCount > 0) {
+    showToast(`✓ Đã tạo và nạp thành công ${successCount} link vào DNS Pool (${pkg.toUpperCase()})!`, 'green');
+    await loadDnsPoolList();
+  }
+};
+
 window.addDnsPoolLinksBulk=async function(btn){
   const raw=document.getElementById('dnsPoolUrls').value.trim();
   if(!raw){showToast('⚠ Nhập ít nhất 1 link DNS','red');return;}
@@ -2605,7 +2703,6 @@ window.switchTab=function(name){
   }
   if(name==='appstore') loadAppstoreAdmin();
   if(name==='emergency') loadEmergencyAdmin();
-  if(name==='nextdns') loadNextDnsAdmin();
   if (window.scrollY > 80) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -3447,341 +3544,6 @@ function renderCodes(){
 // ─────────────────────────────────────────────────────────────────
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 window.esc = esc;
-
-// ─────────────────────────────────────────────────────────────────
-// NEXTDNS AUTOMATION MANAGEMENT
-// ─────────────────────────────────────────────────────────────────
-let allNextDnsAccounts = [];
-
-window.selectNdType = function(type) {
-  const el = document.getElementById('ndType');
-  if (el) el.value = type;
-  const b5s = document.getElementById('btnNdType5s');
-  const b15s = document.getElementById('btnNdType15s');
-  if (b5s) b5s.classList.toggle('active', type === '5s');
-  if (b15s) b15s.classList.toggle('active', type === '15s');
-};
-
-window.selectNdQty = function(qty) {
-  const el = document.getElementById('ndQty');
-  if (el) el.value = qty;
-  [1, 3, 5, 10].forEach(q => {
-    const btn = document.getElementById('btnNdQty' + q);
-    if (btn) btn.classList.toggle('active', q === qty);
-  });
-  const btnCreate = document.getElementById('btnCreateNd');
-  if (btnCreate) btnCreate.textContent = `⚡ Bắt đầu tạo ${qty} tài khoản`;
-};
-
-window.loadNextDnsAdmin = async function() {
-  try {
-    const res = await api('GET', '/api/admin/customers?action=nextdns_list');
-    allNextDnsAccounts = Array.isArray(res) ? res : [];
-    renderNextDnsStats();
-    filterNextDnsList();
-  } catch (err) {
-    showToast('⚠ Lỗi tải danh sách NextDNS: ' + err.message, 'red');
-  }
-};
-
-window.renderNextDnsStats = function() {
-  const total = allNextDnsAccounts.length;
-  const unused = allNextDnsAccounts.filter(a => !a.is_used).length;
-  const used = allNextDnsAccounts.filter(a => a.is_used).length;
-  const count5s = allNextDnsAccounts.filter(a => a.package === '5s').length;
-  const count15s = allNextDnsAccounts.filter(a => a.package === '15s').length;
-
-  const elTotal = document.getElementById('ndStatTotal');
-  const elUnused = document.getElementById('ndStatUnused');
-  const elUsed = document.getElementById('ndStatUsed');
-  const elSplit = document.getElementById('ndStatSplit');
-
-  if (elTotal) elTotal.textContent = total;
-  if (elUnused) elUnused.textContent = unused;
-  if (elUsed) elUsed.textContent = used;
-  if (elSplit) elSplit.textContent = `5s: ${count5s} | 15s: ${count15s}`;
-};
-
-window.startCreateNdBatch = async function() {
-  const type = document.getElementById('ndType')?.value || '5s';
-  const qty = parseInt(document.getElementById('ndQty')?.value, 10) || 1;
-  const customEmail = (document.getElementById('ndCustomEmail')?.value || '').trim();
-  const initialUsed = !!document.getElementById('ndInitialUsed')?.checked;
-
-  const btnCreate = document.getElementById('btnCreateNd');
-  const pWrap = document.getElementById('ndProgressWrap');
-  const pBar = document.getElementById('ndProgressBar');
-  const pStatus = document.getElementById('ndProgressStatus');
-  const pPercent = document.getElementById('ndProgressPercent');
-
-  if (btnCreate) {
-    btnCreate.disabled = true;
-    btnCreate.style.opacity = '0.6';
-    btnCreate.style.cursor = 'not-allowed';
-  }
-  if (pWrap) pWrap.style.display = 'block';
-
-  const createdAccounts = [];
-  let errorCount = 0;
-
-  for (let i = 0; i < qty; i++) {
-    const currentStep = i + 1;
-    const pct = Math.round((i / qty) * 100);
-    if (pBar) pBar.style.width = pct + '%';
-    if (pPercent) pPercent.textContent = pct + '%';
-    if (pStatus) pStatus.textContent = `⏳ [${currentStep}/${qty}] Đang tạo tài khoản NextDNS (${type.toUpperCase()})...`;
-
-    // Nếu người dùng nhập email tùy chỉnh: chỉ dùng cho tài khoản đầu tiên
-    const emailToUse = (i === 0 && customEmail) ? customEmail : null;
-
-    try {
-      const res = await api('POST', '/api/admin/customers?action=nextdns_create', {
-        type,
-        email: emailToUse,
-        initial_used: initialUsed
-      });
-      if (res && res.account) {
-        createdAccounts.push(res.account);
-      }
-    } catch (err) {
-      console.error(`Lỗi tạo tài khoản ${currentStep}:`, err);
-      errorCount++;
-      showToast(`⚠ Lỗi acc #${currentStep}: ${err.message}`, 'red');
-    }
-  }
-
-  if (pBar) pBar.style.width = '100%';
-  if (pPercent) pPercent.textContent = '100%';
-  if (pStatus) pStatus.textContent = `✓ Đã hoàn tất tạo ${createdAccounts.length}/${qty} tài khoản!`;
-
-  setTimeout(() => {
-    if (pWrap) pWrap.style.display = 'none';
-    if (btnCreate) {
-      btnCreate.disabled = false;
-      btnCreate.style.opacity = '1';
-      btnCreate.style.cursor = 'pointer';
-      btnCreate.textContent = `⚡ Bắt đầu tạo ${qty} tài khoản`;
-    }
-  }, 1200);
-
-  if (createdAccounts.length > 0) {
-    showToast(`✓ Đã tạo thành công ${createdAccounts.length} tài khoản NextDNS!`, 'green');
-    const inputEmail = document.getElementById('ndCustomEmail');
-    if (inputEmail) inputEmail.value = '';
-
-    const latest = createdAccounts[createdAccounts.length - 1];
-    const latestCard = document.getElementById('ndLatestCard');
-    const latestContent = document.getElementById('ndLatestContent');
-    if (latestCard && latestContent) {
-      latestCard.style.display = 'block';
-      latestContent.innerHTML = `
-        <div style="font-size:.82rem;line-height:1.7;">
-          <div><b>Gói:</b> <span class="dp-badge ${latest.package === '15s' ? 'dp-b-15s' : 'dp-b-5s'}">${latest.package.toUpperCase()}</span> · <b>Profile ID:</b> <code style="font-weight:900;background:var(--gold-bg);padding:2px 6px;border:1px solid var(--ink);border-radius:4px;">${esc(latest.id)}</code></div>
-          <div><b>Email:</b> ${esc(latest.email)} <button class="btn-copy-r" style="padding:2px 8px;font-size:.72rem;" onclick="navigator.clipboard.writeText('${esc(latest.email)}');showToast('✓ Đã copy Email','green');">Copy</button></div>
-          <div><b>Mật khẩu:</b> <code>${esc(latest.password)}</code> <button class="btn-copy-r" style="padding:2px 8px;font-size:.72rem;" onclick="navigator.clipboard.writeText('${esc(latest.password)}');showToast('✓ Đã copy Mật khẩu','green');">Copy</button></div>
-          <div style="word-break:break-all;margin-top:4px;"><b>DNS Link:</b> <a href="${esc(latest.dns_url)}" target="_blank" style="color:var(--accent);font-weight:700;">${esc(latest.dns_url)}</a> <button class="btn-copy-r" style="padding:2px 8px;font-size:.72rem;" onclick="navigator.clipboard.writeText('${esc(latest.dns_url)}');showToast('✓ Đã copy Link DNS','green');">Copy Link</button></div>
-          <div style="font-size:.75rem;color:var(--muted);margin-top:4px;"><b>Denylist:</b> ${(latest.denylist || []).join(', ')}</div>
-        </div>
-      `;
-    }
-  }
-
-  await loadNextDnsAdmin();
-};
-
-window.toggleNextDnsStatus = async function(id, currentUsed) {
-  try {
-    const res = await api('PATCH', '/api/admin/customers?action=nextdns_toggle', {
-      id,
-      is_used: !currentUsed
-    });
-    if (res && res.ok) {
-      showToast(currentUsed ? '✓ Đã chuyển về: Chưa sử dụng' : '✓ Đã chuyển sang: Đã sử dụng', 'green');
-      const item = allNextDnsAccounts.find(a => a.id === id);
-      if (item) {
-        item.is_used = !currentUsed;
-        item.used_at = !currentUsed ? new Date().toISOString() : null;
-      }
-      renderNextDnsStats();
-      filterNextDnsList();
-    }
-  } catch (err) {
-    showToast('⚠ Lỗi cập nhật trạng thái: ' + err.message, 'red');
-  }
-};
-
-window.deleteNextDns = async function(id) {
-  if (!confirm(`Bạn có chắc chắn muốn xóa tài khoản NextDNS "${id}" khỏi hệ thống?`)) return;
-  try {
-    const res = await api('DELETE', `/api/admin/customers?action=nextdns_delete&id=${encodeURIComponent(id)}`);
-    if (res && res.ok) {
-      showToast('🗑 Đã xóa tài khoản NextDNS', 'green');
-      allNextDnsAccounts = allNextDnsAccounts.filter(a => a.id !== id);
-      renderNextDnsStats();
-      filterNextDnsList();
-    }
-  } catch (err) {
-    showToast('⚠ Lỗi xóa tài khoản: ' + err.message, 'red');
-  }
-};
-
-window.pushNextDnsToPool = async function(id) {
-  const item = allNextDnsAccounts.find(a => a.id === id);
-  if (!item) return;
-  if (!confirm(`Nạp link của tài khoản "${id}" vào DNS Pool ${item.package.toUpperCase()} của shop?\n(Tài khoản sẽ tự động chuyển sang trạng thái "Đã dùng")`)) return;
-
-  try {
-    const res = await api('POST', '/api/admin/customers?action=nextdns_push_pool', { id });
-    if (res && res.ok) {
-      showToast(res.message || '✓ Đã nạp vào DNS Pool thành công!', 'green');
-      item.is_used = true;
-      item.used_at = new Date().toISOString();
-      renderNextDnsStats();
-      filterNextDnsList();
-    }
-  } catch (err) {
-    showToast('⚠ Lỗi nạp vào pool: ' + err.message, 'red');
-  }
-};
-
-window.copyAllUnusedNextDnsLinks = function() {
-  const unused = allNextDnsAccounts.filter(a => !a.is_used);
-  if (!unused.length) {
-    showToast('ℹ Không có link DNS nào ở trạng thái "Chưa dùng"', 'purple');
-    return;
-  }
-  const text = unused.map(a => a.dns_url).join('\n');
-  navigator.clipboard.writeText(text).then(() => {
-    showToast(`✓ Đã sao chép ${unused.length} link DNS chưa dùng!`, 'green');
-  }).catch(() => {
-    showToast('⚠ Không thể truy cập clipboard', 'red');
-  });
-};
-
-function renderNextDnsDesktopTable(list) {
-  const tbody = document.getElementById('ndTableBody');
-  if (!tbody) return;
-  if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);font-weight:600;">Không tìm thấy tài khoản NextDNS nào phù hợp</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = list.map(r => {
-    const is15s = r.package === '15s';
-    const pkgBadge = `<span class="dp-badge ${is15s ? 'dp-b-15s' : 'dp-b-5s'}" style="padding:2px 6px;font-size:.72rem;">${r.package.toUpperCase()}</span>`;
-    const statusBadge = r.is_used
-      ? `<span style="display:inline-block;padding:2px 6px;border-radius:6px;background:var(--bg-surface);color:var(--muted);font-weight:800;border:1px solid var(--ink);font-size:.7rem;white-space:nowrap;">🔒 Đã dùng</span>`
-      : `<span style="display:inline-block;padding:2px 6px;border-radius:6px;background:var(--green-bg);color:var(--green);font-weight:900;border:1.5px solid var(--ink);font-size:.7rem;white-space:nowrap;">🟢 Sẵn sàng</span>`;
-    const createdDate = fmtVnDate(r.created_at);
-    const createdTime = fmtVnTime(r.created_at);
-
-    return `
-      <tr style="border-bottom:1px solid rgba(26,26,26,0.1);transition:background .15s;" onmouseover="this.style.background='var(--gold-bg)'" onmouseout="this.style.background='transparent'">
-        <td style="width:58px;text-align:center;padding:8px 4px;white-space:nowrap;">${pkgBadge}</td>
-        <td style="width:90px;text-align:center;padding:8px 6px;white-space:nowrap;">
-          <code style="font-weight:800;font-size:.82rem;background:#FFF;padding:2px 5px;border:1.5px solid var(--ink);border-radius:4px;cursor:pointer;" onclick="navigator.clipboard.writeText('${esc(r.id)}');showToast('✓ Đã copy ID: ${esc(r.id)}','green');" title="Bấm để copy ID">${esc(r.id)}</code>
-        </td>
-        <td style="padding:8px 10px;font-size:.78rem;">
-          <div style="font-weight:700;word-break:break-all;" title="${esc(r.email)}">${esc(r.email)}</div>
-          <div style="color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:2px;font-size:.72rem;display:flex;align-items:center;gap:4px;">
-            <span>Pass: <code>${esc(r.password)}</code></span>
-            <button class="tl-btn" style="padding:1px 5px;font-size:.65rem;flex-shrink:0;" onclick="navigator.clipboard.writeText('${esc(r.password)}');showToast('✓ Đã copy Mật khẩu','green');">Copy</button>
-          </div>
-        </td>
-        <td style="padding:8px 10px;max-width:170px;">
-          <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'JetBrains Mono',monospace;font-size:.74rem;color:var(--accent);font-weight:700;" title="${esc(r.dns_url)}">${esc(r.dns_url)}</div>
-          <button class="btn-copy-r" style="padding:2px 7px;font-size:.68rem;margin-top:3px;" onclick="navigator.clipboard.writeText('${esc(r.dns_url)}');showToast('✓ Đã copy Link DNS','green');">⧉ Copy link</button>
-        </td>
-        <td style="width:98px;text-align:center;padding:8px 6px;white-space:nowrap;">${statusBadge}</td>
-        <td style="width:90px;text-align:center;padding:8px 6px;font-size:.72rem;white-space:nowrap;">
-          <div style="font-weight:700;color:var(--ink);">${createdTime}</div>
-          <div style="color:var(--muted);font-size:.68rem;">${createdDate}</div>
-        </td>
-        <td style="width:205px;text-align:right;padding:8px 10px;white-space:nowrap;">
-          <div style="display:flex;gap:4px;justify-content:flex-end;">
-            <button class="tl-btn" title="Nạp trực tiếp link này vào DNS Pool của shop" onclick="pushNextDnsToPool('${esc(r.id)}')" style="padding:4px 7px;font-size:.72rem;background:var(--gold);font-weight:900;white-space:nowrap;">🚀 Nạp Pool</button>
-            <button class="tl-btn" title="Chuyển trạng thái Chưa dùng / Đã dùng" onclick="toggleNextDnsStatus('${esc(r.id)}', ${r.is_used})" style="padding:4px 7px;font-size:.72rem;white-space:nowrap;">${r.is_used ? '🔄 Mở lại' : '🔒 Đã dùng'}</button>
-            <button class="tl-btn" title="Xóa tài khoản" onclick="deleteNextDns('${esc(r.id)}')" style="padding:4px 6px;font-size:.72rem;color:var(--red);border-color:var(--red);white-space:nowrap;">✕</button>
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join('');
-}
-
-function renderNextDnsMobileCards(list) {
-  const container = document.getElementById('ndMobileCards');
-  if (!container) return;
-  if (!list.length) {
-    container.innerHTML = `<div style="text-align:center;padding:24px;color:var(--muted);font-weight:600;">Không tìm thấy tài khoản nào</div>`;
-    return;
-  }
-  container.innerHTML = list.map(r => {
-    const is15s = r.package === '15s';
-    const pkgBadge = `<span class="dp-badge ${is15s ? 'dp-b-15s' : 'dp-b-5s'}">${r.package.toUpperCase()}</span>`;
-    const statusBadge = r.is_used
-      ? `<span style="display:inline-block;padding:2px 6px;border-radius:6px;background:var(--bg-surface);color:var(--muted);font-weight:800;border:1px solid var(--ink);font-size:.7rem;">🔒 Đã dùng</span>`
-      : `<span style="display:inline-block;padding:2px 6px;border-radius:6px;background:var(--green-bg);color:var(--green);font-weight:900;border:1.5px solid var(--ink);font-size:.7rem;">🟢 Sẵn sàng</span>`;
-    const createdDate = fmtVnDateTime(r.created_at);
-
-    return `
-      <div class="m-card">
-        <div class="m-card-top">
-          <div>
-            <div class="m-card-name" style="display:flex;align-items:center;gap:6px;">
-              ${pkgBadge}
-              <span style="font-family:'JetBrains Mono',monospace;font-size:.9rem;">${esc(r.id)}</span>
-            </div>
-            <div class="m-card-codes" style="word-break:break-all;margin-top:4px;">${esc(r.email)}</div>
-          </div>
-          <div class="m-card-badges">
-            ${statusBadge}
-          </div>
-        </div>
-        <div style="font-size:.78rem;margin:6px 0;background:var(--card-inner);padding:8px;border:1px solid var(--ink);border-radius:var(--radius-sm);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-            <span><b>Pass:</b> <code>${esc(r.password)}</code></span>
-            <button class="tl-btn" style="padding:2px 8px;font-size:.7rem;" onclick="navigator.clipboard.writeText('${esc(r.password)}');showToast('✓ Đã copy Mật khẩu','green');">Copy Pass</button>
-          </div>
-          <div style="word-break:break-all;font-size:.74rem;color:var(--accent);font-family:'JetBrains Mono',monospace;">
-            ${esc(r.dns_url)}
-          </div>
-        </div>
-        <div class="m-card-meta">
-          <span>Tạo: ${createdDate}</span>
-          ${r.is_used && r.used_at ? `<span>· Dùng: ${fmtVnDateTime(r.used_at)}</span>` : ''}
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;">
-          <button class="btn-copy-r" style="width:100%;text-align:center;padding:8px 6px;font-size:.76rem;" onclick="navigator.clipboard.writeText('${esc(r.dns_url)}');showToast('✓ Đã copy Link DNS','green');">⧉ Copy DNS</button>
-          <button class="tl-btn" style="width:100%;text-align:center;padding:8px 6px;font-size:.76rem;background:var(--gold);font-weight:900;" onclick="pushNextDnsToPool('${esc(r.id)}')">🚀 Nạp Pool</button>
-          <button class="tl-btn" style="width:100%;text-align:center;padding:8px 6px;font-size:.76rem;" onclick="toggleNextDnsStatus('${esc(r.id)}', ${r.is_used})">${r.is_used ? '🔄 Chưa dùng' : '🔒 Đã dùng'}</button>
-          <button class="tl-btn" style="width:100%;text-align:center;padding:8px 6px;font-size:.76rem;color:var(--red);border-color:var(--red);" onclick="deleteNextDns('${esc(r.id)}')">🗑 Xóa</button>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-window.filterNextDnsList = function() {
-  const q = (document.getElementById('ndSearchInput')?.value || '').toLowerCase().trim();
-  const statusFilter = document.getElementById('ndFilterStatus')?.value || 'all';
-  const pkgFilter = document.getElementById('ndFilterPkg')?.value || 'all';
-
-  const filtered = allNextDnsAccounts.filter(a => {
-    if (statusFilter === 'unused' && a.is_used) return false;
-    if (statusFilter === 'used' && !a.is_used) return false;
-    if (pkgFilter !== 'all' && a.package !== pkgFilter) return false;
-    if (q) {
-      const matchId = (a.id || '').toLowerCase().includes(q);
-      const matchEmail = (a.email || '').toLowerCase().includes(q);
-      const matchPkg = (a.package || '').toLowerCase().includes(q);
-      if (!matchId && !matchEmail && !matchPkg) return false;
-    }
-    return true;
-  });
-
-  renderNextDnsDesktopTable(filtered);
-  renderNextDnsMobileCards(filtered);
-};
 
 document.addEventListener('DOMContentLoaded',()=>{
   if(adminToken){document.getElementById('loginOverlay').style.display='none';document.getElementById('adminUI').style.display='block';initAdmin();}

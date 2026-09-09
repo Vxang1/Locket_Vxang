@@ -298,16 +298,17 @@ Hệ thống đã trải qua 2 đợt rà soát đối chiếu chéo (Cross-Refe
     - *Nguyên nhân:* `choiceBadge` đọc `c.locket_choice` (cột không tồn tại) → badge luôn rỗng.
     - *Xử lý:* Xóa toàn bộ khối `choiceBadge` và tham chiếu `${choiceBadge}` trong template mã truy cập.
 
-22. **⚡ Tích Hợp Quản Lý NextDNS Tự Động (Tab `⚡ NextDNS` trong Admin Dashboard):**
-    - *Yêu cầu:* Tự động hóa hoàn toàn việc tạo tài khoản NextDNS (hòm thư ảo ngẫu nhiên, tạo mật khẩu mạnh), tự cấu hình Denylist chuẩn theo từng gói (5s: `revenuecat.com`, `api.revenuecat.com`; 15s: thêm `firebaseremoteconfig.googleapis.com`, `firebaseappcheck.googleapis.com`).
-    - *Kiến trúc & Ràng buộc:* Không tạo thêm Serverless Function (giữ đúng 11 endpoint), mở rộng router `api/admin/customers.js` với các action `nextdns_list`, `nextdns_create`, `nextdns_toggle`, `nextdns_delete`, `nextdns_push_pool`.
-    - *Database:* Bảng độc lập `public.nextdns_accounts` trên Supabase (`id`, `package`, `email`, `password`, `dns_url`, `denylist`, `is_used`, `used_at`, `created_at`).
-    - *UX & Hiệu năng:* Client chạy batch tạo 1, 3, 5, 10 tài khoản tuần tự kèm thanh tiến trình trực quan, chống Vercel timeout 10s. Tự động chuyển đổi giao diện Bảng trên Desktop thành thẻ Danh thiếp Mini chuẩn Mobile iPhone Safari. Có nút 1-chạm nạp thẳng vào `dns_pool` của shop và tự đánh dấu đã dùng.
+22. **⚡ Tái Cấu Trúc NextDNS Tự Động Trực Tiếp Vào Tab DNS Riêng & DNS Pool + Tối Ưu Mobile Safari:**
+    - *Mục tiêu:* Loại bỏ tab NextDNS độc lập, tích hợp công cụ tự động NextDNS trực tiếp vào 2 tab nghiệp vụ cốt lõi:
+      1. **Tab DNS Riêng (`tab-dnsgen`):** Tạo 1 tài khoản NextDNS mỗi lần theo mã khách hàng (`customer_code`). Tự động nhận diện gói (`5s`/`15s`), đăng ký tài khoản với denylist chuẩn, lưu `email`, `password`, `dns_url` vào `private_dns_links`, giải phóng khách khỏi pool nếu có (`releaseCustomerFromDnsPool`), sinh link và tin nhắn Zalo 1-chạm. Tối ưu giao diện trên Mobile Safari (lưới nút thao tác 2 cột `.dns-row-actions`, layout co giãn mượt mà).
+      2. **Tab DNS Pool (`tab-dnspool`):** Tự động tạo tài khoản NextDNS theo lô (1, 5, 10 tài khoản) với nhóm gói tùy chọn (`5s`/`15s`), nạp thẳng `dns_url` vào `dns_pool` (`max_uses` mặc định 5, `used_codes: []`). Vòng lặp tuần tự phía client chống Vercel timeout 10s, có progress bar realtime.
+    - *Kiến trúc & Backend:* Giữ nguyên 11 Serverless Functions. Bổ sung 2 action `dns_auto_create_private` và `dns_auto_create_pool` vào `api/admin/customers.js`, tận dụng `createNextDnsAccountHelper` trong `api/_lib/utils.js`. Dọn dẹp triệt để tab NextDNS độc lập và các hàm JS dead code.
 
 ### Tiêu Chuẩn Kiểm Định Bắt Buộc Trước Khi Bàn Giao:
 - Cú pháp toàn bộ file Node.js đạt chuẩn `node -c` (exit code 0).
-- Toàn bộ script inline trong HTML (`admin.html`, `guide.html`, `index.html`) vượt qua kiểm tra cú pháp độc lập (`validate_html_scripts.js`).
+- Toàn bộ script inline trong HTML (`admin.html`, `guide.html`, `index.html`) vượt qua kiểm tra cú pháp độc lập (`check_scripts.js`).
 - Hạn mức tuyệt đối đúng 11 Serverless Functions Vercel được duy trì nguyên vẹn.
 - Mọi thay đổi logic kinh doanh phải được ghi nhận đầy đủ, chi tiết vào cả `GEMINI.md` và `handover.md`.
+
 
 

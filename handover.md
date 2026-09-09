@@ -377,20 +377,15 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
     - **DEAD CODE (2 lỗi đã xử lý):**
       6. `api/guide/complete.js`: Xóa biến `what`, `pkg` không dùng và import thừa `setAppConfig`, `isPermPackage`.
       7. `admin.html`: Xóa `choiceBadge` đọc `c.locket_choice` (cột không tồn tại, badge luôn rỗng) và tham chiếu `${choiceBadge}` trong template mã truy cập.
-24. **⚡ TÍCH HỢP QUẢN LÝ NEXTDNS TỰ ĐỘNG (TAB NEXTDNS TRONG ADMIN CRM) (2026-09-09):**
-    - **Mục tiêu:** Tự động hóa hoàn toàn quy trình tạo tài khoản NextDNS riêng cho shop, cấp hòm thư ảo ngẫu nhiên qua API, sinh mật khẩu an toàn, tự động nạp denylist theo từng gói (5s: 2 domain RevenueCat; 15s: 2 domain RevenueCat + 2 domain Firebase).
+24. **⚡ TÁI CẤU TRÚC NEXTDNS TỰ ĐỘNG VÀO TRỰC TIẾP TAB DNS RIÊNG & TAB DNS POOL + TỐI ƯU MOBILE SAFARI (2026-09-09):**
+    - **Mục tiêu:** Loại bỏ tab NextDNS độc lập, tích hợp công cụ tự động NextDNS trực tiếp vào đúng 2 nơi cần dùng trong quản trị thực tế:
+      1. **Tab DNS Riêng (`tab-dnsgen`):** Tạo 1 tài khoản NextDNS mỗi lần theo mã khách hàng (`customer_code`). Hệ thống tự động nhận diện gói (`5s` hay `15s`), đăng ký tài khoản qua helper với denylist chuẩn, lưu `email`, `password`, `dns_url` vào `private_dns_links`, giải phóng khách khỏi pool nếu có (`releaseCustomerFromDnsPool`), và tự sinh link `dns.html?t={token}` kèm mẫu tin nhắn Zalo 1-chạm. Tối ưu giao diện trên Mobile Safari: chuyển các nút thao tác thành lưới 2 cột ngón tay dễ chạm (`.dns-row-actions`), giao diện co giãn responsive mượt mà.
+      2. **Tab DNS Pool (`tab-dnspool`):** Tự động tạo tài khoản NextDNS hàng loạt (1, 5, 10 tài khoản) với gói tùy chỉnh (`5s` / `15s`) và số lượt dùng tối đa (`max_uses`), nạp thẳng link vào `dns_pool` (`max_uses` mặc định 5, `used_codes: []`) mà không cần lưu email/mật khẩu. Client sequential loop chống triệt để Vercel 10s timeout, hiển thị thanh tiến trình realtime.
     - **Kiến trúc & Ràng buộc:**
-      - Tuyệt đối giữ nguyên 11 Serverless Functions Vercel (không thêm function mới). Mở rộng router `api/admin/customers.js` với các action: `nextdns_list`, `nextdns_create`, `nextdns_toggle`, `nextdns_delete`, `nextdns_push_pool`.
-      - Xây dựng helper trong `api/_lib/utils.js`: `genNextDnsPassword()`, `getTempEmailHelper()`, `createNextDnsAccountHelper()`.
-      - Bảng cơ sở dữ liệu độc lập `public.nextdns_accounts` trên Supabase, không chạm vào cấu trúc các bảng hiện tại.
-    - **Frontend Admin & Trải nghiệm Mobile (iPhone Safari):**
-      - Thêm tab `⚡ NextDNS` vào thanh điều hướng và truy cập nhanh của `admin.html`.
-      - Stats cards: Tổng số tài khoản, Chưa dùng (sẵn sàng), Đã dùng, Phân bổ gói 5s/15s.
-      - Chức năng tạo batch linh hoạt (1, 3, 5, 10 tài khoản) chạy tuần tự phía client kèm progress bar trực quan để chống timeout 10s của Vercel Hobby.
-      - Hỗ trợ nhập email tùy chỉnh hoặc tự động lấy email ảo ngẫu nhiên.
-      - Tự động thích ứng trên điện thoại: Bảng dữ liệu tự chuyển đổi thành các thẻ danh thiếp mini trực quan (`.m-card`), có nút 1-chạm copy Link DNS, copy Pass, đổi trạng thái, xóa, và nút `🚀 Nạp Pool` đẩy thẳng link vào DNS Pool mặc định của shop và tự đánh dấu Đã dùng.
-      - Nút "Copy tất cả link chưa dùng" giúp admin trích xuất nhanh danh sách link phục vụ công việc.
-    - **Kiểm định:** 100% PASS kiểm thử cú pháp `node -c` toàn bộ file Node.js và script inline trong HTML.
+      - Giữ nguyên tuyệt đối 11 Serverless Functions (Vercel Hobby limit).
+      - Mở rộng router `api/admin/customers.js` với 2 action chuẩn: `dns_auto_create_private` và `dns_auto_create_pool`. Tái sử dụng `createNextDnsAccountHelper` trong `_lib/utils.js`.
+      - Dọn dẹp triệt để tab NextDNS độc lập, nút truy cập nhanh, và toàn bộ các hàm JS dead-code của tab NextDNS cũ trong `admin.html`.
+    - **Kiểm định:** Đã kiểm tra cú pháp độc lập với `node -c` và `check_scripts.js` — 100% PASS, không còn bất kỳ lỗi nào.
 
 ---
 

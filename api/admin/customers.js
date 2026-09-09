@@ -381,82 +381,103 @@ module.exports = async (req, res) => {
       return res.json({ ok: true });
     }
 
-    // ── GET ?action=nextdns_list — danh sách tài khoản NextDNS tự động ─
-    if (req.method === 'GET' && action === 'nextdns_list') {
-      const rows = await sb('GET', 'nextdns_accounts', { q: 'order=created_at.desc&limit=200' }) || [];
-      return res.json(rows);
-    }
+    // ── POST ?action=dns_auto_create_private — Tự động tạo NextDNS riêng cho 1 khách hàng ──
+    if (req.method === 'POST' && action === 'dns_auto_create_private') {
+      const { customer_code } = req.body || {};
+      if (!customer_code) return res.status(400).json({ error: 'Thiếu mã khách hàng' });
+      const cleanCode = String(customer_code).trim().toUpperCase();
 
-    // ── POST ?action=nextdns_create — tự động tạo 1 tài khoản NextDNS ──
-    if (req.method === 'POST' && action === 'nextdns_create') {
-      const { type, email, initial_used } = req.body || {};
+      // 1. Kiểm tra khách hàng tồn tại trong DB & nhận diện gói
+      const custs = await sb('GET', 'customers', {
+        q: `customer_code=eq.${encodeURIComponent(cleanCode)}&select=id,name,package`
+      });
+      if (!custs?.length) return res.status(404).json({ error: 'Không tìm thấy mã khách hàng này' });
+
+      const cust = custs[0];
+      const is15s = (cust.package === '40k' || cust.package === '180' || cust.package === '15s');
+      const dnsType = is15s ? '15s' : '5s';
+      const normPkg = normalizePackage(cust.package || '30k');
+
       try {
-        const account = await createNextDnsAccountHelper({
-          type: type || '5s',
-          customEmail: email || null,
-          initialUsed: !!initial_used,
+        // 2. Tự động đăng ký NextDNS với Denylist chuẩn của gói
+        const nextAccount = await createNextDnsAccountHelper({
+          type: dnsType,
+          initialUsed: true
         });
-        return res.json({ ok: true, account });
+
+        // 3. Tạo token & lưu trực tiếp vào private_dns_links
+        const token = genCode('DNS', 8);
+        await sb('POST', 'private_dns_links', {
+          body: {
+            token,
+            customer_code: cleanCode,
+            nextdns_url: nextAccount.dns_url,
+            dashboard_key: '',
+            nextdns_email: nextAccount.email,
+            nextdns_password: nextAccount.password,
+            package: normPkg,
+          },
+          prefer: 'return=minimal',
+        });
+
+        // 4. Giải phóng slot trong dns_pool nếu trước đó khách có slot
+        try {
+          const { releaseCustomerFromDnsPool } = require('../_lib/utils');
+          await releaseCustomerFromDnsPool(cleanCode);
+        } catch (e) {
+          console.warn('Lỗi dọn pool khi auto gen dns riêng:', e.message);
+        }
+
+        return res.json({
+          ok: true,
+          token,
+          customer_code: cleanCode,
+          customer_name: cust.name || '',
+          package: normPkg,
+          dns_url: nextAccount.dns_url,
+          email: nextAccount.email,
+          password: nextAccount.password
+        });
       } catch (err) {
-        console.error('Lỗi createNextDnsAccountHelper:', err);
-        return res.status(500).json({ error: err.message || 'Lỗi khi tạo tài khoản NextDNS' });
+        console.error('Lỗi dns_auto_create_private:', err);
+        return res.status(500).json({ error: err.message || 'Lỗi khi tự động tạo NextDNS riêng' });
       }
     }
 
-    // ── PATCH ?action=nextdns_toggle — bật/tắt trạng thái đã sử dụng ──
-    if (req.method === 'PATCH' && action === 'nextdns_toggle') {
-      const targetId = id || req.body?.id;
-      const isUsed = req.body?.is_used !== undefined ? !!req.body.is_used : true;
-      if (!targetId) return res.status(400).json({ error: 'Missing id' });
-      const now = new Date().toISOString();
-      await sb('PATCH', 'nextdns_accounts', {
-        q: `id=eq.${encodeURIComponent(targetId)}`,
-        body: {
-          is_used: isUsed,
-          used_at: isUsed ? now : null,
-        },
-      });
-      return res.json({ ok: true, is_used: isUsed });
-    }
+    // ── POST ?action=dns_auto_create_pool — Tự động tạo 1 tài khoản nạp thẳng vào DNS Pool ──
+    if (req.method === 'POST' && action === 'dns_auto_create_pool') {
+      const { package: pkg, max_uses } = req.body || {};
+      const targetPkg = (pkg === '15s' || pkg === '40k') ? '15s' : '5s';
+      const maxSlots = Math.max(1, Math.min(50, parseInt(max_uses, 10) || 5));
 
-    // ── DELETE ?action=nextdns_delete — xoá tài khoản NextDNS ─────────
-    if (req.method === 'DELETE' && action === 'nextdns_delete') {
-      const targetId = id || req.body?.id;
-      if (!targetId) return res.status(400).json({ error: 'Missing id' });
-      await sb('DELETE', 'nextdns_accounts', { q: `id=eq.${encodeURIComponent(targetId)}` });
-      return res.json({ ok: true });
-    }
+      try {
+        // 1. Tạo tài khoản NextDNS với Denylist chuẩn theo nhóm gói
+        const nextAccount = await createNextDnsAccountHelper({
+          type: targetPkg,
+          initialUsed: true
+        });
 
-    // ── POST ?action=nextdns_push_pool — nạp thẳng vào pool DNS của shop ─
-    if (req.method === 'POST' && action === 'nextdns_push_pool') {
-      const { id: targetId, package: pkg, max } = req.body || {};
-      if (!targetId) return res.status(400).json({ error: 'Missing account id' });
-      
-      const accounts = await sb('GET', 'nextdns_accounts', { q: `id=eq.${encodeURIComponent(targetId)}&limit=1` }) || [];
-      if (!accounts.length) return res.status(404).json({ error: 'Không tìm thấy tài khoản NextDNS này' });
-      
-      const acc = accounts[0];
-      const targetPkg = (pkg === '15s' || pkg === '40k' || acc.package === '15s') ? '15s' : '5s';
-      const maxSlots = Math.max(1, Math.min(50, parseInt(max, 10) || 5));
+        // 2. Nạp trực tiếp link vào dns_pool (không lưu email, mật khẩu)
+        const poolRows = await sb('POST', 'dns_pool', {
+          body: {
+            package: targetPkg,
+            dns_url: nextAccount.dns_url,
+            is_active: true,
+            max: maxSlots,
+            used_codes: []
+          },
+          prefer: 'return=representation'
+        });
 
-      const poolRows = await sb('POST', 'dns_pool', {
-        body: {
-          package: targetPkg,
-          dns_url: acc.dns_url,
-          is_active: true,
-          max: maxSlots,
-          used_codes: []
-        },
-        prefer: 'return=representation'
-      });
-
-      const now = new Date().toISOString();
-      await sb('PATCH', 'nextdns_accounts', {
-        q: `id=eq.${encodeURIComponent(targetId)}`,
-        body: { is_used: true, used_at: now }
-      }).catch(() => {});
-
-      return res.json({ ok: true, pool_row: poolRows?.[0] || null, message: `✓ Đã nạp ${acc.dns_url} vào DNS Pool ${targetPkg}!` });
+        return res.json({
+          ok: true,
+          pool_row: poolRows?.[0] || null,
+          message: `✓ Đã tạo và nạp ${nextAccount.dns_url} vào DNS Pool ${targetPkg}!`
+        });
+      } catch (err) {
+        console.error('Lỗi dns_auto_create_pool:', err);
+        return res.status(500).json({ error: err.message || 'Lỗi khi tạo và nạp vào DNS Pool' });
+      }
     }
 
     // ── PATCH ?action=update&id=... ────────────────────────────────
