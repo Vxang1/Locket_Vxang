@@ -3445,6 +3445,10 @@ function renderCodes(){
   }).join('');
 }
 // ─────────────────────────────────────────────────────────────────
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+window.esc = esc;
+
+// ─────────────────────────────────────────────────────────────────
 // NEXTDNS AUTOMATION MANAGEMENT
 // ─────────────────────────────────────────────────────────────────
 let allNextDnsAccounts = [];
