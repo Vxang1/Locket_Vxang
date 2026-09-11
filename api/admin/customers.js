@@ -1,5 +1,5 @@
 'use strict';
-const { sb, requireAdmin, allowMethods, genCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, normalizePackage, isPermPackage, getAppstoreConfig, setAppConfig, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, parseContactInput, releaseCustomerFromDnsPool, createVpnToken, createNextDnsAccountHelper } = require('../_lib/utils');
+const { sb, requireAdmin, allowMethods, genCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, normalizePackage, isPermPackage, getAppstoreConfig, setAppConfig, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, parseContactInput, createVpnToken, createNextDnsAccountHelper, getOrCreatePrivateDns, recyclePrivateDnsSlot } = require('../_lib/utils');
 
 
 module.exports = async (req, res) => {
@@ -52,18 +52,11 @@ module.exports = async (req, res) => {
     }
 
     // ── POST ?action=dns_create — tạo link DNS riêng cho 1 khách hàng ──
-    // Gói 180 giờ được chấp nhận (map về '15s' theo dnsPoolKey) vì gói 180 cũng
-    // có bước DNS. Code dnsPrivateUrl chỉ đọc nextdns_url, cột ublockdns_url là legacy
-    // ưu tiên nextdns_url nên không cần xoá cột cũ, link cũ đang trong tay khách vẫn hoạt động.
-    // 2026-08-25: Tự động hiểu mã ngắn theo Mẫu DNS (dns_template) hoặc giữ nguyên URL đầy đủ.
     if (req.method === 'POST' && action === 'dns_create') {
       const { customer_code, nextdns_url, nextdns_email, nextdns_password, package: pkg } = req.body || {};
       if (!customer_code || !nextdns_url) return res.status(400).json({ error: 'Thiếu mã KH hoặc link DNS' });
 
-      // Chấp nhận URL đầy đủ (bất kỳ host nào) HOẶC shorthand theo mẫu DNS tự hiểu
-      const { releaseCustomerFromDnsPool } = require('../_lib/utils');
-          await releaseCustomerFromDnsPool(customer_code);
-          const rawUrl = String(nextdns_url).trim();
+      const rawUrl = String(nextdns_url).trim();
       const activeTemplate = await getDnsTemplate();
       const resolvedUrl = resolveDnsWithTemplate(rawUrl, activeTemplate);
       if (!resolvedUrl) {
@@ -73,7 +66,7 @@ module.exports = async (req, res) => {
       // Gói: '30k', '40k'
       const p = normalizePackage(pkg || '30k');
 
-      // BẮT BUỘC mã KH phải tồn tại thật trong customers (theo yêu cầu chốt trước).
+      // BẮT BUỘC mã KH phải tồn tại thật trong customers
       const custs = await sb('GET', 'customers', { q: `customer_code=eq.${encodeURIComponent(customer_code)}&select=id,name` });
       if (!custs?.length) return res.status(404).json({ error: 'Không tìm thấy mã khách hàng này' });
 
@@ -90,24 +83,6 @@ module.exports = async (req, res) => {
         },
         prefer: 'return=minimal',
       });
-
-      // Tự động giải phóng slot trong dns_pool của khách này để chừa chỗ cho người khác
-      try {
-        const custCodes = (await sb('GET', 'access_codes', { q: `customer_id=eq.${encodeURIComponent(custs[0].id)}&select=code` })) || [];
-        const allCodesToRemove = new Set([customer_code, ...custCodes.map(c => c.code)].filter(Boolean));
-        const poolRows = (await sb('GET', 'dns_pool', { q: 'select=id,used_codes' })) || [];
-        for (const row of poolRows) {
-          if (Array.isArray(row.used_codes) && row.used_codes.some(c => allCodesToRemove.has(c))) {
-            const updatedUsed = row.used_codes.filter(c => !allCodesToRemove.has(c));
-            await sb('PATCH', 'dns_pool', {
-              q: `id=eq.${encodeURIComponent(row.id)}`,
-              body: { used_codes: updatedUsed },
-            });
-          }
-        }
-      } catch (poolErr) {
-        console.warn('Lỗi dọn dns_pool khi tạo DNS riêng:', poolErr.message);
-      }
 
       return res.json({ ok: true, token });
     }
@@ -134,21 +109,38 @@ module.exports = async (req, res) => {
 
       if (body.customer_code !== undefined) {
         const rawCode = String(body.customer_code).trim().toUpperCase();
-        if (rawCode) {
+        if (rawCode && rawCode !== '[AVAILABLE]') {
           const custs = await sb('GET', 'customers', { q: `customer_code=eq.${encodeURIComponent(rawCode)}&select=id,customer_code,package` });
           if (!custs?.length) return res.status(404).json({ error: `Không tìm thấy mã khách hàng "${rawCode}"` });
+          
+          // BẢO VỆ BẤT BIẾN 1:1: Kiểm tra xem khách này đã có slot DNS nào khác chưa
+          // Nếu đã có slot khác, tự động thu hồi slot cũ về kho [AVAILABLE] trước khi gán slot mới
+          const existingOthers = await sb('GET', 'private_dns_links', {
+            q: `customer_code=eq.${encodeURIComponent(rawCode)}&id=neq.${encodeURIComponent(id)}&select=id,package`
+          }).catch(() => []);
+          if (existingOthers && existingOthers.length) {
+            for (const ex of existingOthers) {
+              const p = normalizePackage(ex.package || '30k');
+              const exType = (p === '40k' || p === '15s' || p === '180') ? '15s' : '5s';
+              await sb('PATCH', 'private_dns_links', {
+                q: `id=eq.${encodeURIComponent(ex.id)}`,
+                body: { customer_code: '[AVAILABLE]', package: exType, first_accessed_at: null, expired_notified_at: null, status: 'unopened' }
+              }).catch(() => {});
+            }
+          }
+
           patch.customer_code = custs[0].customer_code;
           if (custs[0].package) patch.package = normalizePackage(custs[0].package);
           // Tự động tái kích hoạt link cho khách mới (TTL 10p tính từ lần mở đầu tiên)
           patch.first_accessed_at = null;
           patch.expired_notified_at = null;
-
-          // Giải phóng khách này khỏi dns_pool nếu khách từng nhận link pool trước đó
-          await releaseCustomerFromDnsPool(custs[0].customer_code);
+          patch.status = 'unopened';
         } else {
-          patch.customer_code = '[THU HỒI] TRỐNG';
+          // Thu hồi về kho [AVAILABLE] để sẵn sàng tái cấp cho khách mới
+          patch.customer_code = '[AVAILABLE]';
           patch.first_accessed_at = null;
           patch.expired_notified_at = null;
+          patch.status = 'unopened';
         }
       }
 
@@ -210,122 +202,21 @@ module.exports = async (req, res) => {
       return res.json(withStatus);
     }
 
-    // ── GET ?action=dns_pool_list — pool link DNS MẶC ĐỊNH (dùng chung) ─
-    // Khác hẳn dns_list ở trên: dns_list là link RIÊNG từng khách (private_dns_links,
-    // TTL 10 phút), còn đây là link dùng chung hiện ở bước DNS mặc định của guide.html,
-    // mỗi link phục vụ tối đa max (5) MÃ KHÁCH rồi admin phải thêm link mới.
-    // Trả kèm used = số mã đã dùng để admin biết còn bao nhiêu suất trước khi cạn.
+    // ── DNS POOL COMPATIBILITY STUBS (Đã chuyển sang 100% DNS riêng 1:1) ─
     if (req.method === 'GET' && action === 'dns_pool_list') {
-      const rows = await sb('GET', 'dns_pool', { q: `order=created_at.desc&limit=100` }) || [];
-      const withUse = rows.map(r => {
-        const used = Array.isArray(r.used_codes) ? r.used_codes : [];
-        const max = r.max || 5;
-        return { ...r, used: used.length, max, is_full: used.length >= max };
-      });
-      return res.json(withUse);
+      return res.json([]);
     }
-
-    // ── POST ?action=dns_pool_add — thêm link vào pool DNS mặc định ──
-    // Thêm link mới KHÔNG tự tắt link cũ: claimDnsFromPool luôn lấy row mới nhất
-    // (order=created_at.desc&limit=1) nên link vừa thêm tự động thành link đang dùng,
-    // còn link cũ giữ lại để tra lịch sử "khách nào đã nhận link nào" khi cần hỗ trợ.
-    // 2026-08-25: Tự động hiểu mã ngắn theo Mẫu DNS (dns_template) hoặc giữ nguyên URL đầy đủ.
-    // Yêu cầu #5: hỗ trợ bulk add — body.urls[] (mảng nhiều link) hoặc body.dns_url (1 link, backward compat).
     if (req.method === 'POST' && action === 'dns_pool_add') {
-      const { dns_url, urls, package: pkg, max_uses } = req.body || {};
-
-      // Chuẩn hoá danh sách URL: ưu tiên mảng urls[], fallback singular dns_url cho tương thích
-      const rawList = Array.isArray(urls) ? urls.map(s => String(s || '').trim()).filter(Boolean)
-        : dns_url ? [String(dns_url).trim()] : [];
-      if (!rawList.length) return res.status(400).json({ error: 'Thiếu link DNS' });
-
-      // Chỉ có 2 nhóm pool: '5s' và '15s' (gói 40k dùng chung nhóm '15s' — xem dnsPoolKey).
-      const p = (String(pkg || '').trim() === '40k' || String(pkg || '').trim() === '15s') ? '15s' : '5s';
-      const maxU = Math.max(1, Math.min(50, parseInt(max_uses, 10) || 5));
-
-      const activeTemplate = await getDnsTemplate();
-      const resolved = [];
-      const failed = [];
-      for (const raw of rawList) {
-        const r = resolveDnsWithTemplate(raw, activeTemplate);
-        if (r) {
-          resolved.push(r);
-        } else {
-          failed.push({ url: raw, reason: 'định dạng sai' });
-        }
-      }
-
-      // Insert tuần tự (pool nhỏ, không đáng để batch phức tạp). Supabase REST POST
-      // với prefer:return=representation trả về row vừa insert.
-      let added = 0;
-      for (const url of resolved) {
-        try {
-          await sb('POST', 'dns_pool', {
-            body: { package: p, dns_url: url, max: maxU },
-            prefer: 'return=minimal',
-          });
-          added++;
-        } catch (e) {
-          failed.push({ url, reason: e.message || 'lỗi DB' });
-        }
-      }
-
-      // Backward compat: nếu gọi kiểu cũ (singular dns_url), trả shape cũ {ok, row}.
-      // Gọi kiểu mới (urls[]) trả {added, failed}.
-      if (!Array.isArray(urls) && dns_url) {
-        if (failed.length) return res.status(400).json({ error: failed[0].reason });
-        return res.json({ ok: true, row: null });
-      }
-      return res.json({ added, failed });
+      return res.json({ ok: true, added: 0, failed: [] });
     }
-
-    // ── PATCH ?action=dns_pool_toggle&id=... — bật/tắt 1 link trong pool ─
-    // Tắt (is_active=false) để loại link hỏng/bị chặn khỏi vòng luân phiên mà không
-    // xoá dữ liệu used_codes (còn tra được khách nào đã nhận link đó). Bật lại được.
     if (req.method === 'PATCH' && action === 'dns_pool_toggle') {
-      if (!id) return res.status(400).json({ error: 'Missing id' });
-      const isActive = !!(req.body || {}).is_active;
-      const rows = await sb('PATCH', 'dns_pool', {
-        q: `id=eq.${encodeURIComponent(id)}`,
-        body: { is_active: isActive },
-        prefer: 'return=representation',
-      });
-      if (!rows?.length) return res.status(404).json({ error: 'Không tìm thấy link pool này' });
-      return res.json({ ok: true, is_active: rows[0].is_active });
-    }
-
-    // ── DELETE ?action=dns_pool_delete&id=... — xoá hẳn 1 link khỏi pool ─
-    if (req.method === 'DELETE' && action === 'dns_pool_delete') {
-      if (!id) return res.status(400).json({ error: 'Missing id' });
-      await sb('DELETE', 'dns_pool', { q: `id=eq.${encodeURIComponent(id)}` });
       return res.json({ ok: true });
     }
-
-    // ── PATCH ?action=dns_pool_remove_customer&id=... — gỡ 1 mã KH khỏi pool link ─
-    // Dùng khi khách cũ dùng DNS bị lỗi → admin gỡ mã họ khỏi link DNS cũ
-    // → lần sau mở guide.html, claimDnsFromPool không thấy mã ở link cũ nữa → gán
-    // vào link NextDNS mới đang active trong pool (tính +1 khách). Nếu link NextDNS đó
-    // đã đủ 5 khách thì hệ thống tự chặn tạo mã mới (pool full check).
-    // Supabase REST hỗ trợ filter mảng bằng `not.used_codes.cs.{value}` nhưng chỉ cho
-    // query SELECT, không cho UPDATE. Nên phải GET trước rồi PATCH với mảng mới.
+    if (req.method === 'DELETE' && action === 'dns_pool_delete') {
+      return res.json({ ok: true });
+    }
     if (req.method === 'PATCH' && action === 'dns_pool_remove_customer') {
-      if (!id) return res.status(400).json({ error: 'Missing id' });
-      const { customer_code } = req.body || {};
-      if (!customer_code) return res.status(400).json({ error: 'Thiếu mã khách hàng' });
-      const cc = String(customer_code).trim();
-
-      // Lấy row hiện tại để có used_codes chính xác
-      const rows = await sb('GET', 'dns_pool', { q: `id=eq.${encodeURIComponent(id)}&select=id,used_codes` }) || [];
-      if (!rows.length) return res.status(404).json({ error: 'Không tìm thấy link pool này' });
-      const currentCodes = Array.isArray(rows[0].used_codes) ? rows[0].used_codes : [];
-      if (!currentCodes.includes(cc)) return res.status(404).json({ error: `Mã "${cc}" không nằm trong link pool này` });
-
-      const newCodes = currentCodes.filter(c => c !== cc);
-      await sb('PATCH', 'dns_pool', {
-        q: `id=eq.${encodeURIComponent(id)}`,
-        body: { used_codes: newCodes },
-      });
-      return res.json({ ok: true, removed: cc, remaining: newCodes.length });
+      return res.json({ ok: true });
     }
 
     // ── PATCH ?action=expire ───────────────────────────────────────
@@ -420,14 +311,6 @@ module.exports = async (req, res) => {
           prefer: 'return=minimal',
         });
 
-        // 4. Giải phóng slot trong dns_pool nếu trước đó khách có slot
-        try {
-          const { releaseCustomerFromDnsPool } = require('../_lib/utils');
-          await releaseCustomerFromDnsPool(cleanCode);
-        } catch (e) {
-          console.warn('Lỗi dọn pool khi auto gen dns riêng:', e.message);
-        }
-
         return res.json({
           ok: true,
           token,
@@ -444,40 +327,9 @@ module.exports = async (req, res) => {
       }
     }
 
-    // ── POST ?action=dns_auto_create_pool — Tự động tạo 1 tài khoản nạp thẳng vào DNS Pool ──
+    // ── POST ?action=dns_auto_create_pool — Compatibility stub ──
     if (req.method === 'POST' && action === 'dns_auto_create_pool') {
-      const { package: pkg, max_uses } = req.body || {};
-      const targetPkg = (pkg === '15s' || pkg === '40k') ? '15s' : '5s';
-      const maxSlots = Math.max(1, Math.min(50, parseInt(max_uses, 10) || 5));
-
-      try {
-        // 1. Tạo tài khoản NextDNS với Denylist chuẩn theo nhóm gói
-        const nextAccount = await createNextDnsAccountHelper({
-          type: targetPkg,
-          initialUsed: true
-        });
-
-        // 2. Nạp trực tiếp link vào dns_pool (không lưu email, mật khẩu)
-        const poolRows = await sb('POST', 'dns_pool', {
-          body: {
-            package: targetPkg,
-            dns_url: nextAccount.dns_url,
-            is_active: true,
-            max: maxSlots,
-            used_codes: []
-          },
-          prefer: 'return=representation'
-        });
-
-        return res.json({
-          ok: true,
-          pool_row: poolRows?.[0] || null,
-          message: `✓ Đã tạo và nạp ${nextAccount.dns_url} vào DNS Pool ${targetPkg}!`
-        });
-      } catch (err) {
-        console.error('Lỗi dns_auto_create_pool:', err);
-        return res.status(500).json({ error: err.message || 'Lỗi khi tạo và nạp vào DNS Pool' });
-      }
+      return res.json({ ok: true, message: 'Hệ thống đã chuyển sang 100% DNS riêng 1:1' });
     }
 
     // ── PATCH ?action=update&id=... ────────────────────────────────
@@ -521,20 +373,30 @@ module.exports = async (req, res) => {
       const oldConfig = (current.package === '30k' && current.special_flow) ? null : ((current.package === '40k' || current.package === '15s' || current.package === '180') ? '15s' : '5s');
       const newConfig = (finalPkg2 === '30k' && finalSf2) ? null : ((finalPkg2 === '40k' || finalPkg2 === '15s' || finalPkg2 === '180') ? '15s' : '5s');
       const isUpgradingTo15s = (current.package === '30k' || current.package === '5s') && (finalPkg2 === '40k' || finalPkg2 === '15s' || finalPkg2 === '180');
+      const isDowngradingTo5s = (current.package === '40k' || current.package === '15s' || current.package === '180') && (finalPkg2 === '30k' || finalPkg2 === '5s');
           
-      if (current && (oldConfig !== newConfig || isUpgradingTo15s)) {
-        await releaseCustomerFromDnsPool(current.customer_code);
-        // Thu hồi Private DNS link của khách (nếu có): chuyển sang slot trống [THU HỒI]
-        // Reset first_accessed_at và expired_notified_at về null để link được TÁI KÍCH HOẠT (fresh TTL 10p)
-        // Khách nâng cấp lên 40k sẽ chuyển sang dùng DNS Pool 15s. Slot riêng này chừa lại cho khách tiếp theo.
-        await sb('PATCH', 'private_dns_links', { 
-          q: `customer_code=eq.${encodeURIComponent(current.customer_code)}`,
-          body: { 
-            customer_code: `[THU HỒI] ${current.customer_code}`,
-            first_accessed_at: null,
-            expired_notified_at: null
-          }
-        }).catch(()=>{});
+      if (current && isUpgradingTo15s) {
+        // Thu hồi DNS 5s của gói 30k về kho [AVAILABLE] để cấp cho khách mới
+        await recyclePrivateDnsSlot(current.customer_code, '5s');
+        // Khách lên 40k được cấp tài khoản DNS 15s riêng (ưu tiên lấy slot trống trong kho)
+        await getOrCreatePrivateDns(current.customer_code, '40k');
+        // Cấp VPN token nếu chưa có
+        const existingVpn = await sb('GET', 'vpn_tokens', {
+          q: `customer_id=eq.${targetId}&is_active=eq.true&select=token&limit=1`
+        }).catch(() => []);
+        if (!existingVpn?.length) {
+          await createVpnToken(targetId, current.customer_code).catch(() => {});
+        }
+      } else if (current && isDowngradingTo5s) {
+        // Thu hồi DNS 15s về kho [AVAILABLE]
+        await recyclePrivateDnsSlot(current.customer_code, '15s');
+        // Cấp DNS 5s riêng (ưu tiên lấy slot trống trong kho)
+        await getOrCreatePrivateDns(current.customer_code, '30k');
+        // Vô hiệu hóa VPN token
+        await sb('PATCH', 'vpn_tokens', {
+          q: `customer_id=eq.${targetId}&is_active=eq.true`,
+          body: { is_active: false }
+        }).catch(() => {});
       }
         
         const updateBody = {};
@@ -600,34 +462,9 @@ module.exports = async (req, res) => {
       const codeStrings = codes.map(c => c.code).filter(Boolean);
       const allCodesToRemove = new Set([custCode, ...codeStrings].filter(Boolean));
 
-      // Giải phóng DNS Riêng thành [THU HỒI] để tái sử dụng, reset TTL về null
+      // Thu hồi DNS Riêng của khách về kho [AVAILABLE] (bảo toàn tài khoản NextDNS cho khách tương lai)
       if (custCode) {
-        await sb('PATCH', 'private_dns_links', { 
-          q: `customer_code=eq.${encodeURIComponent(custCode)}`,
-          body: { 
-            customer_code: `[THU HỒI] ${custCode}`,
-            first_accessed_at: null,
-            expired_notified_at: null
-          }
-        }).catch(()=>{});
-      }
-        
-        // 2. Tự động xoá khách khỏi tất cả các link trong dns_pool để nhả slot cho khách khác
-      if (allCodesToRemove.size > 0) {
-        try {
-          const poolRows = (await sb('GET', 'dns_pool', { q: 'select=id,used_codes' })) || [];
-          for (const row of poolRows) {
-            if (Array.isArray(row.used_codes) && row.used_codes.some(c => allCodesToRemove.has(c))) {
-              const updatedUsed = row.used_codes.filter(c => !allCodesToRemove.has(c));
-              await sb('PATCH', 'dns_pool', {
-                q: `id=eq.${encodeURIComponent(row.id)}`,
-                body: { used_codes: updatedUsed },
-              });
-            }
-          }
-        } catch (poolErr) {
-          console.warn('Lỗi dọn dns_pool khi xoá customer:', poolErr.message);
-        }
+        await recyclePrivateDnsSlot(custCode).catch(() => {});
       }
 
       // 3. Dọn sessions, access_codes và customers

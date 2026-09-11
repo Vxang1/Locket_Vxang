@@ -59,16 +59,17 @@
 - **Trong vòng 7 ngày (1 tuần):** Khách chỉ cần thanh toán bù chênh lệch **+10.000 VNĐ**.
 - **Sau 7 ngày:** Khách phải thanh toán **full 40.000 VNĐ** từ đầu.
 - Giao diện CRM Admin tính toán tự động thời gian dựa trên ngày kích hoạt (`activated_at`) — **KHÔNG fallback `created_at`** (khách chưa kích hoạt không bị tính ngày từ lúc tạo, tránh mất ưu đãi +10k oan), tự hiển thị nút đổi gói, tự cộng ghi chú lịch sử và sinh tin nhắn Zalo tương ứng.
-- **Chuyển sang DNS Pool 15s & Giải phóng Slot DNS Riêng:**
-  - Khách đang dùng gói 30k (5s) có link DNS riêng khi nâng cấp lên 40k (15s) sẽ **chuyển sang dùng DNS Pool 15s**.
-  - Link DNS riêng cũ của khách được **giải phóng thành slot trống** (`[THU HỒI] ...`) để dành cho khách tiếp theo có nhu cầu cài đặt DNS riêng.
-  - Link DNS riêng đó được **tự động TÁI KÍCH HOẠT lại** (`first_accessed_at: null`, `expired_notified_at: null`) để khách tiếp theo có thể truy cập link cài đặt bình thường (TTL 10 phút đếm lại từ đầu), và Admin có thể cập nhật thông tin tài khoản DNS hoặc gán mã khách hàng mới cho slot này.
+- **Cơ Chế DNS Riêng 1:1 & Quy Trình Tạo Khách / Đổi Máy / Nâng Cấp:**
+  - **Tạo Khách Mới & Zero Delay:** Khi tạo khách mới, Admin đợi NextDNS tạo xong ngay lúc tạo khách (`create-customer.js`). Khách mở `guide.html` là DNS ĐÃ CÓ RỒI, `/api/guide/steps` trả kèm luôn `dns_url`, tuyệt đối không gặp độ trễ/loading khi vào guide.
+  - **Khách Đổi Máy Mua Lại Từ Đầu:** Mua lại từ đầu nhưng **VẪN DÙNG TÀI KHOẢN NEXTDNS CŨ** (hệ thống tự tra cứu theo SĐT hoặc Social Link của khách để gán lại đúng tài khoản NextDNS cũ sang mã KH mới).
+  - **Khách Nâng Cấp Gói 30k -> 40k:** DNS 5s của gói 30k cũ được thu hồi chuyển sang trạng thái `[SẴN SÀNG]` để cấp cho khách mới gói 30k (tối ưu hóa tài khoản, không lãng phí). Khách nâng cấp lên 40k được cấp tài khoản DNS 15s riêng mới + Token VPN USA 1:1.
+  - **Tuyệt Đối Không Dùng DNS Pool Dùng Chung:** 100% khách hàng đều sở hữu DNS riêng biệt 1:1.
 
 
 ### 4 Kịch Bản Flows:
 1. **Gói 30k Thường (`special_flow = false` - 3 bước):**
    - Bước 1: Cài Shadowrocket (Tài khoản Apple ID shop on-demand)
-   - Bước 2: Cài đặt DNS 5s (Tải `.mobileconfig` từ DNS Pool 5s)
+   - Bước 2: Cài đặt DNS 5s (Tải `.mobileconfig` từ DNS Riêng 1:1 của khách)
    - Bước 3: Lên Locket Gold (Sao chép module cấu hình Shadowrocket)
 2. **Gói 30k Đặc Biệt (`special_flow = true` - 3 bước):**
    - Bước 1: Cài Shadowrocket (Giữ đăng nhập tài khoản shop)
@@ -76,14 +77,14 @@
    - Bước 3: Lên Locket Gold (Sao chép cấu hình Shadowrocket)
 3. **Gói 40k Thường (`special_flow = false` - 4 bước):**
    - Bước 1: Cài Shadowrocket
-   - Bước 2: Cài đặt DNS 15s (Tải profile từ DNS Pool 15s)
+   - Bước 2: Cài đặt DNS 15s (Tải profile từ DNS Riêng 1:1 của khách)
    - Bước 3: Cài đặt VPN USA (Sao chép link VPN Sub Token riêng dạng `https://locketvxang.vercel.app/s/{token}` dán vào Subscribe Shadowrocket, khóa thiết bị 1:1)
    - Bước 4: Lên Locket Gold
 4. **Gói 40k Đặc Biệt (`special_flow = true` - 5 bước):**
    - Bước 1: Cài Shadowrocket (Giữ đăng nhập tài khoản shop)
    - Bước 2: Cài Locket IPA Hạ Cấp
    - Bước 3: Cài đặt VPN USA (Sao chép link VPN Sub Token riêng 1:1)
-   - Bước 4: Cài đặt DNS 15s
+   - Bước 4: Cài đặt DNS 15s (Tải profile từ DNS Riêng 1:1 của khách)
    - Bước 5: Lên Locket Gold
 
 *Lưu ý:* Hệ thống kích hoạt 100% trên thiết bị qua Shadowrocket/DNS/VPN/IPA, không có và không yêu cầu hệ thống Username Locket.
@@ -103,10 +104,10 @@
 3. **Apple ID Scraper On-Demand:**
    - Cào nguồn 1 -> Nguồn 2 backup -> Static fallback từ Firebase RTDB.
    - Giao diện che mật khẩu `••••••••`, chỉ copy vào Clipboard khi bấm nút.
-4. **DNS Pool Xoay Vòng & Link DNS Riêng:**
-   - Phân nhóm 5s và 15s, giới hạn slot `max` (mặc định 5).
-   - Hệ thống DNS động: admin có thể đổi template (NextDNS/AdGuard/ControlD) qua tab DNS pool / DNS riêng mà không cần đổi code.
-   - Kiểm tra sức chứa DNS dựa trên link DNS thực tế trong `private_dns_links`, không dùng trường ảo.
+4. **Hệ Thống DNS Riêng 1:1 Độc Lập (Thay Thế Hoàn Toàn DNS Pool):**
+   - Loại bỏ 100% DNS pool dùng chung; mỗi khách hàng sở hữu 1 tài khoản NextDNS riêng biệt 1:1, không dùng chung với bất kỳ ai.
+   - Tự động tạo NextDNS và cấu hình Denylist chuẩn theo gói (5s / 15s) ngay khi tạo khách hàng hoặc lazy fallback khi vào guide.
+   - Hệ thống DNS động: admin có thể đổi template (NextDNS/AdGuard/ControlD) qua tab Quản lý DNS Riêng mà không cần đổi code.
    - Link DNS Riêng có TTL 10 phút kích hoạt từ lần mở đầu tiên, có nút hồi sinh TTL trong Admin.
 5. **Multi-Admin Telegram Webhook & Mobile-First UX:**
    - Hỗ trợ phát sóng đồng thời đến nhiều Admin Telegram qua `TELEGRAM_CHAT_ID` / `TELEGRAM_ADMIN_IDS` (phân tách dấu phẩy).
@@ -303,6 +304,23 @@ Hệ thống đã trải qua 2 đợt rà soát đối chiếu chéo (Cross-Refe
       1. **Tab DNS Riêng (`tab-dnsgen`):** Tạo 1 tài khoản NextDNS mỗi lần theo mã khách hàng (`customer_code`). Tự động nhận diện gói (`5s`/`15s`), đăng ký tài khoản với denylist chuẩn, lưu `email`, `password`, `dns_url` vào `private_dns_links`, giải phóng khách khỏi pool nếu có (`releaseCustomerFromDnsPool`), sinh link và tin nhắn Zalo 1-chạm. Tối ưu giao diện trên Mobile Safari (lưới nút thao tác 2 cột `.dns-row-actions`, layout co giãn mượt mà).
       2. **Tab DNS Pool (`tab-dnspool`):** Tự động tạo tài khoản NextDNS theo lô (1, 5, 10 tài khoản) với nhóm gói tùy chọn (`5s`/`15s`), nạp thẳng `dns_url` vào `dns_pool` (`max_uses` mặc định 5, `used_codes: []`). Vòng lặp tuần tự phía client chống Vercel timeout 10s, có progress bar realtime.
     - *Kiến trúc & Backend:* Giữ nguyên 11 Serverless Functions. Bổ sung 2 action `dns_auto_create_private` và `dns_auto_create_pool` vào `api/admin/customers.js`, tận dụng `createNextDnsAccountHelper` trong `api/_lib/utils.js`. Dọn dẹp triệt để tab NextDNS độc lập và các hàm JS dead code.
+
+23. **⚡ Chuyển Đổi Toàn Diện Sang 100% DNS Riêng 1:1 (Loại Bỏ Hoàn Toàn DNS Pool Dùng Chung):**
+    - *Mục tiêu:* Xóa bỏ hoàn toàn mô hình DNS pool dùng chung (rotate 5 khách/link) để tránh tình trạng nghẽn kết nối, cạn kiệt slot và chặn tạo mã khi pool đầy. Mỗi khách hàng được cấp riêng 1 tài khoản DNS NextDNS 1:1 độc lập, không dùng chung với bất kỳ ai.
+    - *Dual-Trigger Automation:*
+      1. **Trigger 1 (Khi tạo khách):** `create-customer.js` tự động gọi `getOrCreatePrivateDns` đăng ký tài khoản NextDNS riêng, gán Denylist chuẩn theo gói (5s/15s) và lưu vào `private_dns_links`.
+      2. **Trigger 2 (Just-In-Time tại Guide):** Nếu NextDNS API gặp độ trễ lúc tạo khách, khi khách mở `guide.html` (bước cài DNS), hệ thống kiểm tra và tự động lazy-provision tài khoản DNS riêng tức thời.
+    - *Tương thích ngược 100% (Backward Compatibility):* `validate.js?action=dns_pool_claim` và `utils.js:claimDnsFromPool` chuyển hướng phục vụ DNS riêng 1:1 mà không làm đứt gãy khách hàng đang sử dụng.
+    - *Giao diện Admin & Clean Architecture:* Loại bỏ tab "DNS mặc định" (`tab-dnspool`), modal chi tiết pool và các hàm quản trị pool. Đổi tên tab DNS thành "Quản lý DNS (1:1 Riêng Biệt)". Gỡ bỏ hoàn toàn logic chặn tạo mã/cấp mã khi pool đầy.
+ 24. **⚡ Chuẩn Hóa Tái Sử Dụng Slot DNS Trống (`[AVAILABLE]`), Ràng Buộc Bất Biến 1 Khách 1 DNS 1:1 & Tối Ưu Toàn Diện Giao Diện Mobile/Desktop:**
+    - *Ràng buộc bất biến 1:1 (Strict 1:1 Invariant):* Một khách hàng tuyệt đối không thể sở hữu 2 tài khoản DNS riêng biệt trong cùng một thời điểm. Mọi quy trình nâng cấp gói (30k -> 40k), hạ cấp (40k -> 30k), gán thủ công hoặc xóa khách hàng đều tự động kiểm tra và thu hồi triệt để slot DNS cũ trước khi cấp slot mới.
+    - *Tái sử dụng 100% tài nguyên (Zero-Waste Recycling):* Khi tạo khách mới hoặc cấp lại mã, hệ thống luôn ưu tiên quét và tái sử dụng các slot DNS trống sẵn có trong kho (`[AVAILABLE]`) trước tiên. Chỉ khi toàn bộ kho trống không còn slot khớp nhóm gói (`5s` / `15s`), hệ thống mới gọi API NextDNS để tạo tài khoản mới. Cơ chế này đạt độ trễ 0ms và loại bỏ hoàn toàn lãng phí tài khoản NextDNS.
+    - *Chuẩn hóa cờ `[AVAILABLE]` & Phòng ngừa lỗi PostgREST:* Thay thế toàn bộ các cờ Unicode tiếng Việt có dấu (`[SẴN SÀNG]`, `[THU HỒI]`) bằng định dạng chuẩn ASCII `[AVAILABLE]`. Triệt tiêu hoàn toàn mã lỗi HTTP 400 Bad Request do URI encoding của PostgREST, sử dụng hàm helper `isDnsSlotAvailable(r)` kiểm tra an toàn trong bộ nhớ Node.js.
+    - *Nút Thu Hồi 1 Chạm trên CRM:* Bổ sung nút bấm trực quan `♻ Thu hồi` cho từng dòng DNS đang hoạt động trong bảng Admin, cho phép kỹ thuật viên chủ động giải phóng bất kỳ slot DNS nào về kho trống `[AVAILABLE]` chỉ bằng 1 thao tác.
+    - *Tối ưu hóa hiển thị Responsive Mobile & Desktop toàn diện:*
+      - `admin.html`: Khắc phục lỗi thiếu CSS Grid cho `.quick-btns` trên màn hình Desktop lớn; tối ưu thanh filter danh mục 1 dòng vuốt ngang cảm ứng mượt mà trên Mobile Safari; bố trí lại Modal Sổ cái khách hàng dạng 2 cột trực quan.
+      - `guide.html`: Cấu hình chuẩn `viewport-fit=cover`, bù trừ chính xác `env(safe-area-inset-top)` và `env(safe-area-inset-bottom)`. Tăng padding nội dung lên `calc(96px + env(safe-area-inset-bottom))` để triệt tiêu hoàn toàn hiện tượng thanh điều hướng cố định (Fixed Navbar) che khuất nút thao tác trên iPhone có tai thỏ / Dynamic Island.
+      - `dns.html` & `index.html`: Bổ sung safe-area padding và breakpoints thích ứng cho các dòng iPhone cỡ nhỏ (< 360px).
 
 ### Tiêu Chuẩn Kiểm Định Bắt Buộc Trước Khi Bàn Giao:
 - Cú pháp toàn bộ file Node.js đạt chuẩn `node -c` (exit code 0).

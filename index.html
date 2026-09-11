@@ -381,13 +381,21 @@
       justify-content: center;
       padding: 20px;
     }
+    @media (max-width: 360px) {
+      .card-grid { grid-template-columns: 1fr; gap: 8px; }
+      .btn-entry { padding: 0 12px; font-size: 0.8rem; }
+      .wrap { padding-left: 12px; padding-right: 12px; gap: 16px; }
+    }
     .modal-box {
       background: #FFFFFF;
       border: 2.5px solid var(--ink);
       border-radius: var(--radius-lg);
-      padding: 28px 20px;
+      padding: 26px 18px;
       max-width: 390px;
       width: 100%;
+      max-height: 90dvh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       text-align: center;
       box-shadow: 6px 6px 0 var(--ink);
       animation: popIn .3s cubic-bezier(.34,1.56,.64,1) both;

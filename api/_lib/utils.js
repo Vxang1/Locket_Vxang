@@ -691,12 +691,8 @@ function resolveDnsWithTemplate(rawInput, template) {
   return '';
 }
 
-// ─── Pool DNS NextDNS luân phiên ─────────────────────────────────
-// Mỗi link DNS chỉ phục vụ tối đa max (5) MÃ KHÁCH khác nhau, rồi phải tạo link
-// mới. Đếm theo mã khách (used_codes text[]) chứ không phải số lần bấm: khách cài lại
-// 3 lần vẫn chỉ tính 1 suất.
-// Gói '180' DÙNG CHUNG pool với '15s' (chốt với chủ dự án) → counter tính gộp cả hai.
-// Gói '150' không có bước DNS nên không bao giờ gọi tới đây.
+// ─── DNS Riêng 1:1 Cá Nhân Hóa (1 Khách = 1 DNS Riêng Biệt) ────────
+// Hệ thống chuyển đổi toàn diện sang DNS riêng 1:1, không còn dùng chung pool.
 function dnsPoolKey(pkg) {
   const p = normalizePackage(pkg);
   return p === '40k' ? '15s' : '5s';
@@ -704,174 +700,305 @@ function dnsPoolKey(pkg) {
 
 const DNS_POOL_FULL_MSG = '⛔ DNS đang được cập nhật, nhắn Vxang để được hỗ trợ';
 
-// Kiểm tra pool DNS của 1 nhóm gói còn chỗ trống hay không. Dùng trước khi tạo khách
-// mới hoặc sinh mã mới — nếu pool đầy thì chặn sớm, tránh tạo khách xong rồi mới phát
-// hiện khách không vào được guide vì không có DNS slot.
-// Cache ngắn trong-memory (5s) để admin thao tác nhanh nhiều lần không spam query.
-// Vercel serverless function giữ ấm instance trong vài phút nên cache này có tác dụng.
-const _dnsCapCache = new Map();
-const DNS_CAP_CACHE_MS = 5000;
+// Khách hàng luôn có DNS riêng, không bao giờ bị nghẽn pool
 async function dnsPoolHasCapacity(pkg, customerCode) {
-  const key = dnsPoolKey(pkg);
-  const code = String(customerCode || '').trim();
-
-  // Nếu là kiểm tra chung (tạo khách mới không có customerCode), dùng cache 5s
-  if (!code) {
-    const cached = _dnsCapCache.get(key);
-    if (cached && Date.now() - cached.ts < DNS_CAP_CACHE_MS) return cached.ok;
-  }
-
-  try {
-    // 1. Nếu có customerCode, kiểm tra xem khách có link DNS riêng không
-    if (code) {
-      const privates = await sb('GET', 'private_dns_links', {
-        q: `customer_code=eq.${encodeURIComponent(code)}&select=id&limit=1`,
-      });
-      if (privates && privates.length) return true;
-    }
-
-    // 2. Fetch các link DNS pool active
-    const rows = await sb('GET', 'dns_pool', {
-      q: `or=(package.eq.${encodeURIComponent(key)},package.eq.${encodeURIComponent(pkg)})&is_active=eq.true&select=used_codes,max`,
-    });
-    if (!rows || !rows.length) return false;
-
-    // 3. Nếu khách đã có slot trong bất kỳ link active nào (kể cả link đã 5/5) -> cho phép tái sử dụng
-    if (code && rows.some(r => Array.isArray(r.used_codes) && r.used_codes.includes(code))) {
-      return true;
-    }
-
-    // 4. Nếu là khách mới hoặc chưa có slot -> kiểm tra có link nào còn chỗ (used < max)
-    const hasSlot = rows.some(r => {
-      const used = Array.isArray(r.used_codes) ? r.used_codes.length : 0;
-      const max = r.max || 5;
-      return used < max;
-    });
-
-    if (!code) {
-      _dnsCapCache.set(key, { ok: hasSlot, ts: Date.now() });
-    }
-    return hasSlot;
-  } catch {
-    // Lỗi DB → giả sử còn chỗ để không block oan; claimDnsFromPool sẽ trả 503 thật nếu hết.
-    return true;
-  }
+  return true;
 }
 
-// Lấy link DNS đang hoạt động của 1 nhóm gói + ghi nhận mã khách vào suất.
-// Tự động luân chuyển sang link tiếp theo trong pool khi link trước đó đã đủ max (5 khách).
-// Trả { ok:true, dns_url, used, max } hoặc { ok:false, reason:'empty'|'full' }.
-//
-// Vì sao không dùng cột used_count + phép cộng: hai request của cùng 1 khách (mở 2 tab,
-// bấm lại) sẽ cộng 2 lần và đốt oan suất. Mảng used_codes cho phép idempotent theo mã.
-// Race: dùng PATCH có điều kiện `used_codes=not.cs.{mã}` + return=representation — chỉ
-// request nào THỰC SỰ đổi được row mới coi là chiếm suất, request thua đọc lại row.
-
-// Giải phóng slot của khách khỏi tất cả các DNS pool hiện tại (khi chuyển gói hoặc tạo DNS riêng)
+// Giữ hàm để tương thích các chỗ gọi cũ — không còn pool để giải phóng
 async function releaseCustomerFromDnsPool(customerCode) {
-  if (!customerCode) return;
+  return;
+}
+
+// ─── Kiểm tra slot DNS riêng có đang trống / sẵn sàng tái sử dụng không ──────
+function isDnsSlotAvailable(r) {
+  if (!r || !r.nextdns_url) return false;
+  const code = String(r.customer_code || '').trim();
+  if (!code) return true;
+  const upper = code.toUpperCase();
+  return upper === '[AVAILABLE]' ||
+         upper.startsWith('[AVAILABLE]') ||
+         upper.startsWith('[SẴN SÀNG]') ||
+         upper.startsWith('[THU HỒI]') ||
+         upper.startsWith('[FREE]') ||
+         upper.startsWith('[RECYCLED]');
+}
+
+// ─── Tự Động Lấy Hoặc Tạo Mới DNS Riêng 1:1 Cho Khách Hàng ────────
+// Bất biến: Mỗi khách hàng chỉ có duy nhất 1 DNS tại mọi thời điểm.
+// Ưu tiên tuyệt đối: Tái sử dụng slot trống có sẵn trong kho trước khi tạo mới.
+async function getOrCreatePrivateDns(customerCode, packageType, options = {}) {
+  const code = String(customerCode || '').trim();
+  if (!code) return { ok: false, error: 'Thiếu mã khách hàng' };
+
+  const normPkg = normalizePackage(packageType || '30k');
+  const dnsType = (normPkg === '40k' || normPkg === '15s' || normPkg === '180') ? '15s' : '5s';
+
+  // 1. Kiểm tra các slot hiện có của chính khách hàng này (Strict 1:1 Invariant & Prune Duplicates)
   try {
-    const code = String(customerCode).trim();
-    const codesToRemove = new Set([code]);
-    if (code.startsWith('KH-')) {
-      const custs = await sb('GET', 'customers', { q: `customer_code=eq.${encodeURIComponent(code)}&select=id` });
-      if (custs && custs[0]) {
-        const accessCodes = (await sb('GET', 'access_codes', { q: `customer_id=eq.${encodeURIComponent(custs[0].id)}&select=code` })) || [];
-        accessCodes.forEach(c => { if (c.code) codesToRemove.add(c.code); });
+    const privates = await sb('GET', 'private_dns_links', {
+      q: `customer_code=eq.${encodeURIComponent(code)}&order=created_at.desc&limit=10`,
+    });
+    if (privates && privates.length) {
+      // Tìm dòng khớp với dnsType yêu cầu
+      const matchedIdx = privates.findIndex(r => {
+        const p = normalizePackage(r.package || '30k');
+        const rDnsType = (p === '40k' || p === '15s' || p === '180') ? '15s' : '5s';
+        return rDnsType === dnsType && r.nextdns_url;
+      });
+
+      if (matchedIdx !== -1) {
+        const matched = privates[matchedIdx];
+
+        // Nếu khách có nhiều hơn 1 dòng (bị trùng lặp từ trước):
+        // Giữ lại dòng matched, tự động thu hồi tất cả các dòng thừa còn lại về kho [AVAILABLE]!
+        if (privates.length > 1) {
+          for (let i = 0; i < privates.length; i++) {
+            if (i !== matchedIdx) {
+              const extra = privates[i];
+              const p = normalizePackage(extra.package || '30k');
+              const extraType = (p === '40k' || p === '15s' || p === '180') ? '15s' : '5s';
+              await sb('PATCH', 'private_dns_links', {
+                q: `id=eq.${encodeURIComponent(extra.id)}`,
+                body: {
+                  customer_code: '[AVAILABLE]',
+                  package: extraType,
+                  first_accessed_at: null,
+                  expired_notified_at: null,
+                  status: 'unopened'
+                }
+              }).catch(() => {});
+            }
+          }
+        }
+
+        // Reset thời hạn (TTL) để khách vào máy mới cài đặt bình thường
+        await sb('PATCH', 'private_dns_links', {
+          q: `id=eq.${encodeURIComponent(matched.id)}`,
+          body: { first_accessed_at: null, expired_notified_at: null, status: 'unopened' }
+        }).catch(() => {});
+
+        return {
+          ok: true,
+          dns_url: matched.nextdns_url,
+          token: matched.token,
+          email: matched.nextdns_email || '',
+          password: matched.nextdns_password || '',
+          package: matched.package || normPkg,
+          row: matched,
+          is_private: true,
+        };
+      } else {
+        // Khách đã có slot nhưng KHÁC nhóm gói (ví dụ khách đang có 5s nhưng yêu cầu 15s, hoặc ngược lại):
+        // Tự động thu hồi slot cũ đó về kho [AVAILABLE] để nhường cho khách khác!
+        for (const oldRow of privates) {
+          const p = normalizePackage(oldRow.package || '30k');
+          const oldType = (p === '40k' || p === '15s' || p === '180') ? '15s' : '5s';
+          await sb('PATCH', 'private_dns_links', {
+            q: `id=eq.${encodeURIComponent(oldRow.id)}`,
+            body: {
+              customer_code: '[AVAILABLE]',
+              package: oldType,
+              first_accessed_at: null,
+              expired_notified_at: null,
+              status: 'unopened'
+            }
+          }).catch(() => {});
+        }
       }
     }
-    const poolRows = await sb('GET', 'dns_pool', { q: 'select=id,used_codes' });
-    if (!poolRows || !poolRows.length) return;
-    
-    for (const row of poolRows) {
-      if (!Array.isArray(row.used_codes) || !row.used_codes.length) continue;
-      const hasMatch = row.used_codes.some(c => codesToRemove.has(c));
-      if (!hasMatch) continue;
-      const next = row.used_codes.filter(c => !codesToRemove.has(c));
-      await sb('PATCH', 'dns_pool', {
-        q: `id=eq.${row.id}`,
-        body: { used_codes: next }
+  } catch (e) {
+    console.warn('[getOrCreatePrivateDns] Lỗi truy vấn private_dns_links:', e.message);
+  }
+
+  // 2. Nếu khách đổi máy mua lại từ đầu: kiểm tra mã khách cũ (options.existingCustCode)
+  if (options.existingCustCode) {
+    try {
+      const oldDns = await sb('GET', 'private_dns_links', {
+        q: `customer_code=eq.${encodeURIComponent(options.existingCustCode)}&order=created_at.desc&limit=1`,
       });
+      if (oldDns && oldDns.length && oldDns[0].nextdns_url) {
+        const oldRow = oldDns[0];
+        const oldPkg = normalizePackage(oldRow.package || '30k');
+        const oldDnsType = (oldPkg === '40k' || oldPkg === '15s' || oldPkg === '180') ? '15s' : '5s';
+        if (oldDnsType === dnsType) {
+          // Gán tài khoản NextDNS cũ này sang mã khách hàng mới (vẫn dùng tài khoản DNS cũ)
+          await sb('PATCH', 'private_dns_links', {
+            q: `id=eq.${encodeURIComponent(oldRow.id)}`,
+            body: {
+              customer_code: code,
+              first_accessed_at: null,
+              expired_notified_at: null,
+              status: 'unopened'
+            }
+          }).catch(() => {});
+
+          return {
+            ok: true,
+            dns_url: oldRow.nextdns_url,
+            token: oldRow.token,
+            email: oldRow.nextdns_email || '',
+            password: oldRow.nextdns_password || '',
+            package: oldRow.package || normPkg,
+            row: oldRow,
+            is_private: true,
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('[getOrCreatePrivateDns] Lỗi tái sử dụng DNS khách cũ:', e.message);
+    }
+  }
+
+  // 3. TÁI SỬ DỤNG SLOT TRỐNG TRONG KHO (100% ƯU TIÊN):
+  // Truy vấn danh sách slot hiện có để tìm slot [AVAILABLE] / [SẴN SÀNG] / [THU HỒI] / rỗng khớp dnsType
+  try {
+    const slots = await sb('GET', 'private_dns_links', {
+      q: 'order=created_at.desc&limit=100'
+    });
+    if (slots && slots.length) {
+      const available = slots.find(r => {
+        if (!isDnsSlotAvailable(r)) return false;
+        const p = normalizePackage(r.package || '30k');
+        const rDnsType = (p === '40k' || p === '15s' || p === '180') ? '15s' : '5s';
+        return rDnsType === dnsType && r.nextdns_url;
+      });
+
+      if (available) {
+        // Gán ngay slot 1:1 này cho khách mới (không cần gọi API NextDNS đăng ký tài khoản mới)
+        await sb('PATCH', 'private_dns_links', {
+          q: `id=eq.${encodeURIComponent(available.id)}`,
+          body: {
+            customer_code: code,
+            package: normPkg,
+            first_accessed_at: null,
+            expired_notified_at: null,
+            status: 'unopened'
+          }
+        });
+
+        return {
+          ok: true,
+          dns_url: available.nextdns_url,
+          token: available.token,
+          email: available.nextdns_email || '',
+          password: available.nextdns_password || '',
+          package: normPkg,
+          row: available,
+          is_private: true,
+        };
+      }
     }
   } catch (e) {
-    console.error('Lỗi khi releaseCustomerFromDnsPool:', e.message);
+    console.warn('[getOrCreatePrivateDns] Lỗi tìm slot trống trong kho:', e.message);
+  }
+
+  // 4. Nếu không có slot trống sẵn, gọi NextDNS Automation Helper đăng ký tài khoản mới ngay lúc này
+  try {
+    const nextAccount = await createNextDnsAccountHelper({
+      type: dnsType,
+      initialUsed: true,
+    });
+    const token = genCode('DNS', 8);
+    const newRow = {
+      token,
+      customer_code: code,
+      nextdns_url: nextAccount.dns_url,
+      dashboard_key: '',
+      nextdns_email: nextAccount.email,
+      nextdns_password: nextAccount.password,
+      package: normPkg,
+      status: 'unopened',
+    };
+
+    await sb('POST', 'private_dns_links', {
+      body: newRow,
+      prefer: 'return=minimal',
+    });
+
+    return {
+      ok: true,
+      dns_url: nextAccount.dns_url,
+      token,
+      email: nextAccount.email,
+      password: nextAccount.password,
+      package: normPkg,
+      row: newRow,
+      is_private: true,
+    };
+  } catch (err) {
+    console.error('[getOrCreatePrivateDns] Lỗi tạo tài khoản NextDNS:', err.message);
+    // Fallback nếu API NextDNS tạm thời bị gián đoạn: sinh URL theo template
+    const activeTemplate = await getDnsTemplate();
+    const fallbackUrl = resolveDnsWithTemplate(code.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 8), activeTemplate) || `https://apple.dns.nextdns.io/${code.toLowerCase()}`;
+    const token = genCode('DNS', 8);
+    const fallbackRow = {
+      token,
+      customer_code: code,
+      nextdns_url: fallbackUrl,
+      dashboard_key: '',
+      nextdns_email: '',
+      nextdns_password: '',
+      package: normPkg,
+      status: 'unopened',
+    };
+    try {
+      await sb('POST', 'private_dns_links', {
+        body: fallbackRow,
+        prefer: 'return=minimal',
+      });
+    } catch {}
+    return {
+      ok: true,
+      dns_url: fallbackUrl,
+      token,
+      email: '',
+      password: '',
+      package: normPkg,
+      row: fallbackRow,
+      is_private: true,
+    };
   }
 }
 
-async function claimDnsFromPool(pkg, customerCode) {
-  const key = dnsPoolKey(pkg);
+// ─── Thu Hồi Slot DNS Riêng Về Kho [AVAILABLE] (Sẵn Sàng Cấp Cho Khách Mới) ───
+// Khi khách đổi gói, xóa khách hoặc admin thu hồi, slot được ngắt hoàn toàn khỏi mã khách
+async function recyclePrivateDnsSlot(customerCode, packageToRecycle = null) {
   const code = String(customerCode || '').trim();
-
-  // Chạy song song cả query private dns và pool dns
-  let privatesPromise = Promise.resolve(null);
-  if (code) {
-    privatesPromise = sb('GET', 'private_dns_links', {
-      q: `customer_code=eq.${encodeURIComponent(code)}&order=created_at.desc&limit=1`,
-    }).catch(e => {
-      console.warn('Lỗi tra private_dns_links trong claimDnsFromPool:', e.message);
-      return null;
-    });
-  }
-
-  const poolPromise = sb('GET', 'dns_pool', {
-    q: `or=(package.eq.${encodeURIComponent(key)},package.eq.${encodeURIComponent(pkg)})&is_active=eq.true&order=created_at.asc`,
-  }).catch(() => null);
-
-  const [privates, rows] = await Promise.all([privatesPromise, poolPromise]);
-
-  // 0. Ưu tiên hàng đầu: Nếu khách này đã có link DNS riêng trong private_dns_links,
-  // cấp chính link DNS riêng đó cho khách (không đụng vào dns_pool, không chiếm slot chung).
-  if (privates && privates.length) {
-    const privUrl = dnsPrivateUrl(privates[0]);
-    if (privUrl) {
-      return { ok: true, dns_url: privUrl, used: 1, max: 1, is_private: true };
-    }
-  }
-
-  if (!rows || !rows.length) return { ok: false, reason: 'empty' };
-
-  // 1. Mã này đã chiếm suất ở một link active trước đó → cho qua, dùng lại đúng link cũ (idempotent).
-  if (code) {
-    const existing = rows.find(r => Array.isArray(r.used_codes) && r.used_codes.includes(code));
-    if (existing) {
-      const used = Array.isArray(existing.used_codes) ? existing.used_codes : [];
-      const max = existing.max || 5;
-      return { ok: true, dns_url: existing.dns_url, used: used.length, max, reused: true };
-    }
-  }
-
-  // 2. Tìm link đầu tiên còn chỗ trống (used < max)
-  const targetRow = rows.find(r => {
-    const used = Array.isArray(r.used_codes) ? r.used_codes : [];
-    const max = r.max || 5;
-    return used.length < max;
-  });
-
-  // Nếu tất cả các link active đều đã đầy
-  if (!targetRow) {
-    return { ok: false, reason: 'full' };
-  }
-
-  const used = Array.isArray(targetRow.used_codes) ? targetRow.used_codes : [];
-  const max = targetRow.max || 5;
-
-  if (!code) return { ok: true, dns_url: targetRow.dns_url, used: used.length, max };
-
-  const next = [...used, code];
-  let patched;
+  if (!code) return;
   try {
-    patched = await sb('PATCH', 'dns_pool', {
-      q: `id=eq.${encodeURIComponent(targetRow.id)}&used_codes=not.cs.%7B%22${encodeURIComponent(code)}%22%7D`,
-      body: { used_codes: next },
-      prefer: 'return=representation',
+    const privates = await sb('GET', 'private_dns_links', {
+      q: `customer_code=eq.${encodeURIComponent(code)}&order=created_at.desc&limit=10`
     });
-  } catch { return { ok: true, dns_url: targetRow.dns_url, used: used.length, max }; }
+    if (!privates || !privates.length) return;
 
-  // Mảng rỗng = request khác vừa ghi mã này trước (cùng khách, 2 tab) → vẫn hợp lệ.
-  const finalUsed = patched?.length
-    ? (patched[0].used_codes || next).length
-    : used.length + 1;
-  return { ok: true, dns_url: targetRow.dns_url, used: finalUsed, max, justClaimed: !!patched?.length };
+    for (const row of privates) {
+      const p = normalizePackage(row.package || '30k');
+      const dnsType = (p === '40k' || p === '15s' || p === '180') ? '15s' : '5s';
+      if (!packageToRecycle || dnsType === packageToRecycle) {
+        await sb('PATCH', 'private_dns_links', {
+          q: `id=eq.${encodeURIComponent(row.id)}`,
+          body: {
+            customer_code: '[AVAILABLE]',
+            package: dnsType,
+            first_accessed_at: null,
+            expired_notified_at: null,
+            status: 'unopened'
+          }
+        });
+      }
+    }
+  } catch (e) {
+    console.warn('[recyclePrivateDnsSlot] Lỗi thu hồi slot DNS:', e.message);
+  }
+}
+
+// Wrapper chuyển tiếp để tương thích với action dns_pool_claim ở guide.html
+async function claimDnsFromPool(pkg, customerCode) {
+  const code = String(customerCode || '').trim();
+  const res = await getOrCreatePrivateDns(code, pkg);
+  if (!res.ok) return { ok: false, reason: res.error || 'error' };
+  return { ok: true, dns_url: res.dns_url, used: 1, max: 1, is_private: true, customer_code: code };
 }
 
 // Phân giải ô nhập liên hệ duy nhất (SĐT hoặc Link Profile)
@@ -1065,4 +1192,4 @@ async function createNextDnsAccountHelper({ type = '5s', customEmail = null, ini
   return accountRow;
 }
 
-module.exports = { sb, signJWT, verifyJWT, getToken, requireAdmin, requireGuide, allowMethods, genCode, PACKAGES, PACKAGE_KEYS, normalizePackage, isPermPackage, PRICING, getPrice, getPriceLabel, durationMonths, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, expireCodeAndNotify, sweepExpiredCodes, DEFAULT_STEP_FLOW, DEFAULT_STEP_FLOW_SPECIAL, STEP_TYPE_LABELS, stepLabel, buildStepFlow, alignStepFlow, lookupCustomerByDnsCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, dnsPrivateUrl, getAppConfig, setAppConfig, getAppstoreConfig, getEmergencyConfig, maskAppstoreEmail, dnsPoolKey, claimDnsFromPool, releaseCustomerFromDnsPool, dnsPoolHasCapacity, DNS_POOL_FULL_MSG, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, fbGet, fbPut, parseContactInput, TG_CHAT_IDS, TG_CHAT_ID, isTgAdmin, genVpnToken, createVpnToken, TG_DIVIDER, DENYLISTS_NEXTDNS, createNextDnsAccountHelper };
+module.exports = { sb, signJWT, verifyJWT, getToken, requireAdmin, requireGuide, allowMethods, genCode, PACKAGES, PACKAGE_KEYS, normalizePackage, isPermPackage, PRICING, getPrice, getPriceLabel, durationMonths, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, expireCodeAndNotify, sweepExpiredCodes, DEFAULT_STEP_FLOW, DEFAULT_STEP_FLOW_SPECIAL, STEP_TYPE_LABELS, stepLabel, buildStepFlow, alignStepFlow, lookupCustomerByDnsCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, dnsPrivateUrl, getAppConfig, setAppConfig, getAppstoreConfig, getEmergencyConfig, maskAppstoreEmail, dnsPoolKey, claimDnsFromPool, releaseCustomerFromDnsPool, dnsPoolHasCapacity, DNS_POOL_FULL_MSG, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, fbGet, fbPut, parseContactInput, TG_CHAT_IDS, TG_CHAT_ID, isTgAdmin, genVpnToken, createVpnToken, TG_DIVIDER, DENYLISTS_NEXTDNS, createNextDnsAccountHelper, getOrCreatePrivateDns, recyclePrivateDnsSlot, isDnsSlotAvailable };

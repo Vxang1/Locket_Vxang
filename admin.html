@@ -254,14 +254,14 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
 .topbar{
   background:var(--bg);border-bottom:2px solid var(--ink);
   display:flex;align-items:center;justify-content:space-between;
-  padding:calc(12px + env(safe-area-inset-top,0px)) 28px 12px;
+  padding:calc(10px + env(safe-area-inset-top,0px)) 24px 10px;
   gap:10px;width:100%;box-sizing:border-box;position:relative;
 }
 .brand{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.15rem;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:1;min-width:0;}
 .topbar-actions,.topbar-links{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .tl-btn,.btn-logout,.btn-dev{
-  padding:7px 14px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;
-  color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:900;
+  padding:6px 13px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;
+  color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:900;
   cursor:pointer;text-decoration:none;transition:transform .12s,box-shadow .12s;box-shadow:var(--shadow-sm);
   white-space:nowrap;flex-shrink:0;
 }
@@ -271,7 +271,7 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
 .btn-dev.active-dev,.btn-dev.active{background:var(--gold) !important;color:var(--ink) !important;border-color:var(--ink) !important;}
 
 .tab-bar{
-  display:flex;gap:4px;padding:8px 28px 0;border-bottom:none;
+  display:flex;gap:4px;padding:8px 24px 0;border-bottom:2px solid var(--ink);
   background:var(--bg-surface);overflow-x:auto;overflow-y:hidden;height:46px;align-items:flex-end;
   -webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;overscroll-behavior-y:none;
   scrollbar-width:none;width:100%;box-sizing:border-box;position:relative;
@@ -280,96 +280,132 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
 .tab{
   display:inline-flex;align-items:center;justify-content:center;
   padding:8px 16px;border-radius:8px 8px 0 0;font-family:'Space Grotesk',sans-serif;
-  font-size:.84rem;font-weight:900;cursor:pointer;
-  border:2px solid transparent;border-bottom:2px solid transparent;
+  font-size:.82rem;font-weight:900;cursor:pointer;
+  border:2px solid transparent;border-bottom:none;
   background:transparent;color:var(--muted);white-space:nowrap;
-  flex-shrink:0;user-select:none;box-sizing:border-box;height:38px;margin:0;
+  flex-shrink:0;user-select:none;box-sizing:border-box;height:38px;margin:0 0 -2px 0;
   transition:background .12s, color .12s;transform:none !important;
 }
 .tab:hover:not(.active){color:var(--ink);background:rgba(255,255,255,0.7);}
 .tab.active{
   background:var(--gold) !important;color:var(--ink) !important;
   border:2px solid var(--ink) !important;border-bottom:2px solid var(--gold) !important;
-  font-weight:900;z-index:2;height:38px;box-sizing:border-box;margin:0;
+  font-weight:900;z-index:2;height:38px;box-sizing:border-box;margin:0 0 -2px 0;
   box-shadow:none !important;transform:none !important;
 }
 
-.page{max-width:1280px;margin:0 auto;padding:24px 24px 72px;}
+.page{max-width:1240px;margin:0 auto;padding:20px 24px 64px;}
 .tab-content{display:none;}
 .tab-content.active{display:block;animation:fadeUp .25s cubic-bezier(0.16, 1, 0.3, 1);will-change:transform,opacity;}
-.section-title{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.5rem;color:var(--ink);margin-bottom:3px;}
-.section-sub{font-size:.8rem;color:var(--muted);font-weight:600;letter-spacing:.02em;margin-bottom:22px;}
+.section-title{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.45rem;color:var(--ink);margin-bottom:2px;}
+.section-sub{font-size:.78rem;color:var(--muted);font-weight:600;letter-spacing:.02em;margin-bottom:18px;}
 
 /* STATS */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
-.stat-card{background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius);padding:18px 16px;
-  box-shadow:var(--shadow);transition:transform .12s,box-shadow .12s;}
-.stat-card:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow-hover);}
-.stat-ico{font-size:1.3rem;margin-bottom:6px;}
-.stat-val{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.8rem;color:var(--ink);margin-bottom:2px;}
-.stat-lbl{font-size:.72rem;color:var(--muted);font-weight:800;letter-spacing:.06em;text-transform:uppercase;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.stat-card{background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius);padding:13px 16px;
+  box-shadow:var(--shadow-sm);transition:transform .12s,box-shadow .12s;}
+.stat-card:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);}
+.stat-ico{font-size:1.2rem;margin-bottom:4px;}
+.stat-val{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.65rem;color:var(--ink);margin-bottom:2px;line-height:1.15;}
+.stat-lbl{font-size:.7rem;color:var(--muted);font-weight:800;letter-spacing:.06em;text-transform:uppercase;}
 
 /* FORM CARD */
 .form-card{background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius);
-  padding:22px;margin-bottom:20px;box-shadow:var(--shadow);}
-.form-card-title{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.88rem;color:var(--ink);
-  letter-spacing:.04em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:6px;}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:flex-start;}
-.btn-action{padding:11px 18px;border:2px solid var(--ink);border-radius:var(--radius-sm);font-family:'Space Grotesk',sans-serif;
-  font-size:.84rem;font-weight:900;letter-spacing:.02em;cursor:pointer;transition:transform .12s,box-shadow .12s;
+  padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow-sm);}
+.form-card-title{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.86rem;color:var(--ink);
+  letter-spacing:.04em;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:flex-start;}
+.btn-action{padding:10px 16px;border:2px solid var(--ink);border-radius:var(--radius-sm);font-family:'Space Grotesk',sans-serif;
+  font-size:.82rem;font-weight:900;letter-spacing:.02em;cursor:pointer;transition:transform .12s,box-shadow .12s;
   display:inline-flex;align-items:center;gap:6px;box-shadow:var(--shadow-sm);background:#FFFFFF;color:var(--ink);}
 .btn-action:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:var(--gold-bg);}
 .btn-action:active{transform:translate(2px,2px);box-shadow:var(--shadow-active);}
 .btn-gen{background:var(--gold);color:var(--ink);width:100%;
-  justify-content:center;margin-top:8px;padding:13px;border-radius:var(--radius-sm);font-family:'Space Grotesk',sans-serif;
-  font-size:.95rem;font-weight:900;letter-spacing:.02em;border:2px solid var(--ink);box-shadow:var(--shadow-sm);}
+  justify-content:center;margin-top:8px;padding:12px;border-radius:var(--radius-sm);font-family:'Space Grotesk',sans-serif;
+  font-size:.92rem;font-weight:900;letter-spacing:.02em;border:2px solid var(--ink);box-shadow:var(--shadow-sm);}
 .btn-gen:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:#f3be2b;}
 .btn-gen:active{transform:translate(2px,2px);box-shadow:var(--shadow-active);}
 .btn-gen:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
 
 /* RESULT BOX */
 .result-box{background:var(--gold-bg);border:2px solid var(--ink);
-  border-radius:var(--radius);padding:18px;margin-top:14px;display:none;box-shadow:var(--shadow-sm);}
-.result-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+  border-radius:var(--radius);padding:16px;margin-top:12px;display:none;box-shadow:var(--shadow-sm);}
+.result-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;}
 .result-row:last-child{margin-bottom:0;}
-.result-label{font-size:.7rem;color:var(--muted);font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px;}
-.result-val{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:.95rem;color:var(--ink);letter-spacing:.04em;}
-.btn-copy-r{padding:6px 12px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;
-  color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.75rem;font-weight:900;cursor:pointer;
+.result-label{font-size:.68rem;color:var(--muted);font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px;}
+.result-val{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:.92rem;color:var(--ink);letter-spacing:.04em;}
+.btn-copy-r{padding:5px 11px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;
+  color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.74rem;font-weight:900;cursor:pointer;
   transition:transform .12s,box-shadow .12s;box-shadow:var(--shadow-sm);}
 .btn-copy-r:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:var(--gold);}
 .btn-copy-r:active{transform:translate(1px,1px);box-shadow:var(--shadow-active);}
 .btn-copy-r.copied{background:var(--green);color:#FFFFFF;border-color:var(--ink);}
-.result-note{font-size:.82rem;color:var(--ink);line-height:1.65;margin-top:12px;padding-top:12px;border-top:1.5px dashed var(--ink);}
-.btn-gen-more{padding:9px 16px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;
-  color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:900;cursor:pointer;
-  transition:transform .12s,box-shadow .12s;margin-top:10px;box-shadow:var(--shadow-sm);}
+.result-note{font-size:.8rem;color:var(--ink);line-height:1.6;margin-top:10px;padding-top:10px;border-top:1.5px dashed var(--ink);}
+.btn-gen-more{padding:8px 14px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;
+  color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.78rem;font-weight:900;cursor:pointer;
+  transition:transform .12s,box-shadow .12s;margin-top:8px;box-shadow:var(--shadow-sm);}
 .btn-gen-more:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:var(--gold-bg);}
 
+/* QUICK ACCESS BUTTONS IN DASHBOARD (DESKTOP & MOBILE) */
+.quick-btns{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
+  gap:10px;
+  margin-top:2px;
+}
+.btn-quick{
+  padding:12px 14px;
+  background:#FFFFFF;
+  border:2px solid var(--ink);
+  border-radius:var(--radius-sm);
+  color:var(--ink);
+  font-family:'Space Grotesk',sans-serif;
+  font-size:.84rem;
+  font-weight:900;
+  letter-spacing:.02em;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  box-shadow:var(--shadow-sm);
+  transition:transform .12s, box-shadow .12s, background .12s;
+  user-select:none;
+}
+.btn-quick:hover{
+  transform:translate(-1px,-1px);
+  box-shadow:var(--shadow);
+  background:var(--gold-bg);
+}
+.btn-quick:active{
+  transform:translate(1px,1px);
+  box-shadow:var(--shadow-active);
+}
+
 /* SESSIONS */
-.sessions-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+.sessions-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
 .live-badge{display:inline-flex;align-items:center;gap:6px;background:var(--green-bg);
-  border:2px solid var(--ink);border-radius:20px;padding:5px 12px;
-  font-family:'Space Grotesk',sans-serif;font-size:.78rem;font-weight:900;color:var(--green);box-shadow:none;}
+  border:1.5px solid var(--ink);border-radius:20px;padding:4px 10px;
+  font-family:'Space Grotesk',sans-serif;font-size:.76rem;font-weight:900;color:var(--green);box-shadow:none;}
 .live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
-.btn-refresh{padding:7px 14px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;
-  color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:900;cursor:pointer;
+.btn-refresh{padding:6px 12px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;
+  color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.78rem;font-weight:900;cursor:pointer;
   transition:transform .12s,box-shadow .12s;box-shadow:var(--shadow-sm);}
 .btn-refresh:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:var(--gold-bg);}
-.sessions-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
-.session-card{background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius);
-  padding:18px;box-shadow:var(--shadow);transition:transform .12s,box-shadow .12s;}
-.session-card:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow-hover);}
-.sc-name{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.98rem;color:var(--ink);margin-bottom:3px;}
-.sc-code{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--muted);font-weight:800;letter-spacing:.04em;margin-bottom:10px;}
-.sc-meta{font-size:.78rem;color:var(--muted);line-height:1.7;margin-bottom:10px;font-weight:600;}
-.sc-timer{font-family:'JetBrains Mono',monospace;font-weight:900;font-size:.95rem;color:var(--green);margin-bottom:12px;}
+.sessions-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;}
+.session-card{background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);
+  padding:14px 16px;box-shadow:var(--shadow-sm);transition:transform .12s,box-shadow .12s;}
+.session-card:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);}
+.sc-name{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.92rem;color:var(--ink);margin-bottom:2px;}
+.sc-code{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--muted);font-weight:800;letter-spacing:.04em;margin-bottom:8px;}
+.sc-meta{font-size:.75rem;color:var(--muted);line-height:1.55;margin-bottom:8px;font-weight:600;}
+.sc-timer{font-family:'JetBrains Mono',monospace;font-weight:900;font-size:.9rem;color:var(--green);margin-bottom:10px;}
 .sc-timer.warn{color:var(--warning);}.sc-timer.crit{color:var(--red);}
-.btn-kick{width:100%;padding:9px;border:2px solid var(--ink);border-radius:var(--radius-sm);
+.btn-kick{width:100%;padding:8px;border:2px solid var(--ink);border-radius:var(--radius-sm);
   background:var(--coral-bg);color:var(--red);font-family:'Space Grotesk',sans-serif;
-  font-size:.8rem;font-weight:900;cursor:pointer;transition:transform .12s,box-shadow .12s;box-shadow:var(--shadow-sm);}
+  font-size:.78rem;font-weight:900;cursor:pointer;transition:transform .12s,box-shadow .12s;box-shadow:var(--shadow-sm);}
 .btn-kick:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:#FFCDD2;}
-.empty-sessions{text-align:center;padding:40px;font-size:.84rem;color:var(--muted);font-weight:700;}
+.empty-sessions{text-align:center;padding:32px;font-size:.82rem;color:var(--muted);font-weight:700;}
 
 /* STEP PROGRESS in session card */
 .sc-step-wrap{margin-bottom:12px;}
@@ -422,144 +458,146 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
 .btn-add-step:hover{background:var(--gold-bg);}
 
 /* MODAL */
-.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(26,26,26,0.6);
-  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(26,26,26,0.65);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;}
 .modal-overlay.open{display:flex;}
 .modal{background:var(--bg);border:2px solid var(--ink);border-radius:var(--radius-lg);
-  width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:6px 6px 0 var(--ink);}
-.modal-head{padding:18px 22px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--ink);background:var(--bg-surface);}
-.modal-title{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.15rem;color:var(--ink);}
+  width:100%;max-width:520px;max-height:90vh;max-height:90dvh;display:flex;flex-direction:column;overflow:hidden;box-shadow:6px 6px 0 var(--ink);}
+.modal-head{padding:13px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--ink);background:var(--bg-surface);flex-shrink:0;}
+.modal-title{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.05rem;color:var(--ink);}
 .modal-close{background:var(--coral);border:2px solid var(--ink);color:var(--ink);font-size:1rem;cursor:pointer;
-  width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:var(--radius-sm);box-shadow:2px 2px 0 var(--ink);transition:transform .12s;}
+  width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:var(--radius-sm);box-shadow:2px 2px 0 var(--ink);transition:transform .12s;}
 .modal-close:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink);}
 .modal-close:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);}
-.modal-body{padding:20px 22px;display:flex;flex-direction:column;gap:12px;}
-.modal-footer{padding:14px 22px;display:flex;gap:8px;border-top:2px solid var(--ink);background:var(--bg-surface);}
-.btn-save{flex:1;padding:12px;border:2px solid var(--ink);border-radius:var(--radius-sm);
+.modal-body{padding:14px 18px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0;}
+.modal-footer{padding:11px 18px;display:flex;gap:8px;border-top:2px solid var(--ink);background:var(--bg-surface);flex-shrink:0;}
+.btn-save{flex:1;padding:11px;border:2px solid var(--ink);border-radius:var(--radius-sm);
   background:var(--gold);color:var(--ink);
-  font-family:'Space Grotesk',sans-serif;font-size:.92rem;font-weight:900;cursor:pointer;transition:transform .12s,box-shadow .12s;box-shadow:var(--shadow-sm);}
+  font-family:'Space Grotesk',sans-serif;font-size:.9rem;font-weight:900;letter-spacing:.02em;
+  cursor:pointer;transition:transform .12s,box-shadow .12s;box-shadow:var(--shadow-sm);}
 .btn-save:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:#f3be2b;}
 .btn-save:active{transform:translate(2px,2px);box-shadow:var(--shadow-active);}
-.btn-cancel{padding:12px 18px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;
-  color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.88rem;font-weight:900;cursor:pointer;transition:transform .12s,box-shadow .12s;box-shadow:var(--shadow-sm);}
+.btn-cancel{padding:11px 16px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;
+  color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.84rem;font-weight:900;cursor:pointer;transition:transform .12s,box-shadow .12s;box-shadow:var(--shadow-sm);}
 .btn-cancel:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:#FFEBEE;color:var(--red);}
 
 /* CODES TAB */
-.codes-filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
-.cf-btn{padding:6px 14px;border:2px solid var(--ink);border-radius:20px;background:#FFFFFF;color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.76rem;font-weight:900;cursor:pointer;transition:transform .12s,box-shadow .12s;box-shadow:var(--shadow-sm);}
+.codes-filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
+.cf-btn{padding:6px 13px;border:2px solid var(--ink);border-radius:20px;background:#FFFFFF;color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.75rem;font-weight:900;cursor:pointer;transition:transform .12s,box-shadow .12s;box-shadow:var(--shadow-sm);}
 .cf-btn:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:var(--gold-bg);}
 .cf-btn.active{background:var(--gold);color:var(--ink);box-shadow:var(--shadow-sm);}
-.code-item{background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-sm);transition:transform .12s,box-shadow .12s;}
+.code-item{background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:6px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow-sm);transition:transform .12s,box-shadow .12s;}
 .code-item:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);}
-.ci-code{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:.95rem;color:var(--ink);letter-spacing:.06em;min-width:110px;}
+.ci-code{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:.9rem;color:var(--ink);letter-spacing:.05em;min-width:105px;}
 .code-clickable{cursor:pointer;transition:all .15s;}
 .code-clickable:hover{color:var(--ink);}
-.btn-copy-mini{font-size:.68rem;font-weight:800;color:var(--ink);background:var(--gold-bg);border:1.5px solid var(--ink);border-radius:6px;padding:1px 6px;letter-spacing:normal;display:inline-flex;align-items:center;gap:3px;transition:all .15s;vertical-align:middle;white-space:nowrap;}
+.btn-copy-mini{font-size:.66rem;font-weight:800;color:var(--ink);background:var(--gold-bg);border:1.5px solid var(--ink);border-radius:6px;padding:1px 5px;letter-spacing:normal;display:inline-flex;align-items:center;gap:3px;transition:all .15s;vertical-align:middle;white-space:nowrap;}
 .code-clickable:hover .btn-copy-mini{background:var(--gold);transform:translateY(-1px);}
 .btn-msg-type{flex:1;padding:8px 10px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;color:var(--muted);font-family:'Space Grotesk',sans-serif;font-size:.76rem;font-weight:900;cursor:pointer;transition:all .15s;text-align:center;}
 .btn-msg-type:hover{color:var(--ink);background:var(--gold-bg);}
 .btn-msg-type.active{background:var(--gold);color:var(--ink);box-shadow:var(--shadow-sm);}
-.ci-cust{font-size:.84rem;color:var(--ink);font-weight:700;flex:1;min-width:0;overflow-wrap:anywhere;}
-.ci-cust span{font-size:.74rem;color:var(--muted);display:block;margin-top:2px;font-weight:600;}
-.ci-status{padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:900;white-space:nowrap;border:1.5px solid var(--ink);font-family:'Space Grotesk',sans-serif;}
+.ci-cust{font-size:.82rem;color:var(--ink);font-weight:700;flex:1;min-width:0;overflow-wrap:anywhere;}
+.ci-cust span{font-size:.72rem;color:var(--muted);display:block;margin-top:2px;font-weight:600;}
+.ci-status{padding:2px 8px;border-radius:20px;font-size:.68rem;font-weight:900;white-space:nowrap;border:1.5px solid var(--ink);font-family:'Space Grotesk',sans-serif;}
 .cis-done{color:var(--green);background:var(--green-bg);}
 .cis-active{color:var(--ink);background:var(--gold);}
 .cis-expired{color:var(--red);background:var(--coral-bg);}
 .cis-pending{color:#6B46C1;background:#EDE9FE;}
 .cis-dead{color:var(--warning);background:var(--gold-bg);}
 .cis-fraud{color:#FFFFFF;background:var(--red);border-color:var(--ink);}
-.ci-date{font-size:.74rem;color:var(--muted);font-weight:700;white-space:nowrap;}
-.quick-btns{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;}
-.btn-quick{padding:12px 14px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;
-  color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:900;cursor:pointer;transition:transform .12s,box-shadow .12s;display:flex;align-items:center;justify-content:center;gap:6px;text-align:center;box-shadow:var(--shadow-sm);}
+.ci-date{font-size:.72rem;color:var(--muted);font-weight:700;white-space:nowrap;}
+.quick-btns{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
+.btn-quick{padding:10px 12px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;
+  color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:900;cursor:pointer;transition:transform .12s,box-shadow .12s;display:flex;align-items:center;justify-content:center;gap:6px;text-align:center;box-shadow:var(--shadow-sm);}
 .btn-quick:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:var(--gold-bg);}
 .btn-quick:active{transform:translate(1px,1px);box-shadow:var(--shadow-active);}
 
 /* TYPE BADGE */
-.badge-bh{display:inline-flex;align-items:center;gap:4px;background:var(--green-bg);border:1.5px solid var(--ink);border-radius:20px;padding:2px 9px;font-size:.7rem;font-weight:900;color:var(--green);letter-spacing:.04em;white-space:nowrap;font-family:'Space Grotesk',sans-serif;}
-.badge-coc{display:inline-flex;align-items:center;gap:4px;background:var(--gold-bg);border:1.5px solid var(--ink);border-radius:20px;padding:2px 9px;font-size:.7rem;font-weight:900;color:var(--warning);letter-spacing:.04em;white-space:nowrap;font-family:'Space Grotesk',sans-serif;}
+.badge-bh{display:inline-flex;align-items:center;gap:4px;background:var(--green-bg);border:1.5px solid var(--ink);border-radius:20px;padding:2px 8px;font-size:.68rem;font-weight:900;color:var(--green);letter-spacing:.04em;white-space:nowrap;font-family:'Space Grotesk',sans-serif;}
+.badge-coc{display:inline-flex;align-items:center;gap:4px;background:var(--gold-bg);border:1.5px solid var(--ink);border-radius:20px;padding:2px 8px;font-size:.68rem;font-weight:900;color:var(--warning);letter-spacing:.04em;white-space:nowrap;font-family:'Space Grotesk',sans-serif;}
 /* MSG MODAL TEXTAREA */
-#zaloMsgText{background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);padding:12px 14px;color:var(--ink);font-family:'Be Vietnam Pro',sans-serif;font-size:.84rem;font-weight:600;line-height:1.65;cursor:pointer;resize:none;height:220px;width:100%;}
+#zaloMsgText{background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);padding:11px 13px;color:var(--ink);font-family:'Be Vietnam Pro',sans-serif;font-size:.82rem;font-weight:600;line-height:1.6;cursor:pointer;resize:none;height:200px;width:100%;}
 #zaloMsgText:focus{border-color:var(--ink);outline:none;box-shadow:0 0 0 2px var(--gold);}
 /* TOAST */
-.toast{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%) translateY(20px);
-  background:var(--gold);color:var(--ink);border:2px solid var(--ink);border-radius:var(--radius-sm);padding:10px 22px;
-  font-size:.85rem;font-weight:900;font-family:'Space Grotesk',sans-serif;opacity:0;transition:.25s ease;pointer-events:none;z-index:500;
-  max-width:calc(100vw - 28px);text-align:center;line-height:1.5;word-break:break-word;box-shadow:4px 4px 0 var(--ink);}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--gold);color:var(--ink);border:2px solid var(--ink);border-radius:var(--radius-sm);padding:9px 20px;
+  font-size:.82rem;font-weight:900;font-family:'Space Grotesk',sans-serif;opacity:0;transition:.25s ease;pointer-events:none;z-index:500;
+  max-width:calc(100vw - 28px);text-align:center;line-height:1.45;word-break:break-word;box-shadow:4px 4px 0 var(--ink);}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
 /* ─── CUSTOMER TAB ───────────────────────── */
-.cust-search-bar{display:flex;gap:10px;margin-bottom:18px;}
+.cust-search-bar{display:flex;gap:8px;margin-bottom:12px;}
 .cust-search-bar input[type=text]{flex:1;}
-.btn-search{padding:11px 20px;border:2px solid var(--ink);border-radius:var(--radius-sm);
+.btn-search{padding:10px 18px;border:2px solid var(--ink);border-radius:var(--radius-sm);
   background:var(--gold);color:var(--ink);
-  font-family:'Space Grotesk',sans-serif;font-size:.88rem;font-weight:900;cursor:pointer;white-space:nowrap;
+  font-family:'Space Grotesk',sans-serif;font-size:.84rem;font-weight:900;cursor:pointer;white-space:nowrap;
   box-shadow:var(--shadow-sm);transition:transform .12s,box-shadow .12s;}
 .btn-search:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:#f3be2b;}
 .btn-search:active{transform:translate(2px,2px);box-shadow:var(--shadow-active);}
 .mobile-cards{display:none;}
 .table-wrap{background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius);
-  overflow-x:auto;-webkit-overflow-scrolling:touch;box-shadow:var(--shadow);position:relative;}
+  overflow-x:auto;-webkit-overflow-scrolling:touch;box-shadow:var(--shadow-sm);position:relative;}
 .table-wrap table{width:100%;border-collapse:collapse;}
 .table-wrap thead tr{border-bottom:2px solid var(--ink);background:var(--bg-surface);}
-.table-wrap th{padding:11px 14px;font-size:.72rem;font-weight:900;color:var(--ink);
+.table-wrap th{padding:9px 12px;font-size:.72rem;font-weight:900;color:var(--ink);
   letter-spacing:.06em;text-align:left;white-space:nowrap;text-transform:uppercase;}
-.table-wrap td{padding:11px 14px;font-size:.85rem;border-bottom:1px solid rgba(26,26,26,0.12);vertical-align:middle;color:var(--ink);}
+.table-wrap td{padding:8px 12px;font-size:.83rem;border-bottom:1px solid rgba(26,26,26,0.12);vertical-align:middle;color:var(--ink);}
 .table-wrap td:nth-child(2),.table-wrap td:nth-child(3),.table-wrap td:nth-child(4),
 .table-wrap td:nth-child(5),.table-wrap td:nth-child(6){white-space:nowrap;}
 .table-wrap td:first-child{white-space:normal;min-width:130px;}
 .table-wrap tr:last-child td{border-bottom:none;}
 .table-wrap tbody tr{cursor:pointer;transition:background .12s;}
 .table-wrap tbody tr:hover td{background:var(--gold-bg);}
-.code-mono{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:.84rem;color:var(--ink);letter-spacing:.04em;}
-.btn-view{padding:6px 13px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;
-  color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.76rem;font-weight:900;cursor:pointer;transition:transform .12s,box-shadow .12s;white-space:nowrap;box-shadow:var(--shadow-sm);}
+.code-mono{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:.82rem;color:var(--ink);letter-spacing:.04em;}
+.btn-view{padding:5px 11px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;
+  color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.74rem;font-weight:900;cursor:pointer;transition:transform .12s,box-shadow .12s;white-space:nowrap;box-shadow:var(--shadow-sm);}
 .btn-view:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:var(--gold);}
-.count-info{font-size:.78rem;color:var(--muted);padding:11px 16px;border-top:2px solid var(--ink);font-weight:700;background:var(--bg-surface);}
-.modal-name{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.15rem;color:var(--ink);}
-.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
-.info-item{background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);padding:11px 13px;box-shadow:var(--shadow-sm);}
-.info-label{font-size:.7rem;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px;}
-.info-val{font-size:.88rem;font-weight:700;color:var(--ink);word-break:break-all;}
+.count-info{font-size:.75rem;color:var(--muted);padding:8px 14px;border-top:2px solid var(--ink);font-weight:700;background:var(--bg-surface);}
+.modal-name{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.1rem;color:var(--ink);}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+.info-item{background:#FFFFFF;border:1.5px solid var(--ink);border-radius:var(--radius-sm);padding:6px 9px;box-shadow:1px 1px 0 var(--ink);}
+.info-item.info-span-2{grid-column:1 / -1;}
+.info-label{font-size:.63rem;font-weight:800;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:2px;}
+.info-val{font-size:.8rem;font-weight:700;color:var(--ink);line-height:1.35;word-break:break-word;}
 .info-val a{color:var(--ink);text-decoration:underline;}
-.codes-title{font-size:.74rem;font-weight:900;color:var(--ink);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
-.code-row{background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);
-  padding:11px 13px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;gap:8px;box-shadow:var(--shadow-sm);}
-.code-main{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:.92rem;color:var(--ink);letter-spacing:.04em;}
-.code-meta{font-size:.74rem;color:var(--muted);line-height:1.6;font-weight:600;margin-top:2px;}
-.code-status{padding:3px 9px;border-radius:20px;font-size:.7rem;font-weight:900;white-space:nowrap;letter-spacing:.04em;font-family:'Space Grotesk',sans-serif;border:1.5px solid var(--ink);}
+.codes-title{font-size:.72rem;font-weight:900;color:var(--ink);letter-spacing:.08em;text-transform:uppercase;margin-top:4px;margin-bottom:6px;}
+.code-row{background:#FFFFFF;border:1.5px solid var(--ink);border-radius:var(--radius-sm);
+  padding:8px 10px;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;gap:8px;box-shadow:1px 1px 0 var(--ink);}
+.code-main{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:.88rem;color:var(--ink);letter-spacing:.04em;}
+.code-meta{font-size:.7rem;color:var(--muted);line-height:1.45;font-weight:600;margin-top:2px;}
+.code-status{padding:2px 8px;border-radius:20px;font-size:.68rem;font-weight:900;white-space:nowrap;letter-spacing:.04em;font-family:'Space Grotesk',sans-serif;border:1.5px solid var(--ink);}
 .cs-active{background:var(--green-bg);color:var(--green);}
 .cs-used{background:var(--blue-bg);color:var(--accent);}
 .cs-expired{background:var(--coral-bg);color:var(--red);}
 .cs-fraud{background:var(--red);color:#FFFFFF;font-weight:900;}
 .cs-pending{background:#EDE9FE;color:#6B46C1;}
-.btn-gen-code{width:100%;padding:11px;border:2px dashed var(--ink);border-radius:var(--radius-sm);
-  background:transparent;color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.84rem;font-weight:900;
-  cursor:pointer;transition:background .15s;margin-top:6px;}
+.btn-gen-code{width:100%;padding:10px;border:2px dashed var(--ink);border-radius:var(--radius-sm);
+  background:transparent;color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:900;
+  cursor:pointer;transition:background .15s;margin-top:4px;}
 .btn-gen-code:hover{background:var(--gold-bg);}
-.new-code-box{display:none;margin-top:10px;padding:14px;background:var(--gold-bg);
+.new-code-box{display:none;margin-top:8px;padding:12px;background:var(--gold-bg);
   border:2px solid var(--ink);border-radius:var(--radius-sm);box-shadow:var(--shadow-sm);}
 .new-code-box.show{display:block;}
-.new-code-label{font-size:.7rem;font-weight:900;color:var(--ink);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;}
-.new-code-msg{background:#FFFFFF;border:2px solid var(--ink);border-radius:6px;padding:10px 12px;
-  font-size:.82rem;color:var(--ink);line-height:1.6;margin-bottom:10px;font-weight:600;}
+.new-code-label{font-size:.68rem;font-weight:900;color:var(--ink);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
+.new-code-msg{background:#FFFFFF;border:1.5px solid var(--ink);border-radius:6px;padding:8px 10px;
+  font-size:.8rem;color:var(--ink);line-height:1.55;margin-bottom:8px;font-weight:600;}
 .new-code-msg b{color:var(--ink);font-weight:900;}
-.btn-copy-newcode{width:100%;padding:11px;border:2px solid var(--ink);border-radius:6px;background:var(--gold);
-  color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.84rem;font-weight:900;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .12s;}
+.btn-copy-newcode{width:100%;padding:9px;border:2px solid var(--ink);border-radius:6px;background:var(--gold);
+  color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:900;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .12s;}
 .btn-copy-newcode:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);}
 .btn-copy-newcode.copied{background:var(--green);color:#FFFFFF;}
-.code-timer{font-size:.72rem;font-weight:700;margin-top:3px;}
+.code-timer{font-size:.7rem;font-weight:700;margin-top:2px;}
 .code-timer.ok{color:var(--green);}
 .code-timer.warn{color:var(--warning);}
 .code-timer.crit{color:var(--red);}
-.btn-expire{padding:4px 10px;border:2px solid var(--ink);border-radius:6px;background:var(--coral-bg);
-  color:var(--red);font-family:'Space Grotesk',sans-serif;font-size:.72rem;font-weight:900;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn-expire{padding:3px 8px;border:1.5px solid var(--ink);border-radius:6px;background:var(--coral-bg);
+  color:var(--red);font-family:'Space Grotesk',sans-serif;font-size:.7rem;font-weight:900;cursor:pointer;transition:all .15s;white-space:nowrap;}
 .btn-expire:hover{background:#FFCDD2;}
-.btn-delete-cust{width:100%;padding:11px;border:2px solid var(--ink);border-radius:var(--radius-sm);
-  background:var(--coral-bg);color:var(--red);font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:900;
-  cursor:pointer;transition:all .15s;margin-top:6px;box-shadow:var(--shadow-sm);}
+.btn-delete-cust{width:100%;padding:9px;border:2px solid var(--ink);border-radius:var(--radius-sm);
+  background:var(--coral-bg);color:var(--red);font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:900;
+  cursor:pointer;transition:all .15s;margin-top:4px;box-shadow:var(--shadow-sm);}
 .btn-delete-cust:hover{background:#FFCDD2;}
-.ss-badge{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:4px 10px;font-size:.72rem;font-weight:900;white-space:nowrap;border:1.5px solid var(--ink);transition:all .18s;}
+.ss-badge{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:3px 9px;font-size:.7rem;font-weight:900;white-space:nowrap;border:1.5px solid var(--ink);transition:all .18s;}
 .ss-coc{color:var(--warning);background:var(--gold-bg);}
 .ss-coc:hover{background:var(--gold);transform:scale(1.03);}
 .ss-paid{color:var(--green);background:var(--green-bg);}
@@ -567,51 +605,123 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
 .ss-pending{color:#5A524C;background:var(--bg-surface);}
 .ss-expired{color:var(--red);background:var(--coral-bg);}
 .ss-bh{color:#6B46C1;background:#EDE9FE;}
-.edit-modal{background:var(--bg);border:2px solid var(--ink);border-radius:var(--radius-lg);width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:6px 6px 0 var(--ink);}
-.field-sm label{display:block;font-size:.7rem;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
-.field-sm input,.field-sm select,.field-sm textarea{width:100%;background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);padding:10px 12px;color:var(--ink);font-family:'Be Vietnam Pro',sans-serif;font-size:16px;font-weight:600;outline:none;transition:box-shadow .15s;}
-.field-sm textarea{resize:vertical;min-height:60px;}
+.edit-modal{background:var(--bg);border:2px solid var(--ink);border-radius:var(--radius-lg);width:100%;max-width:480px;max-height:90vh;max-height:90dvh;display:flex;flex-direction:column;overflow:hidden;box-shadow:6px 6px 0 var(--ink);}
+.field-sm label{display:block;font-size:.68rem;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.field-sm input,.field-sm select,.field-sm textarea{width:100%;background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);padding:9px 11px;color:var(--ink);font-family:'Be Vietnam Pro',sans-serif;font-size:15px;font-weight:600;outline:none;transition:box-shadow .15s;}
+.field-sm textarea{resize:vertical;min-height:54px;}
 .field-sm input:focus,.field-sm select:focus,.field-sm textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--gold);}
-.filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;}
-.filter-btn{padding:7px 14px;border:2px solid var(--ink);border-radius:20px;background:#FFFFFF;color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.76rem;font-weight:900;cursor:pointer;transition:transform .12s,box-shadow .12s;box-shadow:var(--shadow-sm);}
+.filter-bar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center;}
+.filter-btn{padding:6px 12px;border:2px solid var(--ink);border-radius:20px;background:#FFFFFF;color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.74rem;font-weight:900;cursor:pointer;transition:transform .12s,box-shadow .12s;box-shadow:var(--shadow-sm);}
 .filter-btn:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:var(--gold-bg);}
 .filter-btn.active{background:var(--gold);color:var(--ink);box-shadow:var(--shadow-sm);}
-.btn-export{padding:7px 14px;border:2px solid var(--ink);border-radius:20px;background:var(--green-bg);color:var(--green);font-family:'Space Grotesk',sans-serif;font-size:.76rem;font-weight:900;cursor:pointer;margin-left:auto;transition:transform .12s,box-shadow .12s;box-shadow:var(--shadow-sm);}
+.btn-export{padding:6px 12px;border:2px solid var(--ink);border-radius:20px;background:var(--green-bg);color:var(--green);font-family:'Space Grotesk',sans-serif;font-size:.74rem;font-weight:900;cursor:pointer;margin-left:auto;transition:transform .12s,box-shadow .12s;box-shadow:var(--shadow-sm);}
 .btn-export:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:#C8E6C9;}
 
+/* ─── RESPONSIVE BREAKPOINTS (CHẶT CHẼ, TIẾT KIỆM KHÔNG GIAN, MOBILE-FIRST) ─── */
+@media(min-width:1200px){
+  .page{padding:26px 36px 72px;}
+  .stats-grid{grid-template-columns:repeat(4,1fr);gap:14px;}
+}
+
 @media(max-width:900px){
-  .cust-search-bar{flex-direction:column;gap:8px;}
-  .cust-search-bar input{width:100%;}
-  .filter-bar{gap:6px;}
-  .btn-export{margin-left:0;width:100%;text-align:center;}
   .table-wrap table{display:none;}
   .table-wrap{background:transparent;border:none;box-shadow:none;padding:0;overflow:visible;}
   .mobile-cards{display:block;}
-  .m-card{background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius);
-    padding:14px 16px;margin-bottom:8px;transition:transform .12s,box-shadow .12s;cursor:pointer;
+  .m-card{background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);
+    padding:10px 12px;margin-bottom:6px;transition:transform .12s,box-shadow .12s;cursor:pointer;
     touch-action:manipulation;-webkit-tap-highlight-color:rgba(245,200,66,.2);user-select:none;box-shadow:var(--shadow-sm);}
   .m-card:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:var(--gold-bg);}
   .m-card:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);}
-  .m-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;}
-  .m-card-name{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.95rem;color:var(--ink);}
-  .m-card-codes{font-family:'JetBrains Mono',monospace;font-size:.74rem;color:var(--muted);font-weight:700;margin-top:2px;}
-  .m-card-badges{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
-  .m-card-meta{display:flex;gap:8px;flex-wrap:wrap;font-size:.74rem;color:var(--muted);font-weight:600;margin-bottom:2px;}
-  .edit-modal{border-radius:18px 18px 0 0;max-width:100%;max-height:92vh;}
-  .info-grid{grid-template-columns:1fr;}
+  .m-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px;}
+  .m-card-name{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.92rem;color:var(--ink);line-height:1.25;}
+  .m-card-codes{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--muted);font-weight:700;margin-top:2px;}
+  .m-card-badges{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;}
+  .m-card-meta{display:flex;gap:6px;flex-wrap:wrap;font-size:.72rem;color:var(--muted);font-weight:600;margin-bottom:1px;align-items:center;}
+}
+
+@media(max-width:768px){
+  .page{padding:16px 14px 56px;}
+  .topbar{padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;gap:8px;}
+  .topbar-actions,.topbar-links{gap:6px;}
+  .tl-btn,.btn-logout,.btn-dev{padding:6px 10px;font-size:.76rem;}
+  .tab-bar{padding:6px 10px 0;gap:3px;height:42px;overflow-y:hidden;align-items:flex-end;}
+  .tab{padding:6px 12px;font-size:.78rem;height:36px;box-sizing:border-box;margin:0 0 -2px 0;}
+  .tab.active{height:36px;box-sizing:border-box;margin:0 0 -2px 0;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;}
+  .stat-card{padding:11px 12px;}
+  .stat-val{font-size:1.45rem;}
+  .form-grid{grid-template-columns:1fr;gap:10px;}
+  .form-card{padding:14px;}
+  .sessions-grid{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;}
+  .section-title{font-size:1.25rem;}
+  .section-sub{margin-bottom:14px;}
+  .guide-step-row{flex-wrap:wrap;gap:6px;padding:10px 12px;}
+  .gs-controls{width:100%;justify-content:flex-end;}
+  
+  /* Horizontal scroll for filters on mobile (tối ưu chặt chẽ, tiết kiệm 120px chiều dọc) */
+  .filter-bar,.codes-filter-bar{
+    display:flex;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+    gap:6px;padding-bottom:4px;margin-bottom:10px;
+  }
+  .filter-bar::-webkit-scrollbar,.codes-filter-bar::-webkit-scrollbar{display:none;}
+  .filter-btn,.cf-btn,.btn-export{
+    flex-shrink:0;white-space:nowrap;width:auto !important;margin-left:0 !important;
+    padding:6px 12px;font-size:.74rem;
+  }
+  .cust-search-bar{display:flex;flex-direction:row;gap:8px;margin-bottom:10px;}
+  .cust-search-bar input{padding:9px 12px;font-size:15px;}
+  .btn-search{padding:9px 14px;font-size:.8rem;}
+}
+
+@media(max-width:600px){
+  .dns-row{flex-direction:column;align-items:flex-start;gap:8px;padding:10px 12px;}
+  .dns-row-main{width:100%;}
+  .dns-row-actions{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:6px;max-width:unset;}
+  .dns-row-actions button{width:100%;padding:7px 6px;font-size:.74rem;text-align:center;}
+  
+  /* iOS Bottom-sheet modal on mobile (chặt chẽ, sticky header & footer) */
+  .modal-overlay{padding:0;align-items:flex-end;}
+  .modal,.edit-modal{
+    max-width:100%;border-radius:18px 18px 0 0;border-bottom:none;max-height:92dvh;
+    box-shadow:0 -4px 18px rgba(0,0,0,0.18);
+  }
+  .modal-head{padding:13px 16px;}
+  .modal-body{padding:12px 16px;max-height:calc(92dvh - 110px);}
+  .modal-footer{padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));}
 }
 
 @media(max-width:480px){
-  .filter-bar{gap:6px;}
-  .filter-btn{padding:9px 14px;font-size:.78rem;}
-  .cf-btn,.ref-filter-btn{padding:9px 14px;font-size:.78rem;}
-  .gs-btn{padding:9px 12px;font-size:.86rem;}
-  .btn-copy-r{padding:9px 14px;font-size:.8rem;}
-  .btn-expire{padding:8px 12px;font-size:.76rem;}
-  .m-card{padding:12px 14px;}
-  .m-card-top>div:first-child{min-width:0;}
-  .m-card-name{overflow-wrap:anywhere;}
-  .m-card-meta{overflow-wrap:anywhere;}
+  .page{padding:14px 10px 52px;}
+  .topbar{padding:calc(8px + env(safe-area-inset-top,0px)) 10px 8px;gap:6px;}
+  .brand{font-size:.9rem;max-width:130px;}
+  .tl-btn,.btn-logout,.btn-dev{padding:5px 9px;font-size:.72rem;}
+  .tab-bar{padding:6px 6px 0;height:40px;gap:2px;}
+  .tab{padding:6px 9px;font-size:.72rem;height:34px;margin:0 0 -2px 0;}
+  .tab.active{height:34px;margin:0 0 -2px 0;}
+  .stats-grid{grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;}
+  .stat-card{padding:9px 10px;}
+  .stat-ico{font-size:1.05rem;margin-bottom:2px;}
+  .stat-val{font-size:1.3rem;margin-bottom:1px;}
+  .stat-lbl{font-size:.62rem;letter-spacing:.03em;}
+  .form-card{padding:12px;}
+  .sessions-grid{grid-template-columns:1fr;}
+  .code-item{flex-wrap:wrap;gap:6px;padding:8px 10px;}
+  .ci-code{min-width:unset;width:100%;font-size:.84rem;}
+  .ci-cust{width:100%;font-size:.78rem;}
+  .quick-btns{grid-template-columns:repeat(2,1fr);gap:6px;}
+  .quick-btns .btn-quick{padding:9px 6px;font-size:.75rem;}
+  .pkg-card-btn{min-height:48px;padding:6px 10px;gap:6px;}
+  .pkg-card-icon{font-size:1.1rem;}
+  .pkg-card-title{font-size:.8rem;}
+  .pkg-card-sub{font-size:.65rem;}
+  #zaloMsgText{height:160px;}
+  .dp-url{max-width:90px;}
+  .dp-bar{width:30px;}
+}
+
+@media(max-width:340px){
+  .info-grid{grid-template-columns:1fr;}
+  .stats-grid{grid-template-columns:1fr;}
 }
 
 /* Skeleton Loading Animation */
@@ -629,113 +739,30 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
   border: 1px solid var(--ink);
 }
 .skeleton-card {
-  padding: 16px; border: 2px solid var(--ink); border-radius: var(--radius); margin-bottom: 12px; background:#FFFFFF; box-shadow:var(--shadow-sm);
+  padding: 14px; border: 2px solid var(--ink); border-radius: var(--radius-sm); margin-bottom: 10px; background:#FFFFFF; box-shadow:var(--shadow-sm);
 }
 
-/* Responsive breakdowns */
-@media(min-width:1200px){
-  .page{padding:32px 40px 80px;}
-  .stats-grid{grid-template-columns:repeat(4,1fr);}
-}
-@media(max-width:767px){
-  .page{padding:20px 16px 60px;}
-  .topbar{padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;gap:8px;}
-  .topbar-actions,.topbar-links{gap:6px;}
-  .tl-btn,.btn-logout,.btn-dev{padding:7px 11px;font-size:.78rem;}
-  .tab-bar{padding:8px 12px 0;gap:2px;height:46px;overflow-y:hidden;align-items:flex-end;}
-  .tab{padding:8px 12px;font-size:.78rem;height:38px;box-sizing:border-box;margin:0;}
-  .tab.active{height:38px;box-sizing:border-box;margin:0;}
-  .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
-  .stat-val{font-size:1.6rem;}
-  .form-grid{grid-template-columns:1fr;}
-  .form-card{padding:16px;}
-  .sessions-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));}
-  .section-title{font-size:1.25rem;}
-  .guide-step-row{flex-wrap:wrap;gap:7px;}
-  .gs-controls{width:100%;justify-content:flex-end;}
-}
-@media(max-width:480px){
-  .page{padding:16px 12px 56px;}
-  .topbar{flex-wrap:nowrap;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;gap:6px;}
-  .brand{font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 135px;}
-  .topbar-actions{gap:5px;flex-shrink:0;}
-  .topbar-links{width:100%;justify-content:flex-end;flex-wrap:nowrap;}
-  .tl-btn,.btn-logout,.btn-dev{padding:6px 9px;font-size:.74rem;white-space:nowrap;flex-shrink:0;}
-  .tab-bar{padding:6px 8px 0;gap:2px;height:42px;overflow-x:auto;overflow-y:hidden;align-items:flex-end;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
-  .tab-bar::-webkit-scrollbar{display:none;}
-  .tab{padding:7px 10px;font-size:.74rem;white-space:nowrap;flex-shrink:0;height:36px;box-sizing:border-box;margin:0;}
-  .tab.active{height:36px;box-sizing:border-box;margin:0;}
-  .stats-grid{grid-template-columns:1fr 1fr;gap:8px;}
-  .stat-card{padding:14px 12px;}
-  .stat-val{font-size:1.4rem;}
-  .stat-lbl{font-size:.65rem;}
-  .form-grid{grid-template-columns:1fr;}
-  .form-card{padding:14px;}
-  .edit-modal [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important;}
-  .sessions-grid{grid-template-columns:1fr;}
-  .code-item{flex-wrap:wrap;gap:8px;}
-  .ci-code{min-width:unset;width:100%;font-size:.88rem;}
-  .ci-cust{width:100%;}
-  .guide-step-row{flex-wrap:wrap;gap:6px;}
-  .gs-controls{width:100%;justify-content:flex-end;}
-  .quick-btns{grid-template-columns:repeat(2,1fr);gap:8px;}
-  .quick-btns .btn-quick{width:100%;padding:11px 6px;font-size:.78rem;white-space:nowrap;}
-  .modal-overlay{padding:0;align-items:flex-end;}
-  .modal,.edit-modal{max-width:100%;border-radius:18px 18px 0 0;max-height:92dvh;padding-bottom:env(safe-area-inset-bottom,0px);}
-  .modal-head{padding:18px 18px 0;}
-  .modal-body{padding:14px 18px 0;}
-  .modal-footer{padding:14px 18px 18px;}
-}
-@media(max-width:400px){
-  .page{padding:14px 10px 52px;}
-  .brand{font-size:.95rem;}
-  .section-title{font-size:1.15rem;}
-  .stats-grid{gap:7px;}
-  .stat-card{padding:12px 10px;}
-  .stat-val{font-size:1.25rem;}
-  .stat-lbl{font-size:.6rem;letter-spacing:.04em;}
-  .form-card{padding:12px;}
-  .code-item{padding:12px 13px;}
-  .m-card{padding:11px 12px;}
-  .ci-status,.code-status{white-space:normal;text-align:center;}
-  #zaloMsgText{height:170px;}
-}
-@media(max-height:680px){
-  .topbar{padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top,0px));}
-  .tab-bar{padding:6px 10px 0;height:44px;overflow-y:hidden;align-items:flex-end;}
-  .modal,.edit-modal{max-height:96dvh;}
-  #zaloMsgText{height:150px;}
-}
-
-/* DNS Pool list */
-.dp-badge{display:inline-block;font-size:.7rem;font-weight:900;padding:2px 8px;border-radius:6px;white-space:nowrap;border:1.5px solid var(--ink);}
+/* DNS Pool list & DNS Riêng Desktop/Mobile */
+.dp-badge{display:inline-block;font-size:.68rem;font-weight:900;padding:2px 7px;border-radius:6px;white-space:nowrap;border:1.5px solid var(--ink);}
 .dp-b-5s{color:var(--green);background:var(--green-bg);}
 .dp-b-15s{color:var(--accent);background:var(--blue-bg);}
-.dp-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;transition:transform .12s,box-shadow .12s;box-shadow:var(--shadow-sm);-webkit-tap-highlight-color:transparent;}
+.dp-row{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer;transition:transform .12s,box-shadow .12s;box-shadow:var(--shadow-sm);-webkit-tap-highlight-color:transparent;}
 .dp-row:hover,.dp-row:active{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:var(--gold-bg);}
 .dp-main{display:flex;align-items:center;gap:8px;min-width:0;flex:1;}
-.dp-url{font-size:.8rem;color:var(--ink);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;font-family:'JetBrains Mono',monospace;}
-.dp-status{font-size:.72rem;font-weight:800;color:var(--ink);white-space:nowrap;}
+.dp-url{font-size:.78rem;color:var(--ink);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;font-family:'JetBrains Mono',monospace;}
+.dp-status{font-size:.7rem;font-weight:800;color:var(--ink);white-space:nowrap;}
 .dp-bar{width:40px;height:6px;background:var(--bg-surface);border:1px solid var(--ink);border-radius:99px;overflow:hidden;flex-shrink:0;}
 .dp-bar div{height:100%;border-radius:99px;background:var(--gold);}
-.dp-used{font-size:.72rem;font-weight:800;color:var(--muted);white-space:nowrap;}
+.dp-used{font-size:.7rem;font-weight:800;color:var(--muted);white-space:nowrap;}
 .dp-caret{font-size:1.1rem;color:var(--ink);font-weight:900;flex-shrink:0;margin-left:6px;}
-@media(max-width:480px){
-  .dp-url{max-width:90px;}
-  .dp-bar{width:30px;}
-}
-#ddCodes code{display:inline-block;background:var(--gold-bg);border:1.5px solid var(--ink);border-radius:5px;padding:1px 6px;margin:2px 3px;font-size:.75rem;color:var(--ink);font-weight:800;font-family:'JetBrains Mono',monospace;}
 
-/* DNS Riêng Responsive Mobile */
-.dns-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px 14px;background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);margin-bottom:8px;box-shadow:var(--shadow-sm);}
+#ddCodes code{display:inline-block;background:var(--gold-bg);border:1.5px solid var(--ink);border-radius:5px;padding:1px 6px;margin:2px 3px;font-size:.74rem;color:var(--ink);font-weight:800;font-family:'JetBrains Mono',monospace;}
+
+/* DNS Riêng: Horizontal actions on Desktop, 2x2 on Mobile */
+.dns-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);margin-bottom:6px;box-shadow:var(--shadow-sm);}
 .dns-row-main{min-width:0;flex:1;}
-.dns-row-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;min-width:140px;}
-@media(max-width:600px){
-  .dns-row{flex-direction:column;gap:10px;padding:12px;}
-  .dns-row-main{width:100%;}
-  .dns-row-actions{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:unset;}
-  .dns-row-actions button{width:100%;padding:8px 6px;font-size:.76rem;text-align:center;}
-}
+.dns-row-actions{display:flex;flex-direction:row;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px;max-width:320px;flex-shrink:0;}
+.dns-row-actions button{padding:5px 9px;font-size:.74rem;white-space:nowrap;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
@@ -797,8 +824,7 @@ window.addEventListener('DOMContentLoaded', () => {
       <button class="tab" data-tab="customer" onclick="switchTab('customer')">👥 Khách hàng</button>
       <button class="tab" data-tab="sessions" onclick="switchTab('sessions')">🟢 Phiên live</button>
       <button class="tab" data-tab="codes" onclick="switchTab('codes')">🎫 Mã truy cập</button>
-      <button class="tab" data-tab="dnsgen" onclick="switchTab('dnsgen')">🔒 DNS riêng</button>
-      <button class="tab" data-tab="dnspool" onclick="switchTab('dnspool')">🌐 DNS mặc định</button>
+      <button class="tab" data-tab="dnsgen" onclick="switchTab('dnsgen')">🔒 Quản lý DNS Riêng (1:1)</button>
       <button class="tab" data-tab="appstore" onclick="switchTab('appstore')">🍎 Appstore</button>
       <button class="tab" data-tab="emergency" onclick="switchTab('emergency')">🛡️ Khách đặc biệt</button>
     </div>
@@ -822,8 +848,7 @@ window.addEventListener('DOMContentLoaded', () => {
           <button class="btn-quick" onclick="switchTab('customer')">👥 Khách hàng</button>
           <button class="btn-quick" onclick="switchTab('sessions')">🟢 Phiên live</button>
           <button class="btn-quick" onclick="switchTab('codes')">🎫 Mã truy cập</button>
-          <button class="btn-quick" onclick="switchTab('dnsgen')">🔒 DNS riêng</button>
-          <button class="btn-quick" onclick="switchTab('dnspool')">🌐 DNS mặc định</button>
+          <button class="btn-quick" onclick="switchTab('dnsgen')">🔒 Quản lý DNS Riêng (1:1)</button>
           <button class="btn-quick" onclick="switchTab('appstore')">🍎 Appstore</button>
           <button class="btn-quick" onclick="switchTab('emergency')">🛡️ Khách đặc biệt</button>
         </div>
@@ -940,8 +965,8 @@ window.addEventListener('DOMContentLoaded', () => {
     <div class="tab-content" id="tab-dnsgen">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
         <div style="flex:1;min-width:240px">
-          <div class="section-title">Tạo link DNS riêng</div>
-          <div class="section-sub">Cho khách bị nghẽn DNS chung — mỗi khách 1 link riêng, tự hết hạn sau 10 phút kể từ lúc khách mở lần đầu.</div>
+          <div class="section-title">Quản lý DNS (1:1 Riêng Biệt)</div>
+          <div class="section-sub">Mỗi khách hàng sở hữu 1 link DNS riêng độc lập 1:1, tự động cấp khi tạo khách — không dùng chung với bất kỳ ai.</div>
         </div>
         <button class="btn-refresh" onclick="openDnsTemplateModal()" style="display:flex;align-items:center;gap:6px;">
           ⚙️ Mẫu DNS tự hiểu
@@ -1017,165 +1042,6 @@ window.addEventListener('DOMContentLoaded', () => {
         <input type="text" id="dnsSearch" placeholder="🔎 Tìm mã KH / tên khách / link..." autocomplete="off" oninput="renderDnsList()"/>
       </div>
       <div id="dnsGenListWrap"><div style="text-align:center;padding:20px;color:var(--muted);font-size:.82rem;font-weight:600;">Đang tải...</div></div>
-    </div>
-
-    <!-- DNS mặc định (pool NextDNS dùng chung, rotate mỗi 5 mã khách) -->
-    <div class="tab-content" id="tab-dnspool">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-        <div style="flex:1;min-width:240px">
-          <div class="section-title">Link DNS mặc định (dùng chung)</div>
-          <div class="section-sub">Link DNS hiện trong bước "Cài đặt DNS" mặc định của guide.html — mỗi link phục vụ tối đa N mã khách khác nhau.</div>
-        </div>
-        <button class="btn-refresh" onclick="openDnsTemplateModal()" style="display:flex;align-items:center;gap:6px;">
-          ⚙️ Mẫu DNS tự hiểu
-        </button>
-      </div>
-      <!-- Khung Tự Động Tạo Hàng Loạt Vào Pool -->
-      <div class="form-card" style="margin-bottom:18px;background:var(--gold-bg);">
-        <div class="form-card-title" style="display:flex;align-items:center;gap:8px;">
-          <span>⚡ Tự động tạo link nạp vào Pool hàng loạt</span>
-        </div>
-        <div style="font-size:.78rem;color:var(--muted);margin-bottom:14px;font-weight:600;">
-          Tự sinh email ảo, tự cấu hình Denylist chuẩn theo gói (5s / 15s) và nạp thẳng các link vào DNS Pool để chia sẻ cho khách.
-        </div>
-
-        <div class="form-grid" style="margin-bottom:14px;">
-          <div class="field">
-            <label>Nhóm gói cần nạp *</label>
-            <div class="auto-pool-pkg-grid">
-              <button type="button" class="pkg-card-btn active" id="btnAutoPoolPkg5s" onclick="selectAutoPoolPkg('5s')">
-                <div class="pkg-card-icon">🟢</div>
-                <div class="pkg-card-info">
-                  <div class="pkg-card-title">Gói 5s (30k)</div>
-                  <div class="pkg-card-sub">Chặn RevenueCat</div>
-                </div>
-                <div class="pkg-card-check">✓</div>
-              </button>
-              <button type="button" class="pkg-card-btn" id="btnAutoPoolPkg15s" onclick="selectAutoPoolPkg('15s')">
-                <div class="pkg-card-icon">🔵</div>
-                <div class="pkg-card-info">
-                  <div class="pkg-card-title">Gói 15s (40k)</div>
-                  <div class="pkg-card-sub">Chặn RC + Firebase</div>
-                </div>
-                <div class="pkg-card-check">✓</div>
-              </button>
-            </div>
-            <input type="hidden" id="autoPoolPkg" value="5s"/>
-          </div>
-
-          <div class="field">
-            <label>Số lượng tài khoản muốn tạo *</label>
-            <div class="auto-pool-qty-grid">
-              <button type="button" class="auto-pool-qty-btn active" id="btnAutoPoolQty1" onclick="selectAutoPoolQty(1)">
-                <div class="auto-pool-qty-top">
-                  <span class="auto-pool-qty-icon">⚡</span>
-                  <span class="auto-pool-qty-title">1 Acc</span>
-                </div>
-                <div class="auto-pool-qty-sub">Tạo 1 link</div>
-              </button>
-              <button type="button" class="auto-pool-qty-btn" id="btnAutoPoolQty5" onclick="selectAutoPoolQty(5)">
-                <div class="auto-pool-qty-top">
-                  <span class="auto-pool-qty-icon">🔥</span>
-                  <span class="auto-pool-qty-title">5 Acc</span>
-                </div>
-                <div class="auto-pool-qty-sub">Tạo 5 link</div>
-              </button>
-              <button type="button" class="auto-pool-qty-btn" id="btnAutoPoolQty10" onclick="selectAutoPoolQty(10)">
-                <div class="auto-pool-qty-top">
-                  <span class="auto-pool-qty-icon">🚀</span>
-                  <span class="auto-pool-qty-title">10 Acc</span>
-                </div>
-                <div class="auto-pool-qty-sub">Tạo 10 link</div>
-              </button>
-            </div>
-            <input type="hidden" id="autoPoolQty" value="1"/>
-          </div>
-        </div>
-
-        <div class="field" style="margin-bottom:14px;">
-          <label>Số mã khách tối đa mỗi link (Mặc định 5 khách xoay vòng)</label>
-          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-            <div class="neo-stepper" style="width:160px;height:50px;">
-              <button type="button" class="neo-step-btn" onclick="stepAutoPoolMaxUses(-1)">−</button>
-              <input type="number" id="autoPoolMaxUses" min="1" max="50" value="5" class="neo-step-val" readonly/>
-              <button type="button" class="neo-step-btn" onclick="stepAutoPoolMaxUses(1)">+</button>
-            </div>
-            <div class="neo-step-presets" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-              <button type="button" class="preset-pill" id="autoPill3" onclick="setAutoPoolMaxUses(3)">3 mã</button>
-              <button type="button" class="preset-pill active" id="autoPill5" onclick="setAutoPoolMaxUses(5)">5 mã (Chuẩn)</button>
-              <button type="button" class="preset-pill" id="autoPill10" onclick="setAutoPoolMaxUses(10)">10 mã</button>
-              <span style="font-size:.74rem;color:var(--muted);font-weight:600;margin-left:4px;">💡 Mỗi link DNS phục vụ tối đa N khách rồi tự đổi link mới</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Progress bar khi đang tạo batch -->
-        <div id="autoPoolProgressWrap" style="display:none;margin-bottom:14px;padding:12px 14px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:.82rem;font-weight:800;">
-            <span id="autoPoolProgressStatus">⏳ Đang khởi tạo...</span>
-            <span id="autoPoolProgressPercent" style="font-family:'JetBrains Mono',monospace;">0%</span>
-          </div>
-          <div style="width:100%;height:8px;background:var(--bg-surface);border:1.5px solid var(--ink);border-radius:99px;overflow:hidden;">
-            <div id="autoPoolProgressBar" style="width:0%;height:100%;background:var(--green);transition:width .2s;"></div>
-          </div>
-        </div>
-
-        <button class="btn-action btn-gen" id="btnAutoPoolCreate" onclick="startAutoPoolBatch()" style="font-size:.95rem;padding:14px;width:100%;">
-          ⚡ Bắt đầu tạo 1 link nạp vào Pool 5S
-        </button>
-      </div>
-
-      <details style="margin-bottom:18px;border:1.5px dashed var(--line);border-radius:var(--radius-sm);padding:10px 14px;background:#FFFFFF;">
-        <summary style="cursor:pointer;font-size:.8rem;font-weight:800;color:var(--ink);user-select:none;">
-          ⚙️ Hoặc dán link DNS thủ công vào pool
-        </summary>
-        <div style="margin-top:12px;">
-          <div class="field">
-            <label>Link DNS * (mỗi dòng 1 link hoặc 1 mã ngắn)</label>
-            <textarea id="dnsPoolUrls" rows="3" placeholder="48f12a&#10;83b9c1&#10;https://d.adguard-dns.com/zzz" style="width:100%;padding:10px;border:1.5px solid var(--line);border-radius:10px;font-family:'Be Vietnam Pro',sans-serif;font-size:.88rem;resize:vertical;line-height:1.6"></textarea>
-            <div style="font-size:.74rem;color:var(--muted);margin-top:5px;line-height:1.5;">
-              💡 Mỗi dòng 1 link hoặc 1 mã ngắn (tự ghép theo mẫu: <span id="dnsPoolTmplBadge" style="color:var(--p1);font-weight:700;word-break:break-all">https://apple.dns.nextdns.io/{CODE}</span>).
-            </div>
-          </div>
-          <div class="form-grid">
-            <div class="field">
-              <label>Nhóm gói *</label>
-              <div class="pkg-choice-grid">
-                <button type="button" class="pkg-card-btn active" id="btnPoolPkg5s" onclick="selectPoolPkg('5s')">
-                  <div class="pkg-card-icon">🟢</div>
-                  <div class="pkg-card-info">
-                    <div class="pkg-card-title">Gói 5s (30k)</div>
-                    <div class="pkg-card-sub">Pool DNS 5s</div>
-                  </div>
-                  <div class="pkg-card-check">✓</div>
-                </button>
-                <button type="button" class="pkg-card-btn" id="btnPoolPkg15s" onclick="selectPoolPkg('15s')">
-                  <div class="pkg-card-icon">🔵</div>
-                  <div class="pkg-card-info">
-                    <div class="pkg-card-title">Gói 15s (40k)</div>
-                    <div class="pkg-card-sub">Pool DNS 15s</div>
-                  </div>
-                  <div class="pkg-card-check">✓</div>
-                </button>
-              </div>
-              <input type="hidden" id="dnsPoolPkg" value="5s"/>
-            </div>
-            <div class="field">
-              <label>Số mã/link tối đa</label>
-              <div class="neo-stepper-wrap">
-                <div class="neo-stepper">
-                  <button type="button" class="neo-step-btn" onclick="stepPoolMaxUses(-1)">−</button>
-                  <input type="number" id="dnsPoolMaxUses" min="1" max="50" value="5" class="neo-step-val" readonly/>
-                  <button type="button" class="neo-step-btn" onclick="stepPoolMaxUses(1)">+</button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <button class="btn-action btn-gen" onclick="addDnsPoolLinksBulk(this)" style="background:var(--bg-surface);color:var(--ink);">➕ Thêm thủ công vào pool</button>
-        </div>
-      </details>
-      <div class="section-title" style="margin-top:24px;font-size:1.1rem">Link đang hoạt động trong pool</div>
-      <div id="dnsPoolListWrap"><div style="text-align:center;padding:20px;color:var(--muted);font-size:.82rem;font-weight:600;">Đang tải...</div></div>
     </div>
 
     <!-- Appstore chung (gói 150/180) — Cập nhật Email + Password cho cả flow thường và flow đặc biệt -->
@@ -1364,10 +1230,27 @@ window.addEventListener('DOMContentLoaded', () => {
       <div class="codes-title">Mã truy cập</div>
       <div id="dCodes"></div>
       <div class="field-sm" style="margin-top:8px">
-        <label>Gói cấp mã</label>
-        <div id="genPkgDisplay" class="neo-info-tile">⭐ Gói 30k (5s Vĩnh viễn)</div>
+        <label>Gói cấp mã mới (Tự động cập nhật gói nếu đổi)</label>
+        <div class="pkg-choice-grid">
+          <button type="button" class="pkg-card-btn" id="btnGenPkg30k" onclick="selectGenPkg('30k')">
+            <div class="pkg-card-icon">⭐</div>
+            <div class="pkg-card-info">
+              <div class="pkg-card-title">Gói 30k</div>
+              <div class="pkg-card-sub">5s Vĩnh viễn · 30.000đ</div>
+            </div>
+            <div class="pkg-card-check">✓</div>
+          </button>
+          <button type="button" class="pkg-card-btn" id="btnGenPkg40k" onclick="selectGenPkg('40k')">
+            <div class="pkg-card-icon">🌟</div>
+            <div class="pkg-card-info">
+              <div class="pkg-card-title">Gói 40k</div>
+              <div class="pkg-card-sub">15s Vĩnh viễn · 40.000đ</div>
+            </div>
+            <div class="pkg-card-check">✓</div>
+          </button>
+        </div>
         <input type="hidden" id="genPkg" value="30k"/>
-        <div id="genPkgHint" style="font-size:.72rem;color:var(--muted);font-weight:600;margin-top:4px">Muốn đổi gói, dùng nút "✏️ Chỉnh sửa thông tin khách" ở dưới.</div>
+        <div id="genPkgHint" style="font-size:.72rem;color:var(--muted);font-weight:600;margin-top:4px">Mã mới sẽ có hiệu lực 30 phút theo gói được chọn.</div>
       </div>
       <!-- Khu vực đổi gói thông minh (Chính sách: Đổi trong 7 ngày bù 10k, quá 7 ngày full 40k) -->
       <div id="upgradePkgArea" style="display:none;margin-top:8px;margin-bottom:6px;"></div>
@@ -1449,31 +1332,7 @@ window.addEventListener('DOMContentLoaded', () => {
   </div>
 </div>
 
-<!-- DNS Pool Detail Modal (yêu cầu #4): bấm vào row trong list để xem chi tiết link,
-     copy, vô hiệu/bật lại, gỡ khách, xóa. Bottom sheet trên mobile ≤480px giống các modal khác. -->
-<div class="modal-overlay" id="dnsDetailModal">
-  <div class="modal" style="max-width:480px">
-    <div style="padding:16px 20px 10px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
-      <div style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1rem;color:var(--fg)">Chi tiết link DNS</div>
-      <button onclick="closeDnsDetail()" style="border:none;background:transparent;font-size:1.2rem;cursor:pointer;color:var(--muted)">✕</button>
-    </div>
-    <div style="padding:16px 20px">
-      <div style="margin-bottom:12px"><div style="font-size:.72rem;color:var(--muted);font-weight:700;margin-bottom:4px">Link DNS</div><div id="ddUrl" data-url="" style="word-break:break-all;font-size:.82rem;color:var(--p1);font-weight:700"></div></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-        <div><div style="font-size:.72rem;color:var(--muted);font-weight:700;margin-bottom:4px">Nhóm gói</div><div id="ddPkg" style="font-size:.82rem;font-weight:800"></div></div>
-        <div><div style="font-size:.72rem;color:var(--muted);font-weight:700;margin-bottom:4px">Trạng thái</div><div id="ddStatus" style="font-size:.82rem;font-weight:800"></div></div>
-      </div>
-      <div style="margin-bottom:12px"><div style="font-size:.72rem;color:var(--muted);font-weight:700;margin-bottom:4px">Tiến trình</div><div id="ddProgress" style="font-size:.82rem;font-weight:800"></div></div>
-      <div style="margin-bottom:14px"><div style="font-size:.72rem;color:var(--muted);font-weight:700;margin-bottom:6px">Mã khách đã dùng</div><div id="ddCodes" style="font-size:.75rem;line-height:1.8;word-break:break-all"></div></div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <button onclick="copyDnsDetailUrl()" style="width:100%;padding:11px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:var(--gold);color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.84rem;font-weight:900;cursor:pointer;box-shadow:var(--shadow-sm);">⧉ Copy link</button>
-        <button id="ddBtnToggle" style="width:100%;padding:11px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.84rem;font-weight:900;cursor:pointer;box-shadow:var(--shadow-sm);"></button>
-        <button id="ddBtnRemove" style="width:100%;padding:11px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.84rem;font-weight:900;cursor:pointer;box-shadow:var(--shadow-sm);">🔄 Gỡ khách khỏi link</button>
-        <button id="ddBtnDel" style="width:100%;padding:11px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:var(--coral-bg);color:var(--red);font-family:'Space Grotesk',sans-serif;font-size:.84rem;font-weight:900;cursor:pointer;box-shadow:var(--shadow-sm);">🗑 Xóa link khỏi pool</button>
-      </div>
-    </div>
-  </div>
-</div>
+
 
 <div class="toast" id="toast"></div>
 
@@ -1652,15 +1511,32 @@ function isPermPkg(pkg){return true;}
 const PKG_LABELS={'30k':'Gói 30k (5s Vĩnh viễn)','40k':'Gói 40k (15s Vĩnh viễn)'};
 function pkgLabel(pkg){return pkg?(PKG_LABELS[pkg]||('Gói '+pkg)):'';}
 const PKG_OPTION_LABELS={'30k':'⭐ Gói 30k (5s Vĩnh viễn) — 30.000đ','40k':'🌟 Gói 40k (15s Vĩnh viễn) — 40.000đ'};
+window.selectGenPkg=function(pkg){
+  const norm = (pkg === '40k' || pkg === '15s' || pkg === '180') ? '40k' : '30k';
+  const input = document.getElementById('genPkg');
+  if (input) input.value = norm;
+  const btn30 = document.getElementById('btnGenPkg30k');
+  const btn40 = document.getElementById('btnGenPkg40k');
+  if (btn30) btn30.classList.toggle('active', norm === '30k');
+  if (btn40) btn40.classList.toggle('active', norm === '40k');
+  const hint = document.getElementById('genPkgHint');
+  const btnGen = document.querySelector('.btn-gen-code');
+  if (btnGen) {
+    btnGen.textContent = `➕ Cấp mã mới ${pkgLabel(norm)} (30 phút)`;
+  }
+  const cust = allCustomers.find(c => c.id === currentCustomerId);
+  if (hint && cust) {
+    const curNorm = (cust.package === '40k' || cust.package === '15s' || cust.package === '180') ? '40k' : '30k';
+    if (curNorm === '30k' && norm === '40k') {
+      hint.innerHTML = '<b style="color:var(--accent)">⚡ Chuyển từ Gói 30k sang 40k:</b> Khi cấp mã, hệ thống tự động đổi gói, thu hồi DNS 5s cho khách mới, cấp DNS 15s + VPN USA và chuyển trạng thái sang <b>"Chờ thu 40k"</b>.';
+    } else {
+      hint.textContent = 'Mã mới sẽ có hiệu lực 30 phút theo gói được chọn.';
+    }
+  }
+};
+
 function fillGenPkgOptions(pkg){
-  const sel=document.getElementById('genPkg');
-  const disp=document.getElementById('genPkgDisplay');
-  const hint=document.getElementById('genPkgHint');
-  if(!sel)return;
-  const p=pkg&&PKG_OPTION_LABELS[pkg]?pkg:'30k';
-  sel.value=p;
-  if(disp) disp.textContent=PKG_OPTION_LABELS[p]||('⚡ Gói '+p);
-  if(hint) hint.textContent='Muốn đổi gói, dùng nút "✏️ Chỉnh sửa thông tin khách" ở dưới.';
+  selectGenPkg(pkg || '30k');
 }
 
 window.selectCreatePkg=function(pkg){
@@ -1681,97 +1557,6 @@ window.selectDnsGenPkg=function(pkg){
   if(btn5) btn5.classList.toggle('active', pkg==='5s');
   if(btn15) btn15.classList.toggle('active', pkg==='15s');
 };
-
-window.selectAutoPoolPkg = function(pkg) {
-  const input = document.getElementById('autoPoolPkg');
-  if (input) input.value = pkg;
-  const btn5 = document.getElementById('btnAutoPoolPkg5s');
-  const btn15 = document.getElementById('btnAutoPoolPkg15s');
-  if (btn5) btn5.classList.toggle('active', pkg === '5s');
-  if (btn15) btn15.classList.toggle('active', pkg === '15s');
-  updateAutoPoolBtnText();
-};
-
-window.selectAutoPoolQty = function(qty) {
-  const input = document.getElementById('autoPoolQty');
-  if (input) input.value = qty;
-  const btn1 = document.getElementById('btnAutoPoolQty1');
-  const btn5 = document.getElementById('btnAutoPoolQty5');
-  const btn10 = document.getElementById('btnAutoPoolQty10');
-  if (btn1) btn1.classList.toggle('active', qty === 1);
-  if (btn5) btn5.classList.toggle('active', qty === 5);
-  if (btn10) btn10.classList.toggle('active', qty === 10);
-  updateAutoPoolBtnText();
-};
-
-window.stepAutoPoolMaxUses = function(delta) {
-  const input = document.getElementById('autoPoolMaxUses');
-  if (!input) return;
-  let val = (parseInt(input.value || '5', 10) || 5) + delta;
-  val = Math.max(1, Math.min(50, val));
-  input.value = val;
-  updateAutoPoolMaxPresets(val);
-};
-
-window.setAutoPoolMaxUses = function(val) {
-  const input = document.getElementById('autoPoolMaxUses');
-  if (!input) return;
-  val = Math.max(1, Math.min(50, val));
-  input.value = val;
-  updateAutoPoolMaxPresets(val);
-};
-
-function updateAutoPoolMaxPresets(val) {
-  const p3 = document.getElementById('autoPill3');
-  const p5 = document.getElementById('autoPill5');
-  const p10 = document.getElementById('autoPill10');
-  if (p3) p3.classList.toggle('active', val === 3);
-  if (p5) p5.classList.toggle('active', val === 5);
-  if (p10) p10.classList.toggle('active', val === 10);
-}
-
-window.updateAutoPoolBtnText = function() {
-  const btn = document.getElementById('btnAutoPoolCreate');
-  if (!btn) return;
-  const pkg = (document.getElementById('autoPoolPkg')?.value || '5s').toUpperCase();
-  const qty = document.getElementById('autoPoolQty')?.value || 1;
-  btn.textContent = `⚡ Bắt đầu tạo ${qty} link nạp vào Pool ${pkg}`;
-};
-
-window.selectPoolPkg=function(pkg){
-  const input=document.getElementById('dnsPoolPkg');
-  if(input) input.value=pkg;
-  const btn5=document.getElementById('btnPoolPkg5s');
-  const btn15=document.getElementById('btnPoolPkg15s');
-  if(btn5) btn5.classList.toggle('active', pkg==='5s');
-  if(btn15) btn15.classList.toggle('active', pkg==='15s');
-};
-
-window.stepPoolMaxUses=function(delta){
-  const input=document.getElementById('dnsPoolMaxUses');
-  if(!input) return;
-  let val=(parseInt(input.value||'5',10)||5)+delta;
-  val=Math.max(1,Math.min(50,val));
-  input.value=val;
-  updatePoolMaxPresets(val);
-};
-
-window.setPoolMaxUses=function(val){
-  const input=document.getElementById('dnsPoolMaxUses');
-  if(!input) return;
-  val=Math.max(1,Math.min(50,val));
-  input.value=val;
-  updatePoolMaxPresets(val);
-};
-
-function updatePoolMaxPresets(val){
-  const p3=document.getElementById('pillMax3');
-  const p5=document.getElementById('pillMax5');
-  const p10=document.getElementById('pillMax10');
-  if(p3) p3.classList.toggle('active', val===3);
-  if(p5) p5.classList.toggle('active', val===5);
-  if(p10) p10.classList.toggle('active', val===10);
-}
 
 window.selectEditPkg=function(pkg){
   const input=document.getElementById('ePkg');
@@ -1910,22 +1695,12 @@ window.createCustomer=async function(){
   const pkg=document.getElementById('cPackage').value;
   const duration=document.getElementById('cDuration').value;
 
-  // ── Kiểm tra DNS pool đầy trước khi tạo mã ────────────────────────
-  const dnsPoolGroups={'30k':'5s', '40k':'15s'};
-  const poolGroup = dnsPoolGroups[pkg];
-  if(poolGroup){
-    try{
-      const poolRows=await api('GET','/api/admin/customers?action=dns_pool_list')||[];
-      const groupRows=poolRows.filter(r=>r.package===poolGroup);
-      const activeNotFull=groupRows.filter(r=>r.is_active&&!r.is_full);
-      if(!activeNotFull.length){
-        showToast(`⛔ DNS pool (${poolGroup}) ${groupRows.length?'đã đầy tất cả link':'chưa có link nào'}! Vui lòng thêm link NextDNS mới vào tab "DNS mặc định" trước khi tạo mã.`,'red');
-        return;
-      }
-    }catch(e){/* swallow — nếu lỗi API thì vẫn cho tạo mã, không chặn cứng */}
+  const btnCreate=document.getElementById('btnCreate');
+  const origBtnText=btnCreate?btnCreate.innerHTML:'';
+  if(btnCreate){
+    btnCreate.disabled=true;
+    btnCreate.innerHTML='⏳ Đang tạo khách & tài khoản NextDNS...';
   }
-
-  document.getElementById('btnCreate').disabled=true;
   try{
     const r=await api('POST','/api/admin/create-customer',{
       name,
@@ -1942,7 +1717,12 @@ window.createCustomer=async function(){
     loadDashboard();
     resetCreateForm();
   }catch(e){showToast('⚠ Lỗi: '+e.message,'red');}
-  document.getElementById('btnCreate').disabled=false;
+  finally{
+    if(btnCreate){
+      btnCreate.disabled=false;
+      btnCreate.innerHTML=origBtnText;
+    }
+  }
 };
 function resetCreateForm(){
   const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
@@ -1972,9 +1752,7 @@ window.loadDnsTemplate = async function() {
 
 function updateDnsTmplBadges() {
   const b1 = document.getElementById('dnsGenTmplBadge');
-  const b2 = document.getElementById('dnsPoolTmplBadge');
   if (b1) b1.textContent = activeDnsTemplate;
-  if (b2) b2.textContent = activeDnsTemplate;
 }
 
 window.openDnsTemplateModal = function() {
@@ -2217,6 +1995,17 @@ window.assignDnsSlotToCustomer=async function(id){
     await loadDnsList();
   } catch (e) { showToast('⚠ Lỗi: ' + e.message, 'red'); }
 };
+// Thu hồi slot DNS về kho [AVAILABLE] (không xóa tài khoản NextDNS)
+window.recycleDnsSlot=async function(id,custCode){
+  if(!confirm(`Thu hồi slot DNS của khách ${custCode} về kho?\n\nSlot sẽ chuyển sang trạng thái "🟢 Sẵn sàng cấp cho khách mới", giữ nguyên tài khoản NextDNS để tái sử dụng ngay lập tức.`)) return;
+  try{
+    await api('PATCH',`/api/admin/customers?action=dns_update_creds&id=${encodeURIComponent(id)}`,{
+      customer_code: '[AVAILABLE]'
+    });
+    showToast('✓ Đã thu hồi slot DNS về kho','green');
+    await loadDnsList();
+  }catch(e){showToast('⚠ Lỗi: '+e.message,'red');}
+};
 // Hồi sinh TTL cho 1 link DNS riêng — reset về 'unopened', TTL đếm lại từ lần
 // khách mở kế tiếp. Token/link/key giữ nguyên, chỉ cần confirm vì đây là hành
 // động không hoàn tác (mất mốc first_accessed_at cũ).
@@ -2265,13 +2054,17 @@ window.renderDnsList=function(){
   const nameOf=code=>{const c=allCustomers.find(x=>x.customer_code===code);return c?(c.name||''):'';};
   const kw=(document.getElementById('dnsSearch')?.value||'').trim().toLowerCase();
   if(!dnsListRows.length){wrap.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:.82rem;font-weight:600;">Chưa có link DNS riêng nào</div>';return;}
-  const rows=kw?dnsListRows.filter(r=>
-    (r.customer_code||'').toLowerCase().includes(kw)||
-    nameOf(r.customer_code).toLowerCase().includes(kw)||
-    (r.nextdns_url||r.ublockdns_url||'').toLowerCase().includes(kw)||
-    (r.token||'').toLowerCase().includes(kw)||
-    (r.package||'').toLowerCase().includes(kw)
-  ):dnsListRows;
+  const rows=kw?dnsListRows.filter(r=>{
+    const cUpper = (r.customer_code||'').toUpperCase();
+    const isAvail = cUpper === '[AVAILABLE]' || cUpper.startsWith('[AVAILABLE]') || cUpper.startsWith('[SẴN SÀNG]') || cUpper.startsWith('[THU HỒI]') || cUpper.startsWith('[FREE]') || !r.customer_code;
+    if (isAvail && (kw === 'sẵn sàng' || kw === 'san sang' || kw === 'available' || kw === 'trống' || kw === 'trong' || kw === 'free')) return true;
+    if (isAvail) return (r.package||'').toLowerCase().includes(kw);
+    return (r.customer_code||'').toLowerCase().includes(kw)||
+           nameOf(r.customer_code).toLowerCase().includes(kw)||
+           (r.nextdns_url||r.ublockdns_url||'').toLowerCase().includes(kw)||
+           (r.token||'').toLowerCase().includes(kw)||
+           (r.package||'').toLowerCase().includes(kw);
+  }):dnsListRows;
   if(!rows.length){wrap.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:.82rem;font-weight:600;">Không tìm thấy khách nào làm DNS riêng khớp "${esc(kw)}"</div>`;return;}
   try{
     const statusMap={unopened:['⚪ Chưa mở','#94a3b8'],active:['🟢 Đang hoạt động','#16a34a'],expired:['⚫ Đã hết hạn','#64748b']};
@@ -2282,8 +2075,9 @@ window.renderDnsList=function(){
       return p?`<span style="display:inline-block;font-size:.68rem;font-weight:900;color:var(--ink);background:var(--bg-surface);border:1.5px solid var(--ink);border-radius:6px;padding:1px 7px;margin-left:6px;">${esc(p)}</span>`:'';
     };
     wrap.innerHTML=rows.map(r=>{
-      const isThuHoi = (r.customer_code||'').startsWith('[THU HỒI]');
-      const custName=nameOf(r.customer_code);
+      const cUpper = (r.customer_code||'').toUpperCase();
+      const isAvailable = cUpper === '[AVAILABLE]' || cUpper.startsWith('[AVAILABLE]') || cUpper.startsWith('[SẴN SÀNG]') || cUpper.startsWith('[THU HỒI]') || cUpper.startsWith('[FREE]') || !r.customer_code;
+      const custName=isAvailable ? '' : nameOf(r.customer_code);
       const [label,color]=statusMap[r.status]||statusMap.unopened;
       const link=`${location.origin}/dns.html?t=${encodeURIComponent(r.token)}`;
       // Ưu tiên field mới (nextdns_*) — row cũ (trước migration) chỉ có ublockdns_url/dashboard_key.
@@ -2297,7 +2091,7 @@ window.renderDnsList=function(){
       return `<div class="dns-row">
         <div class="dns-row-main">
           <div style="font-weight:800;font-size:.85rem;display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
-            ${isThuHoi ? '<span style="color:#16a34a">🟢 Còn trống (Có thể tái sử dụng)</span>' : esc(r.customer_code) + (custName ? ' — ' + esc(custName) : '')}
+            ${isAvailable ? `<span style="color:#16a34a">🟢 Sẵn sàng cấp cho khách mới</span>` : esc(r.customer_code) + (custName ? ' — ' + esc(custName) : '')}
             ${pkgBadge(r.package)}
             <span style="color:${color};font-weight:700;font-size:.75rem;margin-left:6px;">${label}</span>
           </div>
@@ -2307,7 +2101,7 @@ window.renderDnsList=function(){
         </div>
         <div class="dns-row-actions">
           <button class="btn-copy-r" onclick="navigator.clipboard.writeText('${link}');showToast('✓ Đã copy link','green');">⧉ Copy link</button>
-          ${isThuHoi ? `<button class="btn-copy-r" style="background:#E8F5E9;color:#1B5E20;border-color:#2E7D32;font-weight:800;" onclick="assignDnsSlotToCustomer('${r.id}')">👤 Gán khách</button>` : ''}
+          ${isAvailable ? `<button class="btn-copy-r" style="background:#E8F5E9;color:#1B5E20;border-color:#2E7D32;font-weight:800;" onclick="assignDnsSlotToCustomer('${r.id}')">👤 Gán khách</button>` : `<button class="btn-copy-r" style="background:#FFFBEB;color:#92400E;border-color:#D97706;font-weight:700;" onclick="recycleDnsSlot('${r.id}','${esc(r.customer_code)}')">♻ Thu hồi</button>`}
           <button class="btn-copy-r" onclick="editDnsCreds('${r.id}','${urlSafe}','${emailSafe}','${passSafe}','${custCodeSafe}')">✎ Sửa</button>
           ${r.status==='unopened'?'':`<button class="btn-copy-r" onclick="reactivateDnsLink('${r.id}','${esc(r.customer_code)}')">↻ Hồi sinh</button>`}
           <button class="btn-copy-r" style="color:var(--red);border-color:rgba(239,68,68,.3)" onclick="deletePrivateDnsLink('${r.id}','${esc(r.customer_code)}')">🗑 Xóa</button>
@@ -2315,208 +2109,6 @@ window.renderDnsList=function(){
       </div>`;
     }).join('');
   }catch(e){wrap.innerHTML=`<div style="text-align:center;padding:20px;color:var(--red);font-size:.82rem;font-weight:600;">⚠ Lỗi tải danh sách: ${esc(e.message)}</div>`;}
-};
-
-// ── TAB "DNS mặc định" (dns_pool) — link NextDNS dùng chung, rotate mỗi N mã KH ──
-// Tự động tạo tài khoản NextDNS và nạp link thẳng vào dns_pool theo lô (1, 5, 10)
-window.startAutoPoolBatch = async function() {
-  const pkg = document.getElementById('autoPoolPkg')?.value || '5s';
-  const qty = parseInt(document.getElementById('autoPoolQty')?.value, 10) || 1;
-  const maxUses = Math.max(1, Math.min(50, parseInt(document.getElementById('autoPoolMaxUses')?.value || '5', 10) || 5));
-
-  const btnCreate = document.getElementById('btnAutoPoolCreate');
-  const pWrap = document.getElementById('autoPoolProgressWrap');
-  const pBar = document.getElementById('autoPoolProgressBar');
-  const pStatus = document.getElementById('autoPoolProgressStatus');
-  const pPercent = document.getElementById('autoPoolProgressPercent');
-
-  const origText = btnCreate ? btnCreate.textContent : '';
-  if (btnCreate) {
-    btnCreate.disabled = true;
-    btnCreate.style.opacity = '0.6';
-    btnCreate.style.cursor = 'not-allowed';
-  }
-  if (pWrap) pWrap.style.display = 'block';
-
-  let successCount = 0;
-  let errorCount = 0;
-
-  for (let i = 0; i < qty; i++) {
-    const currentStep = i + 1;
-    const pct = Math.round((i / qty) * 100);
-    if (pBar) pBar.style.width = pct + '%';
-    if (pPercent) pPercent.textContent = pct + '%';
-    if (pStatus) pStatus.textContent = `⏳ [${currentStep}/${qty}] Đang tạo NextDNS & nạp vào Pool (${pkg.toUpperCase()})...`;
-
-    try {
-      const res = await api('POST', '/api/admin/customers?action=dns_auto_create_pool', {
-        package: pkg,
-        max_uses: maxUses
-      });
-      if (res && res.ok) {
-        successCount++;
-      } else {
-        throw new Error(res?.error || 'Lỗi không xác định');
-      }
-    } catch (err) {
-      console.error(`Lỗi tạo pool link ${currentStep}:`, err);
-      errorCount++;
-      showToast(`⚠ Lỗi link #${currentStep}: ${err.message}`, 'red');
-    }
-  }
-
-  if (pBar) pBar.style.width = '100%';
-  if (pPercent) pPercent.textContent = '100%';
-  if (pStatus) pStatus.textContent = `✓ Đã hoàn tất tạo và nạp ${successCount}/${qty} link!`;
-
-  setTimeout(() => {
-    if (pWrap) pWrap.style.display = 'none';
-    if (btnCreate) {
-      btnCreate.disabled = false;
-      btnCreate.style.opacity = '1';
-      btnCreate.style.cursor = 'pointer';
-      btnCreate.textContent = origText || `⚡ Bắt đầu tạo ${qty} link nạp vào Pool ${pkg.toUpperCase()}`;
-    }
-  }, 1200);
-
-  if (successCount > 0) {
-    showToast(`✓ Đã tạo và nạp thành công ${successCount} link vào DNS Pool (${pkg.toUpperCase()})!`, 'green');
-    await loadDnsPoolList();
-  }
-};
-
-window.addDnsPoolLinksBulk=async function(btn){
-  const raw=document.getElementById('dnsPoolUrls').value.trim();
-  if(!raw){showToast('⚠ Nhập ít nhất 1 link DNS','red');return;}
-  const urls=raw.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
-  const pkg=document.getElementById('dnsPoolPkg').value;
-  const maxUses=Math.max(1,Math.min(50,parseInt(document.getElementById('dnsPoolMaxUses').value||'5',10)||5));
-  if(!urls.length){showToast('⚠ Không có link hợp lệ','red');return;}
-  const old=btn?.textContent;
-  if(btn){btn.disabled=true;btn.textContent=`⏳ Đang thêm ${urls.length} link...`;}
-  try{
-    const r=await api('POST','/api/admin/customers?action=dns_pool_add',{urls,package:pkg,max_uses:maxUses});
-    document.getElementById('dnsPoolUrls').value='';
-    const added=r?.added||0, failed=r?.failed||[];
-    if(failed.length){
-      showToast(`⚠ Thêm được ${added}/${urls.length}. Lỗi: ${failed.map(f=>f.url.slice(0,30)+'… '+f.reason).join('; ')}`,'orange');
-    }else{
-      showToast(`✓ Đã thêm ${added} link vào pool`,'green');
-    }
-    await loadDnsPoolList();
-  }catch(e){showToast('⚠ Lỗi thêm link: '+e.message,'red');}
-  finally{if(btn){btn.disabled=false;btn.textContent=old;}}
-};
-// Bật/tắt 1 link pool — tắt khi link hỏng/bị chặn hoặc đổi qua tài khoản NextDNS khác.
-// KHÔNG xóa row (giữ lịch sử used_codes để tra "khách nào đã nhận link nào"), nên bật
-// lại được. Chỉ hỏi confirm khi TẮT — bật lại là hành động vô hại.
-window.toggleDnsPoolLink=async function(id,makeActive){
-  if(!makeActive&&!confirm('Vô hiệu link DNS này? Khách MỚI sẽ không được cấp link này nữa.\nKhách đã cài rồi không bị ảnh hưởng (mobileconfig đã nằm trên máy khách).')) return;
-  try{
-    await api('PATCH',`/api/admin/customers?action=dns_pool_toggle&id=${encodeURIComponent(id)}`,{is_active:!!makeActive});
-    showToast(makeActive?'✓ Đã bật lại link':'✓ Đã vô hiệu link','green');
-    await loadDnsPoolList();
-  }catch(e){showToast('⚠ Lỗi: '+e.message,'red');}
-};
-// Xóa hẳn 1 link khỏi pool — MẤT luôn lịch sử used_codes, chỉ dùng khi thêm nhầm link.
-// Bình thường nên dùng "Vô hiệu" thay vì xóa.
-window.deleteDnsPoolLink=async function(id,used){
-  const warn=used?`\n⚠ Link này đã cấp cho ${used} mã khách — xóa là mất luôn lịch sử đó.`:'';
-  if(!confirm('Xóa hẳn link này khỏi pool?'+warn+'\nNếu chỉ muốn ngừng cấp cho khách mới, hãy dùng "Vô hiệu".')) return;
-  try{
-    await api('DELETE',`/api/admin/customers?action=dns_pool_delete&id=${encodeURIComponent(id)}`);
-    showToast('✓ Đã xóa link khỏi pool','green');
-    await loadDnsPoolList();
-  }catch(e){showToast('⚠ Lỗi: '+e.message,'red');}
-};
-// Gỡ 1 mã KH khỏi pool link — dùng để migrate khách cũ từ ublockdns sang NextDNS.
-// Sau khi gỡ, khách mở lại guide.html sẽ tự nhận link NextDNS mới đang active trong pool.
-window.removeDnsPoolCustomer=async function(id,usedCodes){
-  if(!usedCodes||!usedCodes.length){showToast('Link này chưa có khách nào','red');return;}
-  const cc=prompt('Nhập mã khách hàng cần gỡ khỏi link pool này:\n\nCác mã hiện có: '+usedCodes.join(', '));
-  if(!cc)return;
-  const trimmed=cc.trim();
-  if(!trimmed){showToast('⚠ Chưa nhập mã','red');return;}
-  if(!confirm(`Xác nhận gỡ mã "${trimmed}" khỏi link pool?\n\nKhách sẽ nhận link NextDNS mới khi mở lại guide.html.`))return;
-  try{
-    await api('PATCH',`/api/admin/customers?action=dns_pool_remove_customer&id=${encodeURIComponent(id)}`,{customer_code:trimmed});
-    showToast(`✓ Đã gỡ mã "${trimmed}" khỏi pool`,'green');
-    await loadDnsPoolList();
-  }catch(e){showToast('⚠ Lỗi: '+e.message,'red');}
-};
-// Yêu cầu #4: UI DNS pool redesign cho mobile. Thay card flex lộ nút bằng list gọn,
-// bấm vào mở modal/bottom sheet chi tiết (pattern giống tab Khách hàng). Trên desktop
-// vẫn giữ đủ thông tin inline nhưng gói lại sạch hơn.
-window.loadDnsPoolList=async function(){
-  const wrap=document.getElementById('dnsPoolListWrap');
-  try{
-    const rows=await api('GET','/api/admin/customers?action=dns_pool_list')||[];
-    if(!rows.length){wrap.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:.82rem;font-weight:600;">Chưa có link nào trong pool — thêm link ở form trên</div>';return;}
-    // Link ĐANG được cấp cho khách mới = link is_active chưa đầy đầu tiên theo thứ tự cấp
-    const servingId={};
-    const activeAvailable=[...rows].filter(r=>r.is_active&&!r.is_full).sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));
-    activeAvailable.forEach(r=>{ if(!servingId[r.package]) servingId[r.package]=r.id; });
-    const pkgBadge=p=>{
-      if(p==='5s')  return '<span class="dp-badge dp-b-5s">🟢 5s</span>';
-      if(p==='15s') return '<span class="dp-badge dp-b-15s">🔵 15s (+180)</span>';
-      return `<span class="dp-badge">${esc(p)}</span>`;
-    };
-    wrap.innerHTML=rows.map(r=>{
-      const used=r.used||0, max=r.max||5;
-      const serving=servingId[r.package]===r.id;
-      const statusTxt=!r.is_active?'⚫ Vô hiệu'
-        :r.is_full?'🟠 Đã đầy'
-        :serving?'⭐ Đang cấp':'🟢 Còn';
-      const pct=Math.min(100,Math.round(used/max*100));
-      const barColor=r.is_full?'#f59e0b':(r.is_active?'#16a34a':'#94a3b8');
-      // URL rút gọn để list gọn: chỉ lấy host+path cuối, cắt bớt nếu quá dài
-      const urlShort=(()=>{try{const u=new URL(r.dns_url);const seg=u.pathname.split('/').pop()||u.host;return seg.length>24?seg.slice(0,23)+'…':seg;}catch{return r.dns_url.slice(0,30)+'…';}})();
-      // Lưu dữ liệu gốc (kèm flag serving) vào data attr để openDnsDetail đọc mà không phải query lại
-      r.serving=serving;
-      const dataJson=encodeURIComponent(JSON.stringify(r));
-      return `<div class="dp-row" onclick="openDnsDetail(this)" data-dns="${dataJson}">
-        <div class="dp-main">
-          ${pkgBadge(r.package)}
-          <span class="dp-url" title="${esc(r.dns_url)}">${esc(urlShort)}</span>
-          <span class="dp-status">${statusTxt}</span>
-          <div class="dp-bar"><div style="width:${pct}%;background:${barColor}"></div></div>
-          <span class="dp-used">${used}/${max}</span>
-        </div>
-        <span class="dp-caret">›</span>
-      </div>`;
-    }).join('');
-  }catch(e){wrap.innerHTML=`<div style="text-align:center;padding:20px;color:var(--red);font-size:.82rem;font-weight:600;">⚠ Lỗi tải danh sách: ${esc(e.message)}</div>`;}
-};
-// Mở modal chi tiết 1 link DNS pool. Đọc dữ liệu từ data-dns attribute đã lưu khi render list.
-window.openDnsDetail=function(el){
-  let r;
-  try{r=JSON.parse(decodeURIComponent(el.dataset.dns));}catch{showToast('⚠ Dữ liệu lỗi','red');return;}
-  const m=document.getElementById('dnsDetailModal');
-  if(!m)return;
-  document.getElementById('ddUrl').textContent=r.dns_url;
-  document.getElementById('ddUrl').dataset.url=r.dns_url;
-  document.getElementById('ddPkg').innerHTML=r.package==='5s'?'🟢 Gói 5s':'🔵 Gói 15s + 180';
-  const used=r.used||0, max=r.max||5;
-  document.getElementById('ddProgress').textContent=`${used} / ${max} mã khách`;
-  document.getElementById('ddStatus').textContent=!r.is_active?'⚫ Đã vô hiệu':r.is_full?'🟠 Đã đầy':(r.serving?'⭐ Đang cấp cho khách mới':'🟢 Còn hiệu lực');
-  const codesEl=document.getElementById('ddCodes');
-  codesEl.innerHTML=(r.used_codes&&r.used_codes.length)?r.used_codes.map(c=>`<code>${esc(c)}</code>`).join(' '):'<span style="color:var(--muted)">— Chưa có khách nào —</span>';
-  // Buttons state
-  const btnToggle=document.getElementById('ddBtnToggle');
-  btnToggle.textContent=r.is_active?'🚫 Vô hiệu':'✓ Bật lại';
-  btnToggle.onclick=async()=>{await toggleDnsPoolLink(r.id,!r.is_active);m.classList.remove('open');await loadDnsPoolList();};
-  const btnRemove=document.getElementById('ddBtnRemove');
-  btnRemove.style.display=used?'':'none';
-  btnRemove.onclick=async()=>{await removeDnsPoolCustomer(r.id,r.used_codes||[]);m.classList.remove('open');await loadDnsPoolList();};
-  const btnDel=document.getElementById('ddBtnDel');
-  btnDel.onclick=async()=>{await deleteDnsPoolLink(r.id,used);m.classList.remove('open');await loadDnsPoolList();};
-  m.classList.add('open');
-};
-window.closeDnsDetail=function(){document.getElementById('dnsDetailModal')?.classList.remove('open');};
-window.copyDnsDetailUrl=function(){
-  const url=document.getElementById('ddUrl')?.dataset.url;
-  if(!url)return;
-  navigator.clipboard.writeText(url).then(()=>showToast('✓ Đã copy link','green'));
 };
 
 // Tên các bước hiện trên thẻ phiên live do SERVER trả về (`step_labels`), dựng từ
@@ -2767,10 +2359,6 @@ window.switchTab=function(name){
       loadDnsList();
     })();
   }
-  if(name==='dnspool') {
-    loadDnsTemplate();
-    loadDnsPoolList();
-  }
   if(name==='appstore') loadAppstoreAdmin();
   if(name==='emergency') loadEmergencyAdmin();
   if (window.scrollY > 80) {
@@ -2909,32 +2497,33 @@ function getFirstCodeCompletedAt(c) {
 
 function getPendingPayInfo(c) {
   if (!c) return null;
-  if (c.service_status !== 'active') return null;
   const isPaid = c.deposit_note && (c.deposit_note.includes('Đã thanh toán') || c.deposit_note.includes('Thu đủ') || c.deposit_note.includes('Đã thu') || c.deposit_note.includes('Full'));
   if (isPaid) return null;
   
+  if (c.deposit_note && c.deposit_note.includes('10k')) return { amount: '10k' };
+  if (c.deposit_note && c.deposit_note.includes('40k')) return { amount: '40k' };
+  if (c.deposit_note && c.deposit_note.includes('30k')) return { amount: '30k' };
   if (c.package === '40k' || c.package === '180' || c.package === '15s') return { amount: '40k' };
   return { amount: '30k' };
 }
 
 function custSmartBadge(c, inModal = false) {
   if (!c) return '';
-  if (c.service_status === 'pending_gold') {
-    return `<span class="ss-badge ss-pending" title="Khách đang cài đặt">⏳ Chưa lên Gold</span>`;
-  }
   if (c.service_status === 'expired') {
     return `<span class="ss-badge ss-expired">⌛ Hết hạn</span>`;
   }
   
-  // c.service_status === 'active' (Đã lên Gold)
   const isPaid = c.deposit_note && (c.deposit_note.includes('Đã thanh toán') || c.deposit_note.includes('Thu đủ') || c.deposit_note.includes('Đã thu') || c.deposit_note.includes('Full'));
   
   if (isPaid) {
+    if (c.service_status === 'pending_gold') {
+      return `<span class="ss-badge ss-pending" title="Khách đang cài đặt">⏳ Chưa lên Gold</span>`;
+    }
     return `<span class="ss-badge ss-paid" style="cursor:pointer;" onclick="toggleCustomerPaid('${c.id}','${esc(c.name)}',false,event)" title="Nhấn để hoàn tác về chưa thu nếu bấm nhầm">✅ Đã thu đủ 💵</span>`;
   }
   
   const payInfo = getPendingPayInfo(c);
-  const amt = payInfo ? payInfo.amount : 'tiền';
+  const amt = payInfo ? payInfo.amount : ((c.package === '40k' || c.package === '15s' || c.package === '180') ? '40k' : '30k');
   
   return `<span class="ss-badge ss-coc" style="cursor:pointer;animation:pulse 2s infinite;" onclick="toggleCustomerPaid('${c.id}','${esc(c.name)}',true,event,'${amt}')" title="Nhấp 1-chạm để xác nhận đã thu đủ tiền">🟡 Chờ thu ${amt} 💵</span>`;
 }
@@ -2946,7 +2535,7 @@ window.toggleCustomerPaid = async function(id, custName, markAsPaid, event, amou
     : `Đổi trạng thái của khách "${custName}" về "Chưa thu tiền"?`;
   if (!confirm(msg)) return;
   
-  const newNote = markAsPaid ? 'Đã thanh toán full' : 'Chưa thanh toán';
+  const newNote = markAsPaid ? 'Đã thanh toán full' : (amount ? `Chờ thu ${amount}` : 'Chưa thanh toán');
   try {
     await api('PATCH', `/api/admin/customers?action=update&id=${id}`, { deposit_note: newNote, id });
     const cust = allCustomers.find(c => c.id === id);
@@ -2967,15 +2556,10 @@ window.loadCustomers=async function loadCustomers(force = false){
       applyCustFilters();
     }
     const btn = document.querySelector('.btn-search[onclick*="loadCustomers"]');
-      if (btn && force) btn.innerHTML = '⏳ Đang tải...';
-      const path = force ? `/api/admin/customers?_t=${Date.now()}` : '/api/admin/customers';
-      allCustomers=await api('GET', path) || [];
-      if (btn && force) btn.innerHTML = '↻ Làm mới';
-    (allCustomers||[]).forEach(c => {
-      if (c.deposit_note === 'Cọc 30k' || (c.deposit_note && c.deposit_note.includes('30k'))) {
-        c.deposit_note = 'Cọc 20k';
-      }
-    });
+    if (btn && force) btn.innerHTML = '⏳ Đang tải...';
+    const path = force ? `/api/admin/customers?_t=${Date.now()}` : '/api/admin/customers';
+    allCustomers=await api('GET', path) || [];
+    if (btn && force) btn.innerHTML = '↻ Làm mới';
     applyCustFilters();
   }
   catch(e){showToast('⚠ Lỗi tải: '+e.message,'red');}
@@ -3001,13 +2585,11 @@ window.applyCustFilters = function applyCustFilters() {
     data = data.filter(c => (c.service_status || 'pending_gold') === 'pending_gold');
   } else if (currentCustFilter === 'need_pay') {
     data = data.filter(c => {
-      if (c.service_status !== 'active') return false;
       const isPaid = c.deposit_note && (c.deposit_note.includes('Đã thanh toán') || c.deposit_note.includes('Thu đủ') || c.deposit_note.includes('Đã thu') || c.deposit_note.includes('Full'));
       return !isPaid;
     });
   } else if (currentCustFilter === 'paid') {
     data = data.filter(c => {
-      if (c.service_status !== 'active') return false;
       const isPaid = c.deposit_note && (c.deposit_note.includes('Đã thanh toán') || c.deposit_note.includes('Thu đủ') || c.deposit_note.includes('Đã thu') || c.deposit_note.includes('Full'));
       return isPaid;
     });
@@ -3162,17 +2744,17 @@ window.openCustDetail=async function(id){
     const pkgBadge = is40k ? '🌟 Gói 40k (15s Vĩnh viễn)' : '⭐ Gói 30k (5s Vĩnh viễn)';
 
     document.getElementById('dInfoGrid').innerHTML=`
-      <div class="info-item"><div class="info-label">Mã khách hàng</div><div class="info-val" style="color:var(--p1);font-weight:800">${esc(c.customer_code)}</div></div>
-      <div class="info-item"><div class="info-label">Số điện thoại</div><div class="info-val">${esc(c.phone||'—')}</div></div>
-      <div class="info-item"><div class="info-label">Nền tảng</div><div class="info-val">${PI[c.social_platform]||'💬'} ${esc(c.social_platform||'—')}</div></div>
-      <div class="info-item"><div class="info-label">Link</div><div class="info-val">${c.social_link?`<a href="${esc(c.social_link)}" target="_blank">${esc(c.social_link)}</a>`:'—'}</div></div>
+      <div class="info-item"><div class="info-label">Mã khách hàng</div><div class="info-val code-mono" style="color:var(--p1);font-weight:800">${esc(c.customer_code)}</div></div>
+      <div class="info-item"><div class="info-label">Số điện thoại</div><div class="info-val code-mono">${esc(c.phone||'—')}</div></div>
       <div class="info-item"><div class="info-label">Gói dịch vụ</div><div class="info-val">${pkgBadge}</div></div>
-      <div class="info-item"><div class="info-label">DNS kết nối</div><div class="info-val">${privDns ? '<span style="color:#16a34a;font-weight:800">🌐 DNS Riêng (Cá nhân)</span>' : `<span style="color:var(--muted);font-weight:700">🌐 DNS Pool (${is40k ? '15s' : '5s'})</span>`}</div></div>
-      <div class="info-item"><div class="info-label">Trạng thái &amp; Thanh toán</div><div class="info-val">${custSmartBadge(c)}</div></div>
+      <div class="info-item"><div class="info-label">DNS kết nối</div><div class="info-val">${privDns ? '<span style="color:#16a34a;font-weight:800">🌐 DNS Riêng (1:1)</span>' : `<span style="color:var(--muted);font-weight:700">🌐 DNS Pool (${is40k ? '15s' : '5s'})</span>`}</div></div>
+      <div class="info-item info-span-2"><div class="info-label">Trạng thái &amp; Thanh toán</div><div class="info-val" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${custSmartBadge(c)}</div></div>
+      <div class="info-item"><div class="info-label">Nền tảng</div><div class="info-val">${PI[c.social_platform]||'💬'} ${esc(c.social_platform||'—')}</div></div>
       <div class="info-item"><div class="info-label">Flow hướng dẫn</div><div class="info-val">${c.special_flow?'<span style="color:#7c3aed;font-weight:800">🛡️ Đặc biệt (có IPA)</span>':'<span style="color:var(--muted);font-weight:700">Mặc định</span>'}</div></div>
       <div class="info-item"><div class="info-label">Kích hoạt lúc</div><div class="info-val">${(c.activated_at || c.first_code_completed_at) ? `⏱ ${fmtVnDateTime(c.activated_at || c.first_code_completed_at)}` : '<span style="color:var(--muted);font-weight:600">— Chưa kích hoạt —</span>'}</div></div>
-      <div class="info-item"><div class="info-label">Ghi chú</div><div class="info-val">${esc(c.notes||'—')}</div></div>
-      <div class="info-item"><div class="info-label">Ngày tạo</div><div class="info-val">${fmtVnDateTime(c.created_at)}</div></div>`;
+      <div class="info-item"><div class="info-label">Ngày tạo</div><div class="info-val">${fmtVnDate(c.created_at)}</div></div>
+      ${c.social_link ? `<div class="info-item info-span-2"><div class="info-label">Link liên hệ</div><div class="info-val"><a href="${esc(c.social_link)}" target="_blank" style="word-break:break-all">${esc(c.social_link)}</a></div></div>` : ''}
+      ${c.notes ? `<div class="info-item info-span-2"><div class="info-label">Ghi chú</div><div class="info-val">${esc(c.notes)}</div></div>` : ''}`;
 
     const vpnArea = document.getElementById('dVpnTokenArea');
     if (vpnArea) {
@@ -3182,52 +2764,52 @@ window.openCustDetail=async function(id){
           const subUrl = `${window.location.origin}/s/${vpnTok.token}`;
           const isBound = !!vpnTok.device_ua;
           vpnArea.innerHTML = `
-            <div style="padding:14px 16px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:var(--gold-bg);box-shadow:var(--shadow-sm);margin-top:12px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap">
-                <div style="display:flex;align-items:center;gap:6px;">
-                  <span style="font-size:1rem">🔌</span>
-                  <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.84rem;color:var(--ink);text-transform:uppercase;letter-spacing:.03em">VPN USA Sub Token (15s)</span>
+            <div style="padding:11px 13px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:var(--gold-bg);box-shadow:var(--shadow-sm);margin-top:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:6px;flex-wrap:wrap">
+                <div style="display:flex;align-items:center;gap:5px;">
+                  <span style="font-size:.95rem">🔌</span>
+                  <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.82rem;color:var(--ink);text-transform:uppercase;letter-spacing:.02em">VPN USA Sub Token (15s)</span>
                 </div>
-                <span style="background:${isBound ? 'var(--green-bg)' : '#FFFFFF'};color:${isBound ? 'var(--green)' : 'var(--warning)'};border:1.5px solid var(--ink);border-radius:20px;padding:2px 10px;font-size:.68rem;font-weight:900;font-family:'Space Grotesk',sans-serif;box-shadow:1px 1px 0 var(--ink);">
-                  ${isBound ? '🔒 Đã khóa thiết bị 1:1' : '🔓 Chưa kết nối (Chờ quét)'}
+                <span style="background:${isBound ? 'var(--green-bg)' : '#FFFFFF'};color:${isBound ? 'var(--green)' : 'var(--warning)'};border:1.5px solid var(--ink);border-radius:20px;padding:2px 8px;font-size:.66rem;font-weight:900;font-family:'Space Grotesk',sans-serif;box-shadow:1px 1px 0 var(--ink);">
+                  ${isBound ? '🔒 Đã khóa 1:1' : '🔓 Chờ quét'}
                 </span>
               </div>
-              <div style="margin-bottom:10px;">
-                <div style="font-size:.68rem;color:var(--muted);font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px;">Link Subscription Shadowrocket:</div>
-                <div style="display:flex;gap:6px;align-items:center;">
-                  <input type="text" readonly value="${esc(subUrl)}" style="flex:1;background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700;color:var(--ink);box-shadow:inset 1px 1px 0 rgba(0,0,0,0.05);outline:none;user-select:all;" onclick="this.select()" />
-                  <button type="button" onclick="copyVpnSubUrl('${subUrl}', this)" style="padding:8px 14px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:var(--gold);color:var(--ink);font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.76rem;cursor:pointer;box-shadow:var(--shadow-sm);white-space:nowrap;display:inline-flex;align-items:center;gap:4px;transition:all .12s;">📋 Copy link</button>
+              <div style="margin-bottom:8px;">
+                <div style="font-size:.65rem;color:var(--muted);font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-bottom:3px;">Link Sub Shadowrocket:</div>
+                <div style="display:flex;gap:5px;align-items:center;">
+                  <input type="text" readonly value="${esc(subUrl)}" style="flex:1;background:#FFFFFF;border:1.5px solid var(--ink);border-radius:var(--radius-sm);padding:7px 9px;font-family:'JetBrains Mono',monospace;font-size:.76rem;font-weight:700;color:var(--ink);outline:none;user-select:all;" onclick="this.select()" />
+                  <button type="button" onclick="copyVpnSubUrl('${subUrl}', this)" style="padding:7px 12px;border:1.5px solid var(--ink);border-radius:var(--radius-sm);background:var(--gold);color:var(--ink);font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.74rem;cursor:pointer;box-shadow:var(--shadow-sm);white-space:nowrap;display:inline-flex;align-items:center;gap:3px;transition:all .12s;">📋 Copy</button>
                 </div>
               </div>
-              <div style="background:#FFFFFF;border:1.5px solid var(--ink);border-radius:var(--radius-sm);padding:8px 12px;font-size:.75rem;line-height:1.6;margin-bottom:10px;">
-                <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #D2BEA0;padding-bottom:3px;margin-bottom:3px;gap:8px;">
-                  <span style="color:var(--muted);font-weight:700;">📱 Thiết bị khóa:</span>
+              <div style="background:#FFFFFF;border:1.5px solid var(--ink);border-radius:var(--radius-sm);padding:7px 10px;font-size:.73rem;line-height:1.55;margin-bottom:8px;">
+                <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #D2BEA0;padding-bottom:2px;margin-bottom:2px;gap:6px;">
+                  <span style="color:var(--muted);font-weight:700;">📱 Máy:</span>
                   <span style="font-weight:800;text-align:right;word-break:break-all;">
-                    ${isBound ? `<span style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${esc(vpnTok.device_ua)}</span>` : '<span style="color:var(--muted);font-style:italic;">Chưa kết nối (Tự động khóa vào máy đầu tiên quét link)</span>'}
+                    ${isBound ? `<span style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${esc(vpnTok.device_ua)}</span>` : '<span style="color:var(--muted);font-style:italic;">Khóa tự động vào máy quét link</span>'}
                   </span>
                 </div>
-                <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #D2BEA0;padding-bottom:3px;margin-bottom:3px;gap:8px;">
-                  <span style="color:var(--muted);font-weight:700;">🌐 IP kết nối gần nhất:</span>
+                <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #D2BEA0;padding-bottom:2px;margin-bottom:2px;gap:6px;">
+                  <span style="color:var(--muted);font-weight:700;">🌐 IP:</span>
                   <span style="font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--ink);">${esc(vpnTok.device_ip||'—')}</span>
                 </div>
-                <div style="display:flex;justify-content:space-between;gap:8px;">
-                  <span style="color:var(--muted);font-weight:700;">⏱ Lần cuối cập nhật Sub:</span>
+                <div style="display:flex;justify-content:space-between;gap:6px;">
+                  <span style="color:var(--muted);font-weight:700;">⏱ Dùng:</span>
                   <span style="font-weight:800;color:var(--ink);">${vpnTok.last_used_at ? fmtVnDateTime(vpnTok.last_used_at) : '—'}</span>
                 </div>
               </div>
               <div style="display:flex;justify-content:flex-end;">
-                <button onclick="vpnRevokeCurrent('${c.id}')" style="padding:6px 12px;border:1.5px solid var(--ink);border-radius:var(--radius-sm);background:var(--coral-bg);color:var(--red);font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.72rem;cursor:pointer;box-shadow:var(--shadow-sm);transition:all .12s;">⛔ Thu hồi token</button>
+                <button onclick="vpnRevokeCurrent('${c.id}')" style="padding:5px 10px;border:1.5px solid var(--ink);border-radius:var(--radius-sm);background:var(--coral-bg);color:var(--red);font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.7rem;cursor:pointer;box-shadow:var(--shadow-sm);transition:all .12s;">⛔ Thu hồi token</button>
               </div>
             </div>`;
         } else {
           vpnArea.innerHTML = `
-            <div style="padding:14px 16px;border:2px dashed var(--ink);border-radius:var(--radius-sm);background:var(--gold-bg);margin-top:12px;">
-              <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
-                <span style="font-size:1rem">🔌</span>
-                <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.84rem;color:var(--ink);text-transform:uppercase;letter-spacing:.03em">VPN USA Sub Token (15s)</span>
+            <div style="padding:10px 12px;border:2px dashed var(--ink);border-radius:var(--radius-sm);background:var(--gold-bg);margin-top:8px;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                <span style="font-size:.95rem">🔌</span>
+                <span style="font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.82rem;color:var(--ink);text-transform:uppercase;letter-spacing:.02em">VPN USA Sub Token (15s)</span>
               </div>
-              <div style="font-size:.76rem;color:var(--muted);font-weight:600;margin-bottom:10px;">Khách gói 15s này chưa có token VPN Sub. Bấm nút dưới để cấp token:</div>
-              <button onclick="vpnRegenerateCurrent('${c.id}')" style="width:100%;padding:9px 12px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:var(--gold);color:var(--ink);font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.78rem;cursor:pointer;box-shadow:var(--shadow-sm);transition:all .12s;">➕ Cấp token VPN Sub (15s)</button>
+              <div style="font-size:.74rem;color:var(--muted);font-weight:600;margin-bottom:8px;">Khách gói 15s này chưa có token VPN Sub:</div>
+              <button onclick="vpnRegenerateCurrent('${c.id}')" style="width:100%;padding:8px 12px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:var(--gold);color:var(--ink);font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.76rem;cursor:pointer;box-shadow:var(--shadow-sm);transition:all .12s;">➕ Cấp token VPN Sub (15s)</button>
             </div>`;
         }
       } else {
@@ -3246,20 +2828,20 @@ window.openCustDetail=async function(id){
 
         upArea.style.display = 'block';
         upArea.innerHTML = `
-          <div style="padding:12px 14px;border:2px dashed ${isWithin7Days ? '#2E7D32' : '#FF6B6B'};border-radius:var(--radius-sm);background:${isWithin7Days ? '#E8F5E9' : '#FFF0F0'};">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;flex-wrap:wrap">
-              <span style="font-weight:900;font-size:.84rem;color:var(--ink)">⚡ Đổi / Nâng cấp lên Gói 40k (15s):</span>
-              <span style="background:${isWithin7Days ? '#C8E6C9' : '#FFCDD2'};color:${isWithin7Days ? '#1B5E20' : '#B71C1C'};border:1.5px solid var(--ink);border-radius:20px;padding:2px 8px;font-size:.68rem;font-weight:900;">
-                ${isWithin7Days ? `🟢 Còn ${remDays} ngày đổi bù +10k` : `🔴 Quá 7 ngày (Full 40k)`}
+          <div style="padding:10px 12px;border:2px dashed ${isWithin7Days ? '#2E7D32' : '#FF6B6B'};border-radius:var(--radius-sm);background:${isWithin7Days ? '#E8F5E9' : '#FFF0F0'};">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:6px;flex-wrap:wrap">
+              <span style="font-weight:900;font-size:.82rem;color:var(--ink)">⚡ Đổi / Nâng cấp lên Gói 40k:</span>
+              <span style="background:${isWithin7Days ? '#C8E6C9' : '#FFCDD2'};color:${isWithin7Days ? '#1B5E20' : '#B71C1C'};border:1.5px solid var(--ink);border-radius:20px;padding:2px 8px;font-size:.66rem;font-weight:900;">
+                ${isWithin7Days ? `🟢 Còn ${remDays} ngày (+10k)` : `🔴 Quá 7 ngày (Full 40k)`}
               </span>
             </div>
-            <div style="font-size:.78rem;color:var(--ink);line-height:1.5;margin-bottom:8px">
+            <div style="font-size:.75rem;color:var(--ink);line-height:1.45;margin-bottom:6px">
               ${isWithin7Days 
-                ? `Khách mua gói 30k trong vòng 1 tuần (ngày thứ ${diffDays + 1}/7): <b>Chỉ cần thanh toán thêm +10.000đ</b> để lên 15s vĩnh viễn.` 
-                : `Khách đã mua gói 30k được ${diffDays} ngày (quá 1 tuần): <b>Cần thanh toán full 40.000đ từ đầu</b> để nâng cấp.`}
+                ? `Trong 7 ngày đầu (ngày thứ ${diffDays + 1}/7): <b>Thanh toán bù +10.000đ</b> để lên 15s vĩnh viễn.` 
+                : `Đã mua gói ${diffDays} ngày (quá 1 tuần): <b>Cần thanh toán full 40.000đ từ đầu</b>.`}
             </div>
-            <button onclick="upgradeCurrentCustTo40k(${isWithin7Days})" style="width:100%;padding:10px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:${isWithin7Days ? 'var(--gold)' : '#FFFFFF'};color:var(--ink);font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.82rem;cursor:pointer;box-shadow:var(--shadow-sm);transition:all .15s ease;">
-              ${isWithin7Days ? '⬆ Đổi sang Gói 40k (Thu thêm +10.000đ) & Cấp mã mới' : '⬆ Nâng cấp Gói 40k (Thu full 40.000đ) & Cấp mã mới'}
+            <button onclick="upgradeCurrentCustTo40k(${isWithin7Days})" style="width:100%;padding:9px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:${isWithin7Days ? 'var(--gold)' : '#FFFFFF'};color:var(--ink);font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.8rem;cursor:pointer;box-shadow:var(--shadow-sm);transition:all .12s;">
+              ${isWithin7Days ? '⬆ Đổi sang Gói 40k (Bù +10.000đ) & Cấp mã' : '⬆ Nâng cấp Gói 40k (Thu 40.000đ) & Cấp mã'}
             </button>
           </div>
         `;
@@ -3428,15 +3010,17 @@ window.upgradeCurrentCustTo40k = async function(isWithin7Days) {
   const newNotes = cust.notes ? `${cust.notes} | ${noteUpgrade}` : noteUpgrade;
 
   try {
+    const upgradeDepositNote = isWithin7Days ? 'Chờ thu 10k' : 'Chờ thu 40k';
     await api('PATCH', `/api/admin/customers?action=update&id=${cust.id}`, {
       package: '40k',
       duration: 'perm',
       notes: newNotes,
-      service_status: 'pending_gold'
+      service_status: 'pending_gold',
+      deposit_note: upgradeDepositNote,
     });
 
-    const r = await api('POST', '/api/admin/add-code', { customer_id: cust.id, package: '40k' });
-    showToast('✓ Đã nâng cấp sang Gói 40k! Khách chuyển sang DNS Pool 15s. Slot DNS riêng cũ đã thu hồi & tái kích hoạt.', 'green');
+    const r = await api('POST', '/api/admin/add-code', { customer_id: cust.id, package: '40k', deposit_note: upgradeDepositNote });
+    showToast('✓ Đã nâng cấp sang Gói 40k! Slot DNS 5s cũ đã thu hồi cho khách mới. Cấp DNS 15s riêng mới & Token VPN.', 'green');
 
     await loadCustomers();
     await openCustDetail(cust.id);
@@ -3454,26 +3038,9 @@ window.genCodeForCurrent=async function(){
     const cust = allCustomers.find(c=>c.id===currentCustomerId);
     const pkg = document.getElementById('genPkg')?.value || cust?.package || '30k';
 
-    // Chặn sớm khi DNS pool đầy
-    const dnsPoolGroups={'30k':'5s', '40k':'15s'};
-    const poolGroup = (pkg === '30k' && cust?.special_flow) ? null : dnsPoolGroups[pkg];
-    if(poolGroup && cust && !cust.has_private_dns){
-      try{
-        const poolRows=await api('GET','/api/admin/customers?action=dns_pool_list')||[];
-        const groupRows=poolRows.filter(r=>r.package===poolGroup);
-        const hasExistingSlot = cust.customer_code && groupRows.some(r=>r.is_active && Array.isArray(r.used_codes) && r.used_codes.includes(cust.customer_code));
-        if(!hasExistingSlot){
-          const activeNotFull=groupRows.filter(r=>r.is_active&&!r.is_full);
-          if(!activeNotFull.length){
-            showToast(`⛔ DNS pool (${poolGroup}) ${groupRows.length?'đã đầy tất cả link':'chưa có link nào'}! Vui lòng thêm link NextDNS mới vào tab "DNS mặc định" trước khi tạo mã.`,'red');
-            return;
-          }
-        }
-      }catch(e){/* swallow */}
-    }
-
     const r=await api('POST','/api/admin/add-code',{customer_id:currentCustomerId,package:pkg});
     showToast('✓ Cấp mã mới ('+pkgLabel(pkg)+'): '+r.code,'green');
+    await loadCustomers();
     await openCustDetail(currentCustomerId);
     const box=document.getElementById('newCodeBox');
     const msgEl=document.getElementById('newCodeMsg');

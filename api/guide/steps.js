@@ -1,5 +1,5 @@
 'use strict';
-const { sb, requireGuide, allowMethods, createVpnToken, lookupCustomerByCode } = require('../_lib/utils');
+const { sb, requireGuide, allowMethods, createVpnToken, lookupCustomerByCode, getOrCreatePrivateDns } = require('../_lib/utils');
 
 module.exports = async (req, res) => {
   if (!allowMethods(req, res, ['GET'])) return;
@@ -53,34 +53,48 @@ module.exports = async (req, res) => {
 
     const steps = (stepsRes || []).filter(s => s.step_type !== 'username' && s.type !== 'username');
 
-    let vpnSubUrl = null;
-    const norm = (pkg === '40k' || pkg === '15s' || pkg === '180') ? '40k' : '30k';
-    if (norm === '40k') {
-      let custId = payload.customerId;
-      let custCode = payload.customerCode;
-      if (!custId || !custCode) {
-        const custInfo = await lookupCustomerByCode(payload.code).catch(() => null);
-        if (custInfo?.id) {
-          custId = custInfo.id;
-          custCode = custInfo.customerCode;
+    let custId = payload.customerId;
+    let custCode = payload.customerCode;
+    if (!custId || !custCode) {
+      const custInfo = await lookupCustomerByCode(payload.code).catch(() => null);
+      if (custInfo?.id) {
+        custId = custInfo.id;
+        custCode = custInfo.customerCode;
+      }
+    }
+
+    let dnsUrl = null;
+    if (custCode) {
+      const dnsRows = await sb('GET', 'private_dns_links', {
+        q: `customer_code=eq.${encodeURIComponent(custCode)}&select=nextdns_url&limit=1`
+      }).catch(() => []);
+      if (dnsRows?.length && dnsRows[0]?.nextdns_url) {
+        dnsUrl = dnsRows[0].nextdns_url;
+      } else {
+        const generatedDns = await getOrCreatePrivateDns(custCode, pkg).catch(() => null);
+        if (generatedDns?.dns_url) {
+          dnsUrl = generatedDns.dns_url;
         }
       }
-      if (custId) {
-        let vpnRows = await sb('GET', 'vpn_tokens', {
-          q: `customer_id=eq.${custId}&is_active=eq.true&select=token&order=created_at.desc&limit=1`
-        }).catch(() => []);
+    }
 
-        let token = vpnRows?.[0]?.token;
-        if (!token) {
-          token = await createVpnToken(custId, custCode || payload.code).catch(() => null);
-        }
+    let vpnSubUrl = null;
+    const norm = (pkg === '40k' || pkg === '15s' || pkg === '180') ? '40k' : '30k';
+    if (norm === '40k' && custId) {
+      let vpnRows = await sb('GET', 'vpn_tokens', {
+        q: `customer_id=eq.${custId}&is_active=eq.true&select=token&order=created_at.desc&limit=1`
+      }).catch(() => []);
 
-        if (token) {
-          const proto = req.headers['x-forwarded-proto'] || 'https';
-          const host = req.headers['x-forwarded-host'] || req.headers.host || process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL || 'locketvxang.vercel.app';
-          const base = host ? `${proto}://${host}` : 'https://locketvxang.vercel.app';
-          vpnSubUrl = `${base}/s/${token}`;
-        }
+      let token = vpnRows?.[0]?.token;
+      if (!token) {
+        token = await createVpnToken(custId, custCode || payload.code).catch(() => null);
+      }
+
+      if (token) {
+        const proto = req.headers['x-forwarded-proto'] || 'https';
+        const host = req.headers['x-forwarded-host'] || req.headers.host || process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL || 'locketvxang.vercel.app';
+        const base = host ? `${proto}://${host}` : 'https://locketvxang.vercel.app';
+        vpnSubUrl = `${base}/s/${token}`;
       }
     }
 
@@ -88,7 +102,9 @@ module.exports = async (req, res) => {
       steps,
       package: pkg,
       special_flow: !!payload.specialFlow,
-      vpn_sub_url: vpnSubUrl
+      vpn_sub_url: vpnSubUrl,
+      dns_url: dnsUrl,
+      customer_code: custCode || null
     });
   } catch (e) { res.status(500).json({ error: e.message }); }
 };

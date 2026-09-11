@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
 <title>Guide — Locket Gold Vxang</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -160,7 +160,9 @@ body::after {
   position:relative;z-index:20;
   background:var(--bg);
   border-bottom:var(--border-ink);
-  display:flex;align-items:center;justify-content:space-between;padding:6px 14px;gap:10px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:calc(8px + env(safe-area-inset-top, 0px)) 14px 8px;
+  gap:10px;
 }
 .topbar-logo{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:.95rem;
   color:var(--ink);}
@@ -177,7 +179,10 @@ body::after {
 .timer-chip.crit{background:#FFF0F0;border-color:var(--coral);color:#C62828;animation:timerFlash .8s infinite;}
 @keyframes timerFlash{50%{opacity:.4;}}
 
-.guide-content{padding:calc(var(--topbar-h,38px) + 8px) 12px calc(var(--navbar-h,56px) + 8px);max-width:580px;margin:0 auto;}
+.guide-content{
+  padding:calc(54px + env(safe-area-inset-top, 0px)) 12px calc(96px + env(safe-area-inset-bottom, 0px));
+  max-width:580px;margin:0 auto;
+}
 
 /* STEP CARD */
 .step-card{
@@ -304,20 +309,20 @@ body::after {
 .nav-bar{
   position:fixed;bottom:0;left:50%;transform:translateX(-50%);z-index:20;
   background:#FFFFFF;border-top:var(--border-ink);
-  padding:5px 14px calc(5px + env(safe-area-inset-bottom, 0px));
-  display:flex;flex-direction:column;gap:3px;
+  padding:6px 14px calc(6px + env(safe-area-inset-bottom, 0px));
+  display:flex;flex-direction:column;gap:4px;
   width:100%;max-width:580px;
-  border-radius:12px 12px 0 0;
+  border-radius:14px 14px 0 0;
   box-shadow:0 -3px 0 rgba(26,26,26,0.08);
 }
 @media(max-width:640px){
-  .nav-bar{left:0;transform:none;max-width:100%;border-radius:0;padding:4px 10px calc(4px + env(safe-area-inset-bottom, 0px));gap:3px;}
+  .nav-bar{left:0;transform:none;max-width:100%;border-radius:0;padding:6px 12px calc(6px + env(safe-area-inset-bottom, 0px));gap:4px;}
 }
 .nav-hint{
   text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  font-family:'Space Grotesk',sans-serif;font-size:.66rem;font-weight:800;color:var(--ink);letter-spacing:.01em;
+  font-family:'Space Grotesk',sans-serif;font-size:.68rem;font-weight:800;color:var(--ink);letter-spacing:.01em;
   background:var(--bg-warm);border:1.2px solid var(--ink);
-  border-radius:var(--radius-sm);padding:2px 8px;line-height:1.2;
+  border-radius:var(--radius-sm);padding:3px 8px;line-height:1.2;
   box-shadow:1px 1px 0 var(--ink);
 }
 .nav-hint.hint-complete{
@@ -326,13 +331,15 @@ body::after {
 
 .nav-btns{display:flex;align-items:center;gap:6px;}
 .btn-nav{
-  flex:1;padding:8px 12px;border-radius:var(--radius-sm);
-  font-family:'Space Grotesk',sans-serif;font-size:.86rem;font-weight:900;letter-spacing:.01em;
+  flex:1;min-height:44px;padding:10px 14px;border-radius:var(--radius-sm);
+  font-family:'Space Grotesk',sans-serif;font-size:.88rem;font-weight:900;letter-spacing:.01em;
   cursor:pointer;transition:all .15s ease;border:var(--border-ink);
+  display:inline-flex;align-items:center;justify-content:center;
+  touch-action:manipulation;
 }
 .btn-complete{
   background:var(--gold);color:var(--ink);
-  box-shadow:var(--shadow-sm);font-size:.86rem;font-weight:900;
+  box-shadow:var(--shadow-sm);font-size:.88rem;font-weight:900;
   border:var(--border-ink);letter-spacing:.01em;
 }
 .btn-complete:hover{background:var(--gold-hover);box-shadow:3px 3px 0 #1A1A1A;transform:translate(-1px,-1px);}
@@ -1029,6 +1036,15 @@ function applyStepsResponse(r) {
   pkgType = PKG_KEYS.includes(r?.package) ? r.package : '30k';
   specialFlow = !!r?.special_flow;
   vpnSubUrl = r?.vpn_sub_url || '';
+  if (r?.dns_url) {
+    dnsPoolData = {
+      ok: true,
+      dns_url: r.dns_url,
+      package: pkgType,
+      is_private: true,
+      customer_code: r.customer_code || ''
+    };
+  }
   // special_flow=true: LUÔN dùng DEFAULT_STEPS đặc biệt, bỏ qua DB rows (khớp server
   // buildStepFlow — bảng guide_steps không có cột special_flow nên không thể phân biệt).
   let list = (r?.steps?.length && !specialFlow)
@@ -1188,10 +1204,7 @@ async function enterGuide() {
 
   
 
-// Nạp link DNS đang active từ pool NextDNS (rotate mỗi 5 khách/gói) — thay cho file
-// .mobileconfig tĩnh cũ. 1 lần/phiên, cache vào dnsPoolData. Nếu pool rỗng (admin
-// chưa tạo link nào cho gói này) hoặc đã đầy 5 khách mà chưa tạo link mới, server trả
-// lỗi 503 kèm DNS_POOL_FULL_MSG — renderStep() hiện thông báo liên hệ Zalo thay vì chặn cứng.
+// Nạp link DNS riêng 1:1 của khách hàng từ hệ thống (mỗi khách 1 DNS riêng biệt, không dùng chung)
 async function loadDnsPoolData() {
   if (dnsPoolData) return dnsPoolData;
   try {
@@ -1459,7 +1472,7 @@ function renderStep() {
     document.getElementById('stepContainer').innerHTML = `
     <div class="step-card">
       <div class="step-title">${esc(s.title||'Cài đặt DNS giữ Gold')}</div>
-      <div class="step-content">⏳ Đang lấy link DNS...</div>
+      <div class="step-content">⏳ Đang lấy link DNS riêng...</div>
     </div>`;
     loadDnsPoolData().then(() => { if (steps[currentStep] === s) renderStep(); });
     updateNavBar();

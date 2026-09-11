@@ -87,6 +87,8 @@ CREATE INDEX IF NOT EXISTS idx_sessions_access_code ON public.sessions(access_co
 CREATE INDEX IF NOT EXISTS idx_sessions_last_ping ON public.sessions(last_ping);
 
 -- 5. BẢNG HỒ CHỨA LINK DNS XOAY VÒNG (DNS_POOL)
+-- 5. BẢNG DNS POOL DÙNG CHUNG (DNS_POOL - DEPRECATED / ĐÃ NÂNG CẤP SANG 100% DNS RIÊNG 1:1)
+-- Hệ thống đã chuyển đổi toàn bộ sang private_dns_links: mỗi khách sở hữu 1 tài khoản NextDNS riêng 1:1, không dùng chung pool.
 CREATE TABLE IF NOT EXISTS public.dns_pool (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     package TEXT NOT NULL DEFAULT '5s',

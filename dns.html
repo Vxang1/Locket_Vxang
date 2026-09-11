@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
 <title>Cài đặt DNS — Locket Gold Vxang</title>
 <link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
 <link rel="icon" type="image/png" href="/favicon.png"/>
@@ -47,7 +47,8 @@ body{
   font-size:15px;line-height:1.7;font-weight:500;
   -webkit-font-smoothing:antialiased;
   overflow-x:hidden;min-height:100vh;
-  display:flex;align-items:center;justify-content:center;padding:20px;
+  display:flex;align-items:center;justify-content:center;
+  padding:calc(20px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px));
   position:relative;
 }
 body::after {

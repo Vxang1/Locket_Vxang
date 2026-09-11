@@ -1,5 +1,5 @@
 'use strict';
-const { sb, requireAdmin, allowMethods, genCode, PRICING, isPermPackage, dnsPoolHasCapacity, parseContactInput, createVpnToken } = require('../_lib/utils');
+const { sb, requireAdmin, allowMethods, genCode, PRICING, isPermPackage, parseContactInput, createVpnToken, getOrCreatePrivateDns } = require('../_lib/utils');
 
 // Chống double-submit: admin bấm nút "Tạo" 2 lần liên tiếp (double-click, mạng
 // chậm chưa kịp disable nút) tạo ra 2 khách hàng trùng dữ liệu. Chặn khi có khách
@@ -25,11 +25,6 @@ module.exports = async (req, res) => {
   const validDurations = ['perm'];
   if (!validDurations.includes(duration)) return res.status(400).json({ error: `Missing or invalid duration (${validDurations.join('|')})` });
 
-  // Chặn tạo khách khi DNS pool đầy. Check TRƯỚC khi INSERT để tránh tạo khách rác không có mã hoạt động.
-  if (!await dnsPoolHasCapacity(pkg)) {
-    return res.status(503).json({ error: 'DNS pool đang đầy, vui lòng thêm link DNS trước khi tạo khách mới.' });
-  }
-
   try {
     const phoneTrim = finalPhone;
     if (phoneTrim) {
@@ -47,7 +42,8 @@ module.exports = async (req, res) => {
     const customer_code = genCode('KH-', 8);
     const access_code   = genCode('VX-', 6);
 
-    let depositNote = null;
+    const cleanPkg = (pkg === '40k' || pkg === '15s' || pkg === '180') ? '40k' : '30k';
+    const depositNote = cleanPkg === '40k' ? 'Chờ thu 40k' : 'Chờ thu 30k';
     const [cust] = await sb('POST', 'customers', {
       body: {
         name,
@@ -73,6 +69,33 @@ module.exports = async (req, res) => {
       vpn_token = await createVpnToken(cust.id, customer_code).catch(() => null);
     }
 
-    res.json({ customer_code, access_code, customer_id: cust.id, vpn_token });
+    // Kiểm tra khách cũ (theo SĐT hoặc Social Link) nếu khách đổi máy mua lại từ đầu
+    let existingCustCode = null;
+    if (finalPhone || finalLink) {
+      const orFilter = [];
+      if (finalPhone) orFilter.push(`phone.eq.${encodeURIComponent(finalPhone)}`);
+      if (finalLink) orFilter.push(`social_link.eq.${encodeURIComponent(finalLink)}`);
+      const existingCusts = await sb('GET', 'customers', {
+        q: `id=neq.${cust.id}&or=(${orFilter.join(',')})&order=created_at.desc&limit=1&select=customer_code,package`
+      }).catch(() => []);
+      if (existingCusts && existingCusts.length) {
+        existingCustCode = existingCusts[0].customer_code;
+      }
+    }
+
+    // Tự động khởi tạo xong NextDNS riêng 1:1 trước khi trả về (không để delay khi vào guide)
+    let dns_token = null;
+    let dns_url = null;
+    try {
+      const dnsRes = await getOrCreatePrivateDns(customer_code, pkg, { existingCustCode });
+      if (dnsRes && dnsRes.ok) {
+        dns_token = dnsRes.token;
+        dns_url = dnsRes.dns_url;
+      }
+    } catch (dnsErr) {
+      console.error('[create-customer] DNS generation error:', dnsErr.message);
+    }
+
+    res.json({ customer_code, access_code, customer_id: cust.id, vpn_token, dns_token, dns_url });
   } catch (e) { res.status(500).json({ error: e.message }); }
 };

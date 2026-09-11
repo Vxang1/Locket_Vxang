@@ -1,5 +1,5 @@
 'use strict';
-const { sb, signJWT, verifyJWT, getToken, allowMethods, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, expireCodeAndNotify, lookupCustomerByDnsCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, dnsPrivateUrl, normalizePackage, isPermPackage, getAppConfig, setAppConfig, getAppstoreConfig, maskAppstoreEmail, claimDnsFromPool, DNS_POOL_FULL_MSG, fbGet, fbPut } = require('../_lib/utils');
+const { sb, signJWT, verifyJWT, getToken, allowMethods, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, expireCodeAndNotify, lookupCustomerByDnsCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, dnsPrivateUrl, normalizePackage, isPermPackage, getAppConfig, setAppConfig, getAppstoreConfig, maskAppstoreEmail, claimDnsFromPool, DNS_POOL_FULL_MSG, fbGet, fbPut, getOrCreatePrivateDns } = require('../_lib/utils');
 
 const { randomUUID } = require('crypto');
 
@@ -333,24 +333,19 @@ async function handleDnsCheck(req, res) {
   } catch (e) { res.status(500).json({ error: e.message }); }
 }
 
-// ── GET ?action=dns_pool_claim — lấy link DNS pool (NextDNS) đang active cho gói của khách ──
-// Thay cho file .mobileconfig tĩnh /dns5s.mobileconfig, /dns15s.mobileconfig cũ: mỗi link
-// pool chỉ phục vụ tối đa 5 MÃ KHÁCH khác nhau (max, xem claimDnsFromPool trong utils.js)
-// rồi admin phải tạo link mới — tự động rotate, không cần thay file thủ công.
-// Cần JWT guide hợp lệ để biết chắc gói (payload.package) + lấy đúng customer_code (khách
-// gói vĩnh viễn không có access_codes.customer_id kiểu 1-1 rõ, nên tra qua lookupCustomerByCode).
+// ── GET ?action=dns_pool_claim (hoặc dns_claim) — lấy link DNS riêng 1:1 cho khách hàng ──
 async function handleDnsPoolClaim(req, res) {
   const payload = verifyJWT(getToken(req));
   if (!payload || payload.role !== 'guide') return res.status(401).json({ error: 'Unauthorized' });
   try {
-    const pkg = normalizePackage(payload.package || '5s');
+    const pkg = normalizePackage(payload.package || '30k');
     const cust = await lookupCustomerByCode(payload.code);
     const customerCode = cust?.customerCode || payload.code || '';
-    const claim = await claimDnsFromPool(pkg, customerCode);
+    const claim = await getOrCreatePrivateDns(customerCode, pkg);
     if (!claim.ok) {
-      return res.status(503).json({ error: DNS_POOL_FULL_MSG, reason: claim.reason || 'empty' });
+      return res.status(500).json({ error: claim.error || 'Lỗi khi lấy link DNS riêng', reason: 'error' });
     }
-    return res.json({ ok: true, dns_url: claim.dns_url, package: pkg, customer_code: customerCode });
+    return res.json({ ok: true, dns_url: claim.dns_url, package: pkg, customer_code: customerCode, is_private: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 }
 
@@ -473,8 +468,8 @@ module.exports = async (req, res) => {
   if (req.method === 'GET' && req.query?.action === 'ipa') {
     return handleIpa(req, res);
   }
-  // Claim link DNS pool (NextDNS, rotate mỗi 5 khách) — cần JWT guide, xem handleDnsPoolClaim.
-  if (req.method === 'GET' && req.query?.action === 'dns_pool_claim') {
+  // Claim link DNS riêng 1:1 cho khách — cần JWT guide, xem handleDnsPoolClaim.
+  if (req.method === 'GET' && (req.query?.action === 'dns_pool_claim' || req.query?.action === 'dns_claim')) {
     res.setHeader('Cache-Control', 'no-store');
     return handleDnsPoolClaim(req, res);
   }
