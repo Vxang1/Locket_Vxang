@@ -1192,4 +1192,62 @@ async function createNextDnsAccountHelper({ type = '5s', customEmail = null, ini
   return accountRow;
 }
 
-module.exports = { sb, signJWT, verifyJWT, getToken, requireAdmin, requireGuide, allowMethods, genCode, PACKAGES, PACKAGE_KEYS, normalizePackage, isPermPackage, PRICING, getPrice, getPriceLabel, durationMonths, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, expireCodeAndNotify, sweepExpiredCodes, DEFAULT_STEP_FLOW, DEFAULT_STEP_FLOW_SPECIAL, STEP_TYPE_LABELS, stepLabel, buildStepFlow, alignStepFlow, lookupCustomerByDnsCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, dnsPrivateUrl, getAppConfig, setAppConfig, getAppstoreConfig, getEmergencyConfig, maskAppstoreEmail, dnsPoolKey, claimDnsFromPool, releaseCustomerFromDnsPool, dnsPoolHasCapacity, DNS_POOL_FULL_MSG, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, fbGet, fbPut, parseContactInput, TG_CHAT_IDS, TG_CHAT_ID, isTgAdmin, genVpnToken, createVpnToken, TG_DIVIDER, DENYLISTS_NEXTDNS, createNextDnsAccountHelper, getOrCreatePrivateDns, recyclePrivateDnsSlot, isDnsSlotAvailable };
+async function deleteNextDnsAccountHelper({ email, password } = {}) {
+  const em = String(email || '').trim();
+  const pwd = String(password || '').trim();
+  if (!em || !pwd) {
+    return { ok: false, error: 'Thiếu email hoặc mật khẩu NextDNS' };
+  }
+
+  try {
+    // 1. Đăng nhập NextDNS để lấy session cookie
+    const loginRes = await fetch('https://api.nextdns.io/accounts/@login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Origin': 'https://my.nextdns.io',
+        'Referer': 'https://my.nextdns.io/login'
+      },
+      body: JSON.stringify({ email: em, password: pwd })
+    });
+
+    if (!loginRes.ok) {
+      const errText = await loginRes.text().catch(() => '');
+      console.warn(`[deleteNextDnsAccountHelper] Login NextDNS thất bại (${loginRes.status}):`, errText);
+      return { ok: false, status: loginRes.status, error: errText };
+    }
+
+    const setCookie = loginRes.headers.get('set-cookie');
+    const sid = setCookie ? setCookie.split(';')[0] : '';
+    if (!sid) {
+      console.warn('[deleteNextDnsAccountHelper] Không nhận được session cookie từ NextDNS');
+      return { ok: false, error: 'Không nhận được session cookie' };
+    }
+
+    // 2. Gọi DELETE /accounts/@me để xóa vĩnh viễn toàn bộ tài khoản & profile trên NextDNS
+    const delRes = await fetch('https://api.nextdns.io/accounts/@me', {
+      method: 'DELETE',
+      headers: {
+        'Cookie': sid,
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Origin': 'https://my.nextdns.io'
+      },
+      body: JSON.stringify({ password: pwd })
+    });
+
+    if (!delRes.ok && delRes.status !== 404) {
+      const delText = await delRes.text().catch(() => '');
+      console.warn(`[deleteNextDnsAccountHelper] Xóa tài khoản NextDNS thất bại (${delRes.status}):`, delText);
+      return { ok: false, status: delRes.status, error: delText };
+    }
+
+    return { ok: true };
+  } catch (err) {
+    console.warn('[deleteNextDnsAccountHelper] Ngoại lệ khi xóa NextDNS:', err.message);
+    return { ok: false, error: err.message };
+  }
+}
+
+module.exports = { sb, signJWT, verifyJWT, getToken, requireAdmin, requireGuide, allowMethods, genCode, PACKAGES, PACKAGE_KEYS, normalizePackage, isPermPackage, PRICING, getPrice, getPriceLabel, durationMonths, notifyTelegram, escTgHtml, lookupCustomerByCode, codeDetailLines, expireCodeAndNotify, sweepExpiredCodes, DEFAULT_STEP_FLOW, DEFAULT_STEP_FLOW_SPECIAL, STEP_TYPE_LABELS, stepLabel, buildStepFlow, alignStepFlow, lookupCustomerByDnsCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, dnsPrivateUrl, getAppConfig, setAppConfig, getAppstoreConfig, getEmergencyConfig, maskAppstoreEmail, dnsPoolKey, claimDnsFromPool, releaseCustomerFromDnsPool, dnsPoolHasCapacity, DNS_POOL_FULL_MSG, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, fbGet, fbPut, parseContactInput, TG_CHAT_IDS, TG_CHAT_ID, isTgAdmin, genVpnToken, createVpnToken, TG_DIVIDER, DENYLISTS_NEXTDNS, createNextDnsAccountHelper, deleteNextDnsAccountHelper, getOrCreatePrivateDns, recyclePrivateDnsSlot, isDnsSlotAvailable };

@@ -462,6 +462,15 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
       - Tạo thành lưới 8 thẻ 2 cột x 4 hàng đối xứng tuyệt đối (Mã KH & SĐT / Gói dịch vụ & Trạng thái thanh toán / Nền tảng & Flow hướng dẫn / Kích hoạt lúc & Ngày tạo).
       - Đồng bộ tiêu đề gói dịch vụ thành "Gói 30.000đ (5s Vĩnh viễn)" và "Gói 40.000đ (15s Vĩnh viễn)".
 
+29. **⚡ CƠ CHẾ XÓA SỔ HOÀN TOÀN TÀI KHOẢN NEXTDNS KHI BẤM NÚT "XÓA" DNS RIÊNG (2026-09-12):**
+    - **Bối cảnh & Yêu cầu:**
+      - Khi Admin bấm nút "Xóa" trên một dòng DNS riêng trong tab Quản lý DNS Riêng (`api/admin/customers.js?action=dns_delete`), logic cũ chỉ xóa dòng bản ghi trong bảng `private_dns_links` của Supabase, khiến tài khoản NextDNS thật vẫn tồn tại trên server NextDNS.
+      - Admin yêu cầu: Bấm nút xóa DNS riêng đồng nghĩa với việc xóa sổ hoàn toàn tài khoản NextDNS đó.
+    - **Triển khai kỹ thuật:**
+      - Thêm hàm `deleteNextDnsAccountHelper({ email, password })` vào `api/_lib/utils.js`: Tự động xác thực đăng nhập qua `POST https://api.nextdns.io/accounts/@login` để lấy cookie phiên, sau đó gửi `DELETE https://api.nextdns.io/accounts/@me` kèm mật khẩu. Máy chủ NextDNS xóa sạch tài khoản và mọi profile liên kết.
+      - Cập nhật handler `dns_delete` trong `api/admin/customers.js`: Tự động truy xuất thông tin đăng nhập, gọi helper xóa tài khoản NextDNS thật, đồng thời xóa sạch bản ghi trong `nextdns_accounts` và `private_dns_links`.
+      - Cập nhật `admin.html`: Bổ sung cảnh báo xác nhận rõ ràng và thông báo toast `✓ Đã xóa vĩnh viễn tài khoản NextDNS & link DNS`.
+
 ---
 
 🏆 **HỆ THỐNG ĐÃ HOÀN TẤT 100% VÀ ĐẠT CHUẨN SẢN XUẤT (PRODUCTION READY).**

@@ -1,5 +1,5 @@
 'use strict';
-const { sb, requireAdmin, allowMethods, genCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, normalizePackage, isPermPackage, getAppstoreConfig, setAppConfig, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, parseContactInput, createVpnToken, createNextDnsAccountHelper, getOrCreatePrivateDns, recyclePrivateDnsSlot } = require('../_lib/utils');
+const { sb, requireAdmin, allowMethods, genCode, checkAndNotifyDnsExpiry, PRIVATE_DNS_TTL_MS, normalizePackage, isPermPackage, getAppstoreConfig, setAppConfig, DEFAULT_DNS_TEMPLATE, getDnsTemplate, resolveDnsWithTemplate, parseContactInput, createVpnToken, createNextDnsAccountHelper, deleteNextDnsAccountHelper, getOrCreatePrivateDns, recyclePrivateDnsSlot } = require('../_lib/utils');
 
 
 module.exports = async (req, res) => {
@@ -175,13 +175,50 @@ module.exports = async (req, res) => {
       return res.json({ ok: true, token: rows[0].token, customer_code: rows[0].customer_code });
     }
 
-    // ── DELETE ?action=dns_delete&id=... — xoá vĩnh viễn 1 link DNS riêng ─
-    // Dùng để dọn các link cũ/hết hạn không còn dùng. Hành động không hoàn tác:
-    // token mất vĩnh viễn, khách không truy cập được nữa qua link đó.
+    // ── DELETE ?action=dns_delete&id=... — xoá vĩnh viễn 1 link DNS riêng & tài khoản NextDNS ─
+    // Xóa triệt để tài khoản trên server NextDNS và dọn sạch dữ liệu liên quan trong Supabase.
     if (req.method === 'DELETE' && action === 'dns_delete') {
       if (!id) return res.status(400).json({ error: 'Missing id' });
+
+      // 1. Tra cứu thông tin link DNS riêng cần xóa
+      const rows = await sb('GET', 'private_dns_links', { q: `id=eq.${encodeURIComponent(id)}&limit=1` }) || [];
+      if (!rows.length) {
+        return res.status(404).json({ error: 'Không tìm thấy link DNS này' });
+      }
+      const dnsRow = rows[0];
+
+      // 2. Tìm thông tin đăng nhập NextDNS (từ private_dns_links hoặc nextdns_accounts)
+      let email = dnsRow.nextdns_email;
+      let password = dnsRow.nextdns_password;
+      const profileId = (dnsRow.nextdns_url || '').split('/').pop().trim();
+
+      if ((!email || !password) && profileId) {
+        const accRows = await sb('GET', 'nextdns_accounts', { q: `id=eq.${encodeURIComponent(profileId)}&limit=1` }) || [];
+        if (accRows && accRows.length) {
+          email = email || accRows[0].email;
+          password = password || accRows[0].password;
+        }
+      }
+
+      // 3. Gọi NextDNS API xóa vĩnh viễn tài khoản nếu có email & password
+      let nextDnsDeleted = false;
+      if (email && password) {
+        const delRes = await deleteNextDnsAccountHelper({ email, password });
+        nextDnsDeleted = !!delRes.ok;
+      }
+
+      // 4. Xóa bản ghi trong nextdns_accounts (theo profileId hoặc email)
+      if (profileId) {
+        await sb('DELETE', 'nextdns_accounts', { q: `id=eq.${encodeURIComponent(profileId)}` }).catch(() => {});
+      }
+      if (email) {
+        await sb('DELETE', 'nextdns_accounts', { q: `email=eq.${encodeURIComponent(email)}` }).catch(() => {});
+      }
+
+      // 5. Xóa bản ghi trong private_dns_links
       await sb('DELETE', 'private_dns_links', { q: `id=eq.${encodeURIComponent(id)}` });
-      return res.json({ ok: true });
+
+      return res.json({ ok: true, nextdns_deleted: nextDnsDeleted });
     }
 
     // ── GET ?action=dns_list — danh sách link DNS riêng đã tạo ────────

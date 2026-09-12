@@ -367,6 +367,22 @@ Hệ thống đã trải qua 2 đợt rà soát đối chiếu chéo (Cross-Refe
          - Các trường tùy chọn (nếu có: `Link liên hệ`, `Ghi chú`) chiếm trọn 2 cột ở dưới cùng mà không làm ảnh hưởng lưới 4 hàng phía trên.
        - Chuẩn hóa nhãn gói cước trong modal chi tiết thành `Gói 30.000đ (5s Vĩnh viễn)` và `Gói 40.000đ (15s Vĩnh viễn)`.
 
+ 27. **⚡ Cơ Chế Xóa Triệt Để Tài Khoản NextDNS Khi Bấm Nút "Xóa" DNS Riêng (2026-09-12):**
+     - **Bối cảnh & Yêu cầu:**
+       - Trước đây, khi Admin bấm nút "Xóa" trên một dòng DNS riêng trong tab `tab-dnsgen` (`action=dns_delete`), hệ thống chỉ thực hiện câu lệnh xóa dòng tương ứng trong bảng `private_dns_links` trên Supabase, trong khi tài khoản NextDNS thật trên máy chủ `api.nextdns.io` vẫn tồn tại trôi nổi.
+       - Yêu cầu kỹ thuật: Khi bấm nút xóa DNS riêng, hệ thống phải tự động xóa sổ hoàn toàn tài khoản NextDNS đó trên máy chủ NextDNS.
+     - **Giải pháp & Kiến trúc xử lý:**
+       1. **Helper Xóa Tài Khoản NextDNS (`deleteNextDnsAccountHelper` trong `api/_lib/utils.js`):**
+          - Tự động xác thực đăng nhập qua `POST https://api.nextdns.io/accounts/@login` bằng `email` và `password` của tài khoản để lấy session cookie `sid`.
+          - Gửi request `DELETE https://api.nextdns.io/accounts/@me` kèm mật khẩu và cookie xác thực. Máy chủ NextDNS xóa sổ vĩnh viễn toàn bộ tài khoản và các profile cấu hình liên quan.
+       2. **Đồng bộ đa tầng tại `api/admin/customers.js` (`dns_delete`):**
+          - Truy xuất thông tin link DNS từ `private_dns_links` (hoặc fallback sang `nextdns_accounts` nếu cần).
+          - Kích hoạt `deleteNextDnsAccountHelper` tiêu hủy tài khoản trên NextDNS.
+          - Xóa sạch bản ghi liên quan trong bảng `nextdns_accounts` (theo profile ID và email).
+          - Xóa vĩnh viễn bản ghi trong bảng `private_dns_links`.
+       3. **Giao diện Admin (`admin.html`):**
+          - Cập nhật hộp thoại xác nhận và toast thông báo: Nêu rõ thao tác sẽ xóa sạch tài khoản NextDNS trên máy chủ và hủy liên kết hoàn toàn.
+
 ### Tiêu Chuẩn Kiểm Định Bắt Buộc Trước Khi Bàn Giao:
 - Cú pháp toàn bộ file Node.js đạt chuẩn `node -c` (exit code 0).
 - Toàn bộ script inline trong HTML (`admin.html`, `guide.html`, `index.html`) vượt qua kiểm tra cú pháp độc lập (`check_scripts.js`).

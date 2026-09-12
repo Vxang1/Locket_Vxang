@@ -2090,13 +2090,13 @@ window.reactivateDnsLink=async function(id,custCode){
     await loadDnsList();
   }catch(e){showToast('⚠ Lỗi: '+e.message,'red');}
 };
-// Xóa 1 link DNS riêng khỏi hệ thống — dùng để dọn các link cũ/hết hạn không còn dùng.
-// Hành động không hoàn tác: token mất vĩnh viễn, khách không truy cập được nữa.
+// Xóa vĩnh viễn tài khoản NextDNS & link DNS riêng khỏi hệ thống.
+// Hành động không hoàn tác: tài khoản trên NextDNS bị xóa sổ vĩnh viễn, khách không truy cập được nữa.
 window.deletePrivateDnsLink=async function(id,custCode){
-  if(!confirm(`Xóa vĩnh viễn link DNS riêng của khách ${custCode}?\n\n⚠ Khách sẽ KHÔNG thể truy cập DNS nữa qua link này.\nChỉ xóa khi link đã hết hạn hoặc không còn cần thiết.`)) return;
+  if(!confirm(`Xóa vĩnh viễn tài khoản NextDNS & link DNS riêng (${custCode})?\n\n⚠ Hệ thống sẽ xóa sạch tài khoản NextDNS trên máy chủ và hủy bỏ link này vĩnh viễn.\nChỉ xóa khi không còn sử dụng hoặc tài khoản gặp sự cố.`)) return;
   try{
     await api('DELETE',`/api/admin/customers?action=dns_delete&id=${encodeURIComponent(id)}`);
-    showToast('✓ Đã xóa link DNS riêng','green');
+    showToast('✓ Đã xóa vĩnh viễn tài khoản NextDNS & link DNS','green');
     await loadDnsList();
   }catch(e){showToast('⚠ Lỗi: '+e.message,'red');}
 };
