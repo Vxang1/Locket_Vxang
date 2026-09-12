@@ -340,6 +340,7 @@ Hệ thống đã trải qua 2 đợt rà soát đối chiếu chéo (Cross-Refe
           - Triệt tiêu hoàn toàn layout shift: Hai thẻ luôn có khoảng không gian ngang dành cho văn bản bằng nhau tuyệt đối, chuyển đổi mượt mà không dịch chuyển dù chỉ 1 pixel.
        2. *Khóa cứng phụ đề 1 dòng & Căn thẳng Baseline chữ:*
           - Thêm `white-space: nowrap;` vào `.pkg-card-sub` và `.pkg-card-title`. Tinh chỉnh padding `9px 10px` và font-size `0.68rem` để nội dung luôn nằm gọn trên 1 dòng đơn.
+          - Tiêu đề thẻ chuẩn hóa thành **"Gói 30.000đ"** và **"Gói 40.000đ"**, phụ đề bên dưới rút gọn thành **"5s Vĩnh viễn"** và **"15s Vĩnh viễn"**, loại bỏ hoàn toàn sự lặp lại giá tiền thừa thãi (`· 30.000đ` / `· 40.000đ`), tạo sự cân đối thị giác hoàn hảo giữa 2 thẻ.
           - Bỏ `transform: translate(-1px, -1px)` trên `.pkg-card-btn.active`. Cả hai thẻ nằm trên cùng một mặt phẳng ngang, tiêu đề và phụ đề thẳng hàng trục tọa độ Y tuyệt đối.
        3. *Vector hóa Icon SVG chuẩn công nghiệp:*
           - Thay thế toàn bộ emoji `⭐` và `🌟` bằng SVG vector 20x20px chuẩn (5 cánh vàng `#F5C842` viền mực `#1A1A1A`), phiên bản 40k điểm thêm tia sáng tinh tế, tâm quang học và chiều cao đồng nhất 100%.

@@ -441,6 +441,7 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
          - Triệt tiêu 100% layout shift: Chiều rộng dành cho khối chữ luôn bằng nhau tuyệt đối, bấm chuyển đổi giữa các gói 0ms độ trễ, không rung giật.
       2. *Khóa cứng phụ đề 1 dòng & Căn thẳng hàng Baseline chữ:*
          - Thiết lập `white-space: nowrap;` trên `.pkg-card-sub` và `.pkg-card-title`. Tinh chỉnh padding `9px 10px` và font size `0.68rem`.
+         - Tiêu đề thẻ chuyển đổi thành **"Gói 30.000đ"** và **"Gói 40.000đ"**, phụ đề bên dưới rút gọn thành **"5s Vĩnh viễn"** và **"15s Vĩnh viễn"**, loại bỏ hoàn toàn sự lặp lại giá tiền thừa thãi (`· 30.000đ` / `· 40.000đ`), tạo sự cân đối thị giác hoàn hảo giữa 2 thẻ.
          - Bỏ `transform: translate(-1px, -1px)` trên `.pkg-card-btn.active`. Cả hai thẻ nằm phẳng trên cùng mặt phẳng tọa độ Y, tiêu đề và phụ đề thẳng hàng tăm tắp.
       3. *Vector hóa Icon SVG đồng nhất:*
          - Thay emoji `⭐` và `🌟` bằng SVG vector 20x20px chuẩn (ngôi sao vàng `#F5C842` viền mực `#1A1A1A`), phiên bản 40k có thêm điểm sáng tinh tế, trọng số quang học đồng nhất.
