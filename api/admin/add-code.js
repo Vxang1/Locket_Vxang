@@ -7,7 +7,8 @@ module.exports = async (req, res) => {
   const { customer_id, package: reqPkg, deposit_note: reqDepositNote } = req.body || {};
   if (!customer_id) return res.status(400).json({ error: 'Missing customer_id' });
   try {
-    const custs = await sb('GET', 'customers', { q: `id=eq.${customer_id}&select=customer_code,package,service_status,special_flow` }) || [];
+    const custIdEsc = encodeURIComponent(customer_id);
+    const custs = await sb('GET', 'customers', { q: `id=eq.${custIdEsc}&select=customer_code,package,service_status,special_flow` }) || [];
     const cust = custs[0];
     const currentPkg = cust?.package || '30k';
     const customerCode = cust?.customer_code || null;
@@ -18,7 +19,7 @@ module.exports = async (req, res) => {
 
     // Cập nhật gói và tự động chuyển trạng thái sang Chờ thu 30k hoặc 40k
     await sb('PATCH', 'customers', {
-      q: `id=eq.${customer_id}`,
+      q: `id=eq.${custIdEsc}`,
       body: {
         package: pkg,
         deposit_note: depositNote,
@@ -36,7 +37,7 @@ module.exports = async (req, res) => {
         await getOrCreatePrivateDns(customerCode, '40k').catch(() => {});
 
         const existingVpn = await sb('GET', 'vpn_tokens', {
-          q: `customer_id=eq.${customer_id}&is_active=eq.true&select=token&limit=1`
+          q: `customer_id=eq.${custIdEsc}&is_active=eq.true&select=token&limit=1`
         }).catch(() => []);
         if (!existingVpn?.length) {
           await createVpnToken(customer_id, customerCode).catch(() => {});
@@ -48,7 +49,7 @@ module.exports = async (req, res) => {
         await getOrCreatePrivateDns(customerCode, '30k').catch(() => {});
         // Vô hiệu hóa VPN token
         await sb('PATCH', 'vpn_tokens', {
-          q: `customer_id=eq.${customer_id}&is_active=eq.true`,
+          q: `customer_id=eq.${custIdEsc}&is_active=eq.true`,
           body: { is_active: false }
         }).catch(() => {});
       } else if (customerCode) {

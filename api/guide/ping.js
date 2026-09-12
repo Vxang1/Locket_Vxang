@@ -92,7 +92,7 @@ module.exports = async (req, res) => {
         // Đã hết 15 giây đếm lùi (Tổng >= 21s) -> KHÓA VĨNH VIỄN (ZERO TOLERANCE - KHÔNG HOÀN CỌC)
         await Promise.all([
           sb('PATCH', 'access_codes', {
-            q: `id=eq.${codeRow.id}`,
+            q: `id=eq.${encodeURIComponent(codeRow.id)}`,
             body: { is_active: false, status: 'fraud' },
           }).catch(() => {}),
           sb('PATCH', 'sessions', {
@@ -208,7 +208,7 @@ module.exports = async (req, res) => {
         fraudTriggeredAt = nowIso;
         await Promise.all([
           sb('PATCH', 'access_codes', {
-            q: `id=eq.${codeRow.id}`,
+            q: `id=eq.${encodeURIComponent(codeRow.id)}`,
             body: { fraud_triggered_at: nowIso, status: 'fraud_warning' },
           }).catch(() => {}),
           fbPut(`fraud/${payload.code}`, {

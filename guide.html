@@ -955,12 +955,12 @@ function showInappBlock() {
 
   if (!isIOS()) {
     if (t) t.textContent = 'Yêu cầu mở trên iPhone';
-    if (m) m.innerHTML = '⛔ <b style="color:#fecaca;">Dịch vụ Locket Gold chỉ hỗ trợ cài đặt trên điện thoại iPhone/iPad</b>. Vui lòng không sử dụng máy tính, PC hay Android!';
-    if (g) g.innerHTML = '<div style="font-weight:800;color:#00f0ff;margin-bottom:6px;font-family:\'Space Grotesk\',sans-serif;">📌 Hướng dẫn:</div><div>Bấm nút sao chép bên dưới, gửi link này qua Zalo/Tin nhắn cho chính bạn 👉 <b style="color:#00f0ff;">Dùng iPhone mở link đó bằng Safari</b> để tiếp tục.</div>';
+    if (m) m.innerHTML = '⛔ <b style="color:#B71C1C;">Dịch vụ Locket Gold chỉ hỗ trợ cài đặt trên điện thoại iPhone/iPad</b>. Vui lòng không sử dụng máy tính, PC hay Android!';
+    if (g) g.innerHTML = '<div style="font-weight:800;color:var(--ink);margin-bottom:6px;font-family:\'Space Grotesk\',sans-serif;">📌 Hướng dẫn:</div><div>Bấm nút sao chép bên dưới, gửi link này qua Zalo/Tin nhắn cho chính bạn 👉 <b style="color:var(--accent,#0284c7);">Dùng iPhone mở link đó bằng Safari</b> để tiếp tục.</div>';
   } else {
     if (t) t.textContent = 'Bắt Buộc Mở Bằng Safari';
-    if (m) m.innerHTML = '⛔ <b style="color:#fecaca;">Trình duyệt ứng dụng này (Zalo/Messenger/FB) không thể tải cấu hình Locket Gold</b>. Bạn bắt buộc phải chuyển sang ứng dụng <b style="color:#fff;">Safari</b> của iPhone!';
-    if (g) g.innerHTML = '<div style="font-weight:800;color:#00f0ff;margin-bottom:6px;font-family:\'Space Grotesk\',sans-serif;">👉 Cách mở trên Safari:</div><div><b>Cách 1:</b> Bấm dấu <b style="color:#fff;">(•••)</b> ở góc màn hình ➔ Chọn <b style="color:#00f0ff;">"Mở bằng trình duyệt" (Safari)</b>.</div><div style="margin-top:6px;"><b>Cách 2:</b> Bấm nút sao chép bên dưới ➔ Mở ứng dụng <b style="color:#fff;">Safari</b> trên iPhone và dán link vào.</div>';
+    if (m) m.innerHTML = '⛔ <b style="color:#B71C1C;">Trình duyệt ứng dụng này (Zalo/Messenger/FB) không thể tải cấu hình Locket Gold</b>. Bạn bắt buộc phải chuyển sang ứng dụng <b style="color:var(--ink);">Safari</b> của iPhone!';
+    if (g) g.innerHTML = '<div style="font-weight:800;color:var(--ink);margin-bottom:6px;font-family:\'Space Grotesk\',sans-serif;">👉 Cách mở trên Safari:</div><div><b>Cách 1:</b> Bấm dấu <b style="color:var(--ink);">(•••)</b> ở góc màn hình ➔ Chọn <b style="color:var(--accent,#0284c7);">"Mở bằng trình duyệt" (Safari)</b>.</div><div style="margin-top:6px;"><b>Cách 2:</b> Bấm nút sao chép bên dưới ➔ Mở ứng dụng <b style="color:var(--ink);">Safari</b> trên iPhone và dán link vào.</div>';
   }
 
   const input = document.getElementById('codeInput');

@@ -26,8 +26,8 @@ module.exports = async (req, res) => {
         const { id_a, order_a, id_b, order_b } = req.body || {};
         if (!id_a || !id_b) return res.status(400).json({ error: 'Missing ids' });
         await Promise.all([
-          sb('PATCH', 'guide_steps', { q: `id=eq.${id_a}`, body: { order_num: order_b } }),
-          sb('PATCH', 'guide_steps', { q: `id=eq.${id_b}`, body: { order_num: order_a } }),
+          sb('PATCH', 'guide_steps', { q: `id=eq.${encodeURIComponent(id_a)}`, body: { order_num: order_b } }),
+          sb('PATCH', 'guide_steps', { q: `id=eq.${encodeURIComponent(id_b)}`, body: { order_num: order_a } }),
         ]);
         return res.json({ ok: true });
       }
@@ -46,14 +46,14 @@ module.exports = async (req, res) => {
     if (req.method === 'PATCH') {
       const { id, ...fields } = req.body || {};
       if (!id) return res.status(400).json({ error: 'Missing id' });
-      await sb('PATCH', 'guide_steps', { q: `id=eq.${id}`, body: fields });
+      await sb('PATCH', 'guide_steps', { q: `id=eq.${encodeURIComponent(id)}`, body: fields });
       return res.json({ ok: true });
     }
 
     if (req.method === 'DELETE') {
       const { id } = req.query || {};
       if (!id) return res.status(400).json({ error: 'Missing id' });
-      await sb('DELETE', 'guide_steps', { q: `id=eq.${id}` });
+      await sb('DELETE', 'guide_steps', { q: `id=eq.${encodeURIComponent(id)}` });
       return res.json({ ok: true });
     }
   } catch (e) { res.status(500).json({ error: e.message }); }

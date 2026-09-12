@@ -50,20 +50,23 @@ async function fbPut(path, data) {
 }
 
 // ─── Supabase REST helper ────────────────────────────────────
-async function sb(method, table, { body, q = '', prefer } = {}) {
+async function sb(method, table, { body, q = '', prefer, count, head } = {}) {
   const h = {
     apikey: SB_KEY,
     Authorization: `Bearer ${SB_KEY}`,
     'Content-Type': 'application/json',
     Connection: 'keep-alive',
   };
-  if (prefer) h.Prefer = prefer;
+  const prefParts = prefer ? [prefer] : [];
+  if (count) prefParts.push(`count=${count}`);
+  if (prefParts.length) h.Prefer = prefParts.join(', ');
 
+  const reqMethod = head ? 'HEAD' : method;
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 7000);
   try {
     const r = await fetch(`${SB_URL}/rest/v1/${table}${q ? '?' + q : ''}`, {
-      method,
+      method: reqMethod,
       headers: h,
       body: body ? JSON.stringify(body) : undefined,
       keepalive: true,
@@ -75,12 +78,31 @@ async function sb(method, table, { body, q = '', prefer } = {}) {
       const errText = await r.text().catch(() => '');
       throw new Error(`Supabase ${r.status}: ${errText}`);
     }
+    if (head) {
+      const cr = r.headers.get('content-range');
+      let totalCount = 0;
+      if (cr) {
+        const parts = cr.split('/');
+        if (parts[1] && parts[1] !== '*') totalCount = parseInt(parts[1], 10) || 0;
+      }
+      return { count: totalCount };
+    }
     if (r.status === 204) return null;
-    return r.json().catch(() => null);
+    const data = await r.json().catch(() => null);
+    if (count && Array.isArray(data)) {
+      const cr = r.headers.get('content-range');
+      let totalCount = data.length;
+      if (cr) {
+        const parts = cr.split('/');
+        if (parts[1] && parts[1] !== '*') totalCount = parseInt(parts[1], 10) || 0;
+      }
+      data.count = totalCount;
+    }
+    return data;
   } catch (e) {
     clearTimeout(timer);
     if (e.name === 'AbortError') {
-      throw new Error(`Supabase timeout: ${method} ${table}`);
+      throw new Error(`Supabase timeout: ${reqMethod} ${table}`);
     }
     throw e;
   }

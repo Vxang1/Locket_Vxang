@@ -369,8 +369,8 @@ async function handleVpnSub(req, res) {
     const reqIp = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim();
     const now = new Date().toISOString();
 
-    // Device binding: so sánh khung UA (bỏ version số để tránh khóa oan khi app update)
-    const uaBase = (ua) => String(ua || '').replace(/\/[\d.]+/g, '').trim();
+    // Device binding: so sánh khung UA (bỏ version số và bản dựng iOS để tránh khóa oan khi iOS/app update)
+    const uaBase = (ua) => String(ua || '').replace(/[0-9.]+/g, '').trim();
 
     if (row.device_ua) {
       // Đã khóa thiết bị trước đó
@@ -526,7 +526,7 @@ module.exports = async (req, res) => {
     if (isFraudDestroyed || isOverTotal) {
       if (!isFraudDestroyed) {
         await Promise.all([
-          sb('PATCH', 'access_codes', { q: `id=eq.${codeRow.id}`, body: { is_active: false, status: 'fraud' } }).catch(() => {}),
+          sb('PATCH', 'access_codes', { q: `id=eq.${encodeURIComponent(codeRow.id)}`, body: { is_active: false, status: 'fraud' } }).catch(() => {}),
           sb('PATCH', 'sessions', { q: `access_code=eq.${encodeURIComponent(upperCode)}`, body: { is_kicked: true } }).catch(() => {}),
           fbPut(`fraud/${upperCode}/destroyed`, true).catch(() => {}),
           fbPut(`fraud/${upperCode}/status`, 'fraud').catch(() => {}),
@@ -578,7 +578,7 @@ module.exports = async (req, res) => {
         await fbPut(`code_ownership/${upperCode}`, { device_id: deviceId, last_ping: nowIso }).catch(() => {});
         try {
           await sb('PATCH', 'access_codes', {
-            q: `id=eq.${codeRow.id}`,
+            q: `id=eq.${encodeURIComponent(codeRow.id)}`,
             body: { original_device_id: deviceId },
           });
         } catch {}
@@ -602,7 +602,7 @@ module.exports = async (req, res) => {
           existingFraudAt = nowIso;
           await Promise.all([
             sb('PATCH', 'access_codes', {
-              q: `id=eq.${codeRow.id}`,
+              q: `id=eq.${encodeURIComponent(codeRow.id)}`,
               body: { fraud_triggered_at: nowIso, status: 'fraud_warning' },
             }).catch(() => {}),
             fbPut(`fraud/${upperCode}`, {
@@ -664,7 +664,7 @@ module.exports = async (req, res) => {
       // Thử 1: Cập nhật first_used_at (chuẩn schema.sql / PROMPT.md)
       try {
         await sb('PATCH', 'access_codes', {
-          q: `id=eq.${codeRow.id}`,
+          q: `id=eq.${encodeURIComponent(codeRow.id)}`,
           body: { first_used_at: nowIso, expires_at: expiresAt, status: 'active' },
         });
         patched = true;
@@ -676,7 +676,7 @@ module.exports = async (req, res) => {
       if (!patched) {
         try {
           await sb('PATCH', 'access_codes', {
-            q: `id=eq.${codeRow.id}`,
+            q: `id=eq.${encodeURIComponent(codeRow.id)}`,
             body: { activated_at: nowIso, expires_at: expiresAt },
           });
           patched = true;
@@ -689,7 +689,7 @@ module.exports = async (req, res) => {
       if (!patched) {
         try {
           await sb('PATCH', 'access_codes', {
-            q: `id=eq.${codeRow.id}`,
+            q: `id=eq.${encodeURIComponent(codeRow.id)}`,
             body: { expires_at: expiresAt },
           });
         } catch (e3) {
@@ -701,7 +701,7 @@ module.exports = async (req, res) => {
     // Tăng entry_count nếu cột tồn tại (không block flow nếu DB thiếu cột)
     try {
       await sb('PATCH', 'access_codes', {
-        q: `id=eq.${codeRow.id}`,
+        q: `id=eq.${encodeURIComponent(codeRow.id)}`,
         body: { entry_count: (codeRow.entry_count || 0) + 1 },
       });
     } catch {}

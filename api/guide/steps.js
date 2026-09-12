@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
         q: `code=eq.${encodeURIComponent(payload.code)}&select=is_active,expires_at`,
       }),
       sb('GET', 'guide_steps', {
-        q: `or=(package.eq.${pkg},package.is.null)&order=order_num.asc`,
+        q: `or=(package.eq.${encodeURIComponent(pkg)},package.is.null)&order=order_num.asc`,
       }).catch(() => []),
     ]);
 
@@ -82,7 +82,7 @@ module.exports = async (req, res) => {
     const norm = (pkg === '40k' || pkg === '15s' || pkg === '180') ? '40k' : '30k';
     if (norm === '40k' && custId) {
       let vpnRows = await sb('GET', 'vpn_tokens', {
-        q: `customer_id=eq.${custId}&is_active=eq.true&select=token&order=created_at.desc&limit=1`
+        q: `customer_id=eq.${encodeURIComponent(custId)}&is_active=eq.true&select=token&order=created_at.desc&limit=1`
       }).catch(() => []);
 
       let token = vpnRows?.[0]?.token;

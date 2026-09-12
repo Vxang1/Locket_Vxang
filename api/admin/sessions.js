@@ -28,15 +28,16 @@ module.exports = async (req, res) => {
     const { session_id } = req.body || {};
     if (!session_id) return res.status(400).json({ error: 'Missing session_id' });
     try {
-      const sessions = await sb('GET', 'sessions', { q: `id=eq.${session_id}&select=access_code` });
+      const encSessId = encodeURIComponent(session_id);
+      const sessions = await sb('GET', 'sessions', { q: `id=eq.${encSessId}&select=access_code` });
       const accessCode = sessions?.[0]?.access_code;
       await sb('PATCH', 'sessions', {
-        q: `id=eq.${session_id}`,
+        q: `id=eq.${encSessId}`,
         body: { is_kicked: true },
       });
       if (accessCode) {
         await sb('PATCH', 'access_codes', {
-          q: `code=eq.${accessCode}`,
+          q: `code=eq.${encodeURIComponent(accessCode)}`,
           body: { is_active: false, expires_at: new Date().toISOString() },
         });
       }

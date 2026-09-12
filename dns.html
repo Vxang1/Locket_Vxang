@@ -193,7 +193,10 @@ window.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <script>
-function isIOS() { return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream; }
+function isIOS() {
+  const ua = (navigator.userAgent || navigator.vendor || window.opera || '').toLowerCase();
+  return /ipad|iphone|ipod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
 function isInAppBrowser() {
   const ua = (navigator.userAgent || navigator.vendor || window.opera || '').toLowerCase();
   return /zalo|zalomessenger|fbav|fban|fb_iab|messenger|instagram|tiktok|snapchat|line\/|micromessenger|telegram/i.test(ua);

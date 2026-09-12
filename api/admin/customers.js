@@ -259,13 +259,13 @@ module.exports = async (req, res) => {
     // ── PATCH ?action=expire ───────────────────────────────────────
     if (req.method === 'PATCH' && action === 'expire') {
       if (!code_id) return res.status(400).json({ error: 'Missing code_id' });
-      const codes = await sb('GET', 'access_codes', { q: `id=eq.${code_id}&select=code` }) || [];
+      const codes = await sb('GET', 'access_codes', { q: `id=eq.${encodeURIComponent(code_id)}&select=code` }) || [];
       const code = codes[0]?.code;
       if (code) {
-        await sb('PATCH', 'sessions', { q: `access_code=eq.${code}`, body: { is_kicked: true } });
+        await sb('PATCH', 'sessions', { q: `access_code=eq.${encodeURIComponent(code)}`, body: { is_kicked: true } });
       }
       await sb('PATCH', 'access_codes', {
-        q: `id=eq.${code_id}`,
+        q: `id=eq.${encodeURIComponent(code_id)}`,
         body: { is_active: false, expires_at: new Date().toISOString() },
       });
       return res.json({ ok: true });
@@ -277,11 +277,11 @@ module.exports = async (req, res) => {
       if (!customer_id) return res.status(400).json({ error: 'Missing customer_id' });
       // Deactivate old tokens
       await sb('PATCH', 'vpn_tokens', {
-        q: `customer_id=eq.${customer_id}&is_active=eq.true`,
+        q: `customer_id=eq.${encodeURIComponent(customer_id)}&is_active=eq.true`,
         body: { is_active: false },
       }).catch(() => {});
       // Get customer code
-      const [cust] = await sb('GET', 'customers', { q: `id=eq.${customer_id}&select=customer_code` }) || [];
+      const [cust] = await sb('GET', 'customers', { q: `id=eq.${encodeURIComponent(customer_id)}&select=customer_code` }) || [];
       if (!cust) return res.status(404).json({ error: 'Customer not found' });
       const token = await createVpnToken(customer_id, cust.customer_code);
       return res.json({ token });
@@ -292,7 +292,7 @@ module.exports = async (req, res) => {
       const { customer_id } = req.body;
       if (!customer_id) return res.status(400).json({ error: 'Missing customer_id' });
       await sb('PATCH', 'vpn_tokens', {
-        q: `customer_id=eq.${customer_id}&is_active=eq.true`,
+        q: `customer_id=eq.${encodeURIComponent(customer_id)}&is_active=eq.true`,
         body: { device_ua: null, device_ip: null, first_used_at: null },
       });
       return res.json({ ok: true });
@@ -303,7 +303,7 @@ module.exports = async (req, res) => {
       const { customer_id } = req.body;
       if (!customer_id) return res.status(400).json({ error: 'Missing customer_id' });
       await sb('PATCH', 'vpn_tokens', {
-        q: `customer_id=eq.${customer_id}&is_active=eq.true`,
+        q: `customer_id=eq.${encodeURIComponent(customer_id)}&is_active=eq.true`,
         body: { is_active: false },
       });
       return res.json({ ok: true });
@@ -419,7 +419,7 @@ module.exports = async (req, res) => {
         await getOrCreatePrivateDns(current.customer_code, '40k');
         // Cấp VPN token nếu chưa có
         const existingVpn = await sb('GET', 'vpn_tokens', {
-          q: `customer_id=eq.${targetId}&is_active=eq.true&select=token&limit=1`
+          q: `customer_id=eq.${encodeURIComponent(targetId)}&is_active=eq.true&select=token&limit=1`
         }).catch(() => []);
         if (!existingVpn?.length) {
           await createVpnToken(targetId, current.customer_code).catch(() => {});
@@ -431,7 +431,7 @@ module.exports = async (req, res) => {
         await getOrCreatePrivateDns(current.customer_code, '30k');
         // Vô hiệu hóa VPN token
         await sb('PATCH', 'vpn_tokens', {
-          q: `customer_id=eq.${targetId}&is_active=eq.true`,
+          q: `customer_id=eq.${encodeURIComponent(targetId)}&is_active=eq.true`,
           body: { is_active: false }
         }).catch(() => {});
       }
@@ -449,12 +449,12 @@ module.exports = async (req, res) => {
       if (deposit_note !== undefined)    updateBody.deposit_note = deposit_note || null;
       if (needSetActivated && activatedVal) updateBody.activated_at = activatedVal;
 
-      await sb('PATCH', 'customers', { q: `id=eq.${targetId}`, body: updateBody });
+      await sb('PATCH', 'customers', { q: `id=eq.${encodeURIComponent(targetId)}`, body: updateBody });
 
       // Cập nhật hoặc cấp mới tài khoản DNS riêng (1 người 1 tài khoản cho gói 180 / flow đặc biệt)
       const { nextdns_url, nextdns_email, nextdns_password } = req.body || {};
       if (nextdns_url !== undefined && String(nextdns_url).trim()) {
-        const [cust] = (await sb('GET', 'customers', { q: `id=eq.${id}&select=customer_code,package` })) || [];
+        const [cust] = (await sb('GET', 'customers', { q: `id=eq.${encodeURIComponent(targetId)}&select=customer_code,package` })) || [];
         if (cust) {
           const rawUrl = String(nextdns_url).trim();
           const activeTemplate = await getDnsTemplate();
@@ -491,11 +491,12 @@ module.exports = async (req, res) => {
     // ── DELETE ?id=... ─────────────────────────────────────────────
     if (req.method === 'DELETE') {
       if (!id) return res.status(400).json({ error: 'Missing id' });
+      const encId = encodeURIComponent(id);
       
       // 1. Lấy customer_code và các access_codes của khách này
-      const [cust] = (await sb('GET', 'customers', { q: `id=eq.${id}&select=customer_code` })) || [];
+      const [cust] = (await sb('GET', 'customers', { q: `id=eq.${encId}&select=customer_code` })) || [];
       const custCode = cust?.customer_code;
-      const codes = (await sb('GET', 'access_codes', { q: `customer_id=eq.${id}&select=code` })) || [];
+      const codes = (await sb('GET', 'access_codes', { q: `customer_id=eq.${encId}&select=code` })) || [];
       const codeStrings = codes.map(c => c.code).filter(Boolean);
       const allCodesToRemove = new Set([custCode, ...codeStrings].filter(Boolean));
 
@@ -509,9 +510,9 @@ module.exports = async (req, res) => {
         const codeList = codes.map(c => `"${c.code}"`).join(',');
         await sb('DELETE', 'sessions', { q: `access_code=in.(${codeList})` });
       }
-      await sb('DELETE', 'vpn_tokens', { q: `customer_id=eq.${id}` }).catch(() => {});
-      await sb('DELETE', 'access_codes', { q: `customer_id=eq.${id}` });
-      await sb('DELETE', 'customers', { q: `id=eq.${id}` });
+      await sb('DELETE', 'vpn_tokens', { q: `customer_id=eq.${encId}` }).catch(() => {});
+      await sb('DELETE', 'access_codes', { q: `customer_id=eq.${encId}` });
+      await sb('DELETE', 'customers', { q: `id=eq.${encId}` });
       return res.json({ ok: true });
     }
 
@@ -538,11 +539,12 @@ module.exports = async (req, res) => {
 
     // ── GET ?id=... → chi tiết 1 khách ────────────────────────────
     if (req.method === 'GET' && id) {
-      const custRows = await sb('GET', 'customers', { q: `id=eq.${id}` });
+      const encId = encodeURIComponent(id);
+      const custRows = await sb('GET', 'customers', { q: `id=eq.${encId}` });
       if (!custRows?.length) return res.status(404).json({ error: 'Not found' });
       let customer = custRows[0];
       const [codes, privateDns] = await Promise.all([
-        sb('GET', 'access_codes', { q: `customer_id=eq.${id}&order=created_at.desc` }),
+        sb('GET', 'access_codes', { q: `customer_id=eq.${encId}&order=created_at.desc` }),
         sb('GET', 'private_dns_links', { q: `customer_code=eq.${encodeURIComponent(customer.customer_code)}&order=created_at.desc&limit=1` }),
       ]);
 
@@ -558,13 +560,13 @@ module.exports = async (req, res) => {
           customer.activated_at = new Date().toISOString();
         }
         sb('PATCH', 'customers', {
-          q: `id=eq.${id}`,
+          q: `id=eq.${encId}`,
           body: { service_status: 'active', activated_at: customer.activated_at }
         }).catch(() => {});
       }
 
       const vpnTokens = await sb('GET', 'vpn_tokens', {
-        q: `customer_id=eq.${id}&is_active=eq.true&select=*&limit=1`
+        q: `customer_id=eq.${encId}&is_active=eq.true&select=*&limit=1`
       }).catch(() => []);
 
       return res.json({ customer, codes: codes || [], private_dns: privateDns?.[0] || null, vpn_token: vpnTokens?.[0] || null });
@@ -574,7 +576,7 @@ module.exports = async (req, res) => {
     let query = 'order=created_at.desc';
     if (q) {
       const esc = encodeURIComponent(q);
-      query += `&or=(name.ilike.*${esc}*,phone.ilike.*${esc}*,customer_code.ilike.*${esc}*)`;
+      query += `&or=(name.ilike."*${esc}*",phone.ilike."*${esc}*",customer_code.ilike."*${esc}*")`;
     }
 
     // Tối ưu hóa: Fetch đồng thời customers, private_dns_links và completed access_codes song song bằng Promise.all

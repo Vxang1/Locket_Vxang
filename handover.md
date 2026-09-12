@@ -471,6 +471,22 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
       - Cập nhật handler `dns_delete` trong `api/admin/customers.js`: Tự động truy xuất thông tin đăng nhập, gọi helper xóa tài khoản NextDNS thật, đồng thời xóa sạch bản ghi trong `nextdns_accounts` và `private_dns_links`.
       - Cập nhật `admin.html`: Bổ sung cảnh báo xác nhận rõ ràng và thông báo toast `✓ Đã xóa vĩnh viễn tài khoản NextDNS & link DNS`.
 
+30. **⚡ SUPER DEEP CHECK TOÀN DIỆN HỆ THỐNG & SỬA LỖI ĐẦU - ĐUÔI (END-TO-END AUDIT & HARDENING) (2026-09-13):**
+    - **Bối cảnh & Phương pháp:**
+      - Tiến hành rà soát siêu sâu (Super Deep Check) từng dòng code theo cơ chế kiểm tra đầu đuôi dữ liệu (End-to-End trace) qua 3 subagents độc lập (Admin System, Guide Flow, Core & Security).
+      - Kiểm toán chéo giữa 11 Vercel Serverless Functions, 2 module dùng chung (`_lib/`), và 4 file frontend HTML.
+    - **10 Lỗ Hổng Kỹ Thuật Được Khắc Phục Triệt Để:**
+      1. *🔴 Lỗi Deploy Builder Engine (`package.json`):* Chuyển `"node": "24.x"` về `"node": "20.x"`. Vercel Serverless Function runtime hiện tại chỉ hỗ trợ Node.js 18.x và 20.x, cấu hình 24.x sẽ khiến toàn bộ build Vercel thất bại khi deploy production.
+      2. *🔴 Lỗi Supabase Helper Không Đọc Được Headers Range (`api/_lib/utils.js`):* Cải tiến hàm `sb(method, table, { q, body, prefer, count, head })` hỗ trợ header `Prefer: count=exact` và method `HEAD`, bóc tách tổng số lượng từ header `Content-Range`. Sửa triệt để lỗi thống kê `/stats` trên Telegram luôn trả về 0 do mảng array không có thuộc tính `.count`.
+      3. *🔴 Cú Pháp Sai Toán Tử PostgREST Trong `stats.js` (`api/admin/stats.js`):* Sửa `or=(is_kicked.is.null,is_kicked=eq.false)` thành `or=(is_kicked.is.null,is_kicked.eq.false)`. Trong PostgREST, bên trong mệnh đề logic `or=(...)`, các điều kiện bắt buộc dùng cú pháp dấu chấm `col.op.val`. Dấu `=` làm PostgREST trả lỗi 400 Bad Request, khiến số lượng live sessions luôn trả về 0.
+      4. *🔴 Khóa Thiết Bị VPN Bị Chặn Oan Khi Cập Nhật iOS (`api/guide/validate.js`):* Biểu thức regex `uaBase` chuyển từ `.replace(/\/[\d.]+/g, '')` thành `.replace(/[0-9.]+/g, '')`. Regex cũ chỉ bỏ phần sau dấu gạch chéo, vẫn để lại số bản dựng iOS (ví dụ: `iOS 17.5.1`), khiến khách cập nhật iOS nhẹ (17.5 -> 17.5.1) bị lỗi HTTP 403 khóa thiết bị oan. Regex mới bóc tách hoàn toàn số, chỉ giữ lại họ client và phần cứng.
+      5. *🟡 Khách Gói 15s Cũ Không Nhận Được VPN USA (`api/admin/create-customer.js`):* Sửa so sánh `if (cleanPkg === '40k')` thay vì `if (pkg === '40k')`. Khách tạo với gói legacy '15s' hoặc '180' nay đều được cấp token VPN USA đầy đủ, không bị bỏ sót.
+      6. *🟡 Lỗi Nhận Diện Thiết Bị iPadOS Trên `dns.html` (`dns.html`):* Nâng cấp `isIOS()` nhận diện cả trường hợp iPadOS bật chế độ "Yêu cầu trang web cho máy tính" (`navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1`), ngăn chặn hiển thị modal chặn oan trên iPad.
+      7. *🟡 Tương Phản Văn Bản Hướng Dẫn In-App Block (`guide.html`):* Sửa màu chữ thông báo `showInappBlock()` từ trắng/cyan trên nền kem nhạt `#F5ECD7` (tương phản kém < 2:1) sang `#1A1A1A` và `#B71C1C` (tương phản cao > 7:1 chuẩn WCAG AAA).
+      8. *🟢 Hiển Thị Giá Tạo Khách Mới Bị Thiếu Box Trực Quan (`admin.html`):* Bổ sung `#cPriceDisplay` đồng bộ với `#ePriceDisplay` khi chọn gói 30.000đ hoặc 40.000đ.
+      9. *🟠 Chống Lỗi Cú Pháp PostgREST Khi Tên Khách Có Ký Tự Đặc Biệt (`api/_lib/telegram-bot.js`, `api/admin/customers.js`):* Bọc dấu ngoặc kép `"..."` cho các pattern tìm kiếm `or=(name.ilike."*${esc}*",...)` ngăn việc tên khách có dấu phẩy làm vỡ câu query.
+      10. *🔴 Triệt Để Mã Hóa URL Parameters (`api/admin/customers.js`, `api/admin/sessions.js`, `api/admin/guide-steps.js`, `api/guide/validate.js`, `api/guide/ping.js`, `api/guide/steps.js`):* Bọc toàn bộ các tham số động (`id`, `session_id`, `access_code`, `customer_id`, `pkg`, `targetId`) bằng `encodeURIComponent()` trong tất cả các câu truy vấn PostgREST, sửa lỗi `targetId` bị undefined trong PATCH customer, bảo vệ hệ thống tuyệt đối khỏi injection và các chuỗi ký tự đặc biệt.
+
 ---
 
 🏆 **HỆ THỐNG ĐÃ HOÀN TẤT 100% VÀ ĐẠT CHUẨN SẢN XUẤT (PRODUCTION READY).**

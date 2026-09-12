@@ -529,16 +529,16 @@ async function findCustomerInCrm(queryText) {
     searchedCode = (upper.startsWith('VX-') || upper.startsWith('XW-')) ? upper : `VX-${upper}`;
   }
 
-  // Layer 1: Query trực tiếp Supabase bảng customers bằng PostgREST OR & ilike
+  // Layer 1: Query trực tiếp Supabase bảng customers bằng PostgREST OR & ilike (bọc nháy kép chống comma injection)
   const orParts = [
-    `customer_code.ilike.*${esc}*`,
-    `customer_code.ilike.*${escClean}*`,
-    `name.ilike.*${esc}*`,
-    `phone.ilike.*${esc}*`
+    `customer_code.ilike."*${esc}*"`,
+    `customer_code.ilike."*${escClean}*"`,
+    `name.ilike."*${esc}*"`,
+    `phone.ilike."*${esc}*"`
   ];
   const cleanPhone = raw.replace(/[^0-9]/g, '');
   if (cleanPhone && cleanPhone.length >= 6) {
-    orParts.push(`phone.ilike.*${encodeURIComponent(cleanPhone)}*`);
+    orParts.push(`phone.ilike."*${encodeURIComponent(cleanPhone)}*"`);
   }
 
   let custs = await sb('GET', 'customers', {

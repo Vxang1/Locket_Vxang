@@ -65,7 +65,7 @@ module.exports = async (req, res) => {
     });
 
     let vpn_token = null;
-    if (pkg === '40k') {
+    if (cleanPkg === '40k') {
       vpn_token = await createVpnToken(cust.id, customer_code).catch(() => null);
     }
 
