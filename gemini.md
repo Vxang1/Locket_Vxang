@@ -351,11 +351,28 @@ Hệ thống đã trải qua 2 đợt rà soát đối chiếu chéo (Cross-Refe
           - Loại bỏ emoji `⚪`, `🟢`, `⚫`: Dùng chấm tròn CSS trạng thái `statusDot` 7x7px bo tròn viền đen sắc nét. Badge gói cước chuẩn hóa đồng nhất `5s` và `15s`.
           - Bỏ emoji `🔎` khỏi placeholder ô tìm kiếm.
 
+ 26. **⚡ Tối Ưu Lưới Thông Tin Khách Hàng (Symmetrical 2x4 Grid) & Loại Bỏ Trường "DNS Kết Nối" Thừa Thãi (2026-09-12):**
+     - **Bối cảnh & Phân tích:**
+       - Kể từ khi hệ thống chuyển đổi toàn diện sang **100% DNS Riêng 1:1** (loại bỏ hoàn toàn DNS pool dùng chung), tất cả khách hàng đều tự động sở hữu DNS riêng 1:1.
+       - Việc hiển thị thẻ "DNS KẾT NỐI: 🌐 DNS Riêng (1:1)" trong Modal Chi tiết khách hàng (`#detailModal` -> `#dInfoGrid`) trở nên hoàn toàn dư thừa và lặp lại thông tin không cần thiết.
+       - Đồng thời, trước đây thẻ "Trạng thái & Thanh toán" sử dụng class `info-span-2` (chiếm trọn 2 cột), làm đứt gãy luồng hiển thị 2 cột, tạo ra khoảng trống không cân xứng.
+     - **Giải pháp xử lý:**
+       - Loại bỏ hoàn toàn thẻ "DNS kết nối" khỏi `#dInfoGrid`.
+       - Gỡ bỏ thuộc tính `info-span-2` khỏi thẻ "Trạng thái & Thanh toán", đưa thẻ này lên hàng 2 đứng sóng đôi cạnh thẻ "Gói dịch vụ".
+       - Cấu trúc lưới thông tin 8 thẻ cân xứng hoàn hảo (2 cột x 4 hàng):
+         - Hàng 1: `Mã khách hàng` | `Số điện thoại`
+         - Hàng 2: `Gói dịch vụ` | `Trạng thái & Thanh toán`
+         - Hàng 3: `Nền tảng` | `Flow hướng dẫn`
+         - Hàng 4: `Kích hoạt lúc` | `Ngày tạo`
+         - Các trường tùy chọn (nếu có: `Link liên hệ`, `Ghi chú`) chiếm trọn 2 cột ở dưới cùng mà không làm ảnh hưởng lưới 4 hàng phía trên.
+       - Chuẩn hóa nhãn gói cước trong modal chi tiết thành `Gói 30.000đ (5s Vĩnh viễn)` và `Gói 40.000đ (15s Vĩnh viễn)`.
+
 ### Tiêu Chuẩn Kiểm Định Bắt Buộc Trước Khi Bàn Giao:
 - Cú pháp toàn bộ file Node.js đạt chuẩn `node -c` (exit code 0).
 - Toàn bộ script inline trong HTML (`admin.html`, `guide.html`, `index.html`) vượt qua kiểm tra cú pháp độc lập (`check_scripts.js`).
 - Hạn mức tuyệt đối đúng 11 Serverless Functions Vercel được duy trì nguyên vẹn.
 - Mọi thay đổi logic kinh doanh phải được ghi nhận đầy đủ, chi tiết vào cả `GEMINI.md` và `handover.md`.
+
 
 
 

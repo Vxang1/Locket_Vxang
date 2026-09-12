@@ -452,6 +452,16 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
          - Thay emoji `⚪`, `🟢`, `⚫` bằng chấm tròn CSS trạng thái `statusDot` 7x7px viền đen. Badge chuẩn hóa `5s` và `15s`.
          - Bỏ emoji `🔎` khỏi ô tìm kiếm.
 
+28. **⚡ TỐI ƯU LƯỚI THÔNG TIN KHÁCH HÀNG (2x4 GRID) & LOẠI BỎ TRƯỜNG "DNS KẾT NỐI" THỪA THÃI (2026-09-12):**
+    - **Bối cảnh & Động lực:**
+      - Hệ thống đã chuyển đổi sang **100% DNS Riêng 1:1** (xóa bỏ hoàn toàn DNS pool dùng chung), do đó việc phân loại "DNS kết nối: 🌐 DNS Riêng (1:1)" trong Modal Chi tiết khách hàng (`#detailModal` -> `#dInfoGrid`) là hoàn toàn thừa thãi và lặp lại thông tin.
+      - Trước đây, thẻ "Trạng thái & Thanh toán" bị gán `info-span-2` (chiếm trọn 2 cột), làm hàng 2 chỉ có "Gói dịch vụ" đứng cùng "DNS kết nối", sau đó ngắt ngang bằng 1 hàng dài đơn độc rồi mới tiếp tục các trường 2 cột khác.
+    - **Cải tiến kỹ thuật & Trực quan:**
+      - Loại bỏ hoàn toàn thẻ "DNS kết nối".
+      - Xóa bỏ `info-span-2` của thẻ "Trạng thái & Thanh toán", ghép đôi trực tiếp với "Gói dịch vụ" ở Hàng 2.
+      - Tạo thành lưới 8 thẻ 2 cột x 4 hàng đối xứng tuyệt đối (Mã KH & SĐT / Gói dịch vụ & Trạng thái thanh toán / Nền tảng & Flow hướng dẫn / Kích hoạt lúc & Ngày tạo).
+      - Đồng bộ tiêu đề gói dịch vụ thành "Gói 30.000đ (5s Vĩnh viễn)" và "Gói 40.000đ (15s Vĩnh viễn)".
+
 ---
 
 🏆 **HỆ THỐNG ĐÃ HOÀN TẤT 100% VÀ ĐẠT CHUẨN SẢN XUẤT (PRODUCTION READY).**

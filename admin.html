@@ -2819,14 +2819,13 @@ window.openCustDetail=async function(id){
     if(genPkgEl){fillGenPkgOptions(c.package||'30k');}
 
     const is40k = (c.package === '40k' || c.package === '15s' || c.package === '180');
-    const pkgBadge = is40k ? '🌟 Gói 40k (15s Vĩnh viễn)' : '⭐ Gói 30k (5s Vĩnh viễn)';
+    const pkgBadge = is40k ? '🌟 Gói 40.000đ (15s Vĩnh viễn)' : '⭐ Gói 30.000đ (5s Vĩnh viễn)';
 
     document.getElementById('dInfoGrid').innerHTML=`
       <div class="info-item"><div class="info-label">Mã khách hàng</div><div class="info-val code-mono" style="color:var(--p1);font-weight:800">${esc(c.customer_code)}</div></div>
       <div class="info-item"><div class="info-label">Số điện thoại</div><div class="info-val code-mono">${esc(c.phone||'—')}</div></div>
       <div class="info-item"><div class="info-label">Gói dịch vụ</div><div class="info-val">${pkgBadge}</div></div>
-      <div class="info-item"><div class="info-label">DNS kết nối</div><div class="info-val">${privDns ? '<span style="color:#16a34a;font-weight:800">🌐 DNS Riêng (1:1)</span>' : `<span style="color:var(--muted);font-weight:700">🌐 DNS Pool (${is40k ? '15s' : '5s'})</span>`}</div></div>
-      <div class="info-item info-span-2"><div class="info-label">Trạng thái &amp; Thanh toán</div><div class="info-val" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${custSmartBadge(c)}</div></div>
+      <div class="info-item"><div class="info-label">Trạng thái &amp; Thanh toán</div><div class="info-val" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${custSmartBadge(c)}</div></div>
       <div class="info-item"><div class="info-label">Nền tảng</div><div class="info-val">${PI[c.social_platform]||'💬'} ${esc(c.social_platform||'—')}</div></div>
       <div class="info-item"><div class="info-label">Flow hướng dẫn</div><div class="info-val">${c.special_flow?'<span style="color:#7c3aed;font-weight:800">🛡️ Đặc biệt (có IPA)</span>':'<span style="color:var(--muted);font-weight:700">Mặc định</span>'}</div></div>
       <div class="info-item"><div class="info-label">Kích hoạt lúc</div><div class="info-val">${(c.activated_at || c.first_code_completed_at) ? `⏱ ${fmtVnDateTime(c.activated_at || c.first_code_completed_at)}` : '<span style="color:var(--muted);font-weight:600">— Chưa kích hoạt —</span>'}</div></div>
