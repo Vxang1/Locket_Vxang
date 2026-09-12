@@ -423,6 +423,34 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
       - `guide.html`: Cấu hình chuẩn `viewport-fit=cover`, bù trừ chính xác `env(safe-area-inset-top)` và `env(safe-area-inset-bottom)`. Tăng padding nội dung lên `calc(96px + env(safe-area-inset-bottom))` để triệt tiêu hoàn toàn hiện tượng thanh điều hướng cố định (Fixed Navbar) che khuất nút thao tác trên iPhone có tai thỏ / Dynamic Island.
       - `dns.html` & `index.html`: Bổ sung safe-area padding và breakpoints thích ứng cho các dòng iPhone cỡ nhỏ (< 360px).
 
+27. **🎨 TỐI ƯU PIXEL-PERFECT GIAO DIỆN ADMIN & KHẮC PHỤC TRIỆT ĐỂ LỖI BẤT ĐỐI XỨNG THỊ GIÁC (OCD DESIGN FIX) (2026-09-12):**
+    - **Phân tích nguyên nhân & Triệt tiêu các lỗi lệch giao diện:**
+      1. *Hiện tượng nhảy kích thước & Lệch Baseline chữ ở Thẻ chọn gói (`.pkg-card-btn`):*
+         - Trong Modal Chi tiết khách (`#detailModal`), Form Tạo khách (`#custCreateCard`), Form DNS (`#tab-dnsgen`), Modal Sửa (`#editModal`), vòng tròn tích chọn `.pkg-card-check` trước đây để `display: none` khi chưa active và `display: flex` khi active. Thẻ được active bị mất 30px chiều ngang (20px width + 10px flex gap), khiến dòng phụ đề "5s Vĩnh viễn · 30.000đ" bị ép ngắt xuống 2 dòng, trong khi thẻ bên cạnh (Gói 40k) còn nguyên chiều ngang nên phụ đề chỉ có 1 dòng.
+         - Do `align-items: center` trên grid 2 cột bằng chiều cao, thẻ 30k (3 dòng chữ) bị co cụm lại, kéo tiêu đề "Gói 30k" lệch cao hơn tiêu đề "Gói 40k" khoảng 8px trên cùng một hàng.
+         - Hiệu ứng `transform: translate(-1px, -1px)` trên thẻ `.active` làm cạnh trên bị vênh cao hơn 1px so với thẻ unselected.
+         - Thẻ 30k dùng emoji `⭐`, thẻ 40k dùng emoji `🌟`, khác biệt về quang học và vi phạm nguyên tắc "NO emojis as UI icons".
+      2. *Hiện tượng vỡ hàng Nút Thao tác Thẻ DNS Riêng (`.dns-row-actions`):*
+         - Thuộc tính `max-width: 320px; flex-wrap: wrap;` trên Desktop khiến tổng chiều rộng của 4 nút (`Copy link`, `Gán khách`, `Sửa`, `Xóa`) vượt ngưỡng 320px, ép nút `Xóa` bị rớt xuống dòng 2 một mình trơ trọi (orphan button), phá vỡ toàn bộ bố cục thẳng hàng dù không gian bên trái còn trống rất nhiều.
+         - Nút bấm và badge chứa emoji lộn xộn (`⧉`, `👤`, `♻️`, `✎`, `↻`, `🗑️`, `🟢 5s` vs `40k`), Twemoji render `<img>` không đồng đều chiều cao.
+    - **Triển khai kỹ thuật hoàn mỹ:**
+      1. *Vòng tròn Radio Indicator cố định 18x18px trên CẢ HAI thẻ:*
+         - `.pkg-card-check` luôn hiện diện với kích thước cố định `18x18px`, `flex-shrink: 0`.
+         - Khi chưa chọn: Vòng tròn viền `1.5px solid rgba(26,26,26,0.25)`, SVG tick ẩn (`display: none`).
+         - Khi được chọn: Vòng tròn viền `2px solid var(--ink)` và bóng đổ 1px, SVG tick hiện (`display: block`).
+         - Triệt tiêu 100% layout shift: Chiều rộng dành cho khối chữ luôn bằng nhau tuyệt đối, bấm chuyển đổi giữa các gói 0ms độ trễ, không rung giật.
+      2. *Khóa cứng phụ đề 1 dòng & Căn thẳng hàng Baseline chữ:*
+         - Thiết lập `white-space: nowrap;` trên `.pkg-card-sub` và `.pkg-card-title`. Tinh chỉnh padding `9px 10px` và font size `0.68rem`.
+         - Bỏ `transform: translate(-1px, -1px)` trên `.pkg-card-btn.active`. Cả hai thẻ nằm phẳng trên cùng mặt phẳng tọa độ Y, tiêu đề và phụ đề thẳng hàng tăm tắp.
+      3. *Vector hóa Icon SVG đồng nhất:*
+         - Thay emoji `⭐` và `🌟` bằng SVG vector 20x20px chuẩn (ngôi sao vàng `#F5C842` viền mực `#1A1A1A`), phiên bản 40k có thêm điểm sáng tinh tế, trọng số quang học đồng nhất.
+         - Thay icon DNS bằng Lucide Shield SVG, icon Trạng thái bằng Lucide Clock và CheckCircle SVG.
+      4. *Chuẩn hóa Hàng Nút DNS Riêng (.dns-row-actions):*
+         - Bỏ giới hạn `max-width: 320px`, thiết lập `flex-wrap: nowrap;` trên Desktop (>768px). Toàn bộ 4-5 nút thao tác luôn nằm trên 1 hàng ngang duy nhất, chiều cao 30px, dùng icon Lucide SVG sắc nét.
+         - Trên Mobile (<=768px): Tự động chuyển thành lưới 2 cột `grid-template-columns: repeat(2, 1fr)` cân đối.
+         - Thay emoji `⚪`, `🟢`, `⚫` bằng chấm tròn CSS trạng thái `statusDot` 7x7px viền đen. Badge chuẩn hóa `5s` và `15s`.
+         - Bỏ emoji `🔎` khỏi ô tìm kiếm.
+
 ---
 
 🏆 **HỆ THỐNG ĐÃ HOÀN TẤT 100% VÀ ĐẠT CHUẨN SẢN XUẤT (PRODUCTION READY).**

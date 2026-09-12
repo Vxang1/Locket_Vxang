@@ -141,28 +141,38 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
 .pkg-choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px;}
 @media (max-width: 480px){.pkg-choice-grid{grid-template-columns:1fr;}}
 .pkg-card-btn{
-  display:flex;align-items:center;gap:10px;padding:12px 14px;background:#FFFFFF;
+  display:flex;align-items:center;gap:8px;padding:9px 10px;background:#FFFFFF;
   border:2px solid var(--ink);border-radius:var(--radius-sm);cursor:pointer;text-align:left;
-  transition:all 0.12s ease;box-shadow:var(--shadow-sm);position:relative;user-select:none;width:100%;
-  min-height:58px;box-sizing:border-box;
+  transition:background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+  box-shadow:var(--shadow-sm);position:relative;user-select:none;width:100%;
+  min-height:56px;box-sizing:border-box;
 }
-.pkg-card-btn:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:var(--bg-surface);}
-.pkg-card-btn:active{transform:translate(2px,2px);box-shadow:none;}
+.pkg-card-btn:hover{background:var(--bg-surface);}
+.pkg-card-btn:active{transform:translate(1px,1px);box-shadow:none;}
 .pkg-card-btn.active{
   background:var(--gold) !important;border-color:var(--ink) !important;
-  box-shadow:3px 3px 0 var(--ink) !important;transform:translate(-1px,-1px);
+  box-shadow:var(--shadow-sm) !important;
 }
-.pkg-card-icon{font-size:1.35rem;flex-shrink:0;line-height:1;}
-.pkg-card-info{flex:1;min-width:0;}
-.pkg-card-title{font-family:'Space Grotesk',sans-serif;font-size:0.88rem;font-weight:900;color:var(--ink);line-height:1.2;}
-.pkg-card-sub{font-size:0.72rem;font-weight:700;color:var(--muted);margin-top:2px;line-height:1.2;}
+.pkg-card-icon{
+  display:flex;align-items:center;justify-content:center;
+  width:22px;height:22px;flex-shrink:0;line-height:1;
+}
+.pkg-card-icon svg{display:block;}
+.pkg-card-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;}
+.pkg-card-title{font-family:'Space Grotesk',sans-serif;font-size:0.86rem;font-weight:900;color:var(--ink);line-height:1.2;white-space:nowrap;}
+.pkg-card-sub{font-size:0.68rem;font-weight:700;color:var(--muted);margin-top:2px;line-height:1.2;letter-spacing:-0.01em;white-space:nowrap;}
 .pkg-card-btn.active .pkg-card-sub{color:var(--ink);opacity:0.85;}
 .pkg-card-check{
-  display:none;font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:0.85rem;color:var(--ink);
-  width:20px;height:20px;border-radius:50%;background:#FFFFFF;border:1.5px solid var(--ink);
-  align-items:center;justify-content:center;flex-shrink:0;
+  width:18px;height:18px;border-radius:50%;background:#FFFFFF;
+  border:1.5px solid rgba(26,26,26,0.25);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all 0.12s ease;
 }
-.pkg-card-btn.active .pkg-card-check{display:flex;}
+.pkg-card-check svg{display:none;}
+.pkg-card-btn.active .pkg-card-check{
+  border-color:var(--ink);background:#FFFFFF;box-shadow:1px 1px 0 var(--ink);
+}
+.pkg-card-btn.active .pkg-card-check svg{display:block;}
 
 /* Neo-Brutalist Auto Pool Controls — Đồng bộ 100% Desktop & Mobile */
 .auto-pool-pkg-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px;height:100%;}
@@ -673,11 +683,11 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
   .btn-search{padding:9px 14px;font-size:.8rem;}
 }
 
-@media(max-width:600px){
-  .dns-row{flex-direction:column;align-items:flex-start;gap:8px;padding:10px 12px;}
+@media(max-width:768px){
+  .dns-row{flex-direction:column;align-items:stretch;gap:10px;padding:10px 12px;}
   .dns-row-main{width:100%;}
-  .dns-row-actions{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:6px;max-width:unset;}
-  .dns-row-actions button{width:100%;padding:7px 6px;font-size:.74rem;text-align:center;}
+  .dns-row-actions{width:100%;display:grid;grid-template-columns:repeat(2,1fr);gap:6px;max-width:unset;}
+  .dns-row-actions button{width:100%;padding:7px 6px;font-size:.74rem;height:34px;text-align:center;}
   
   /* iOS Bottom-sheet modal on mobile (chặt chẽ, sticky header & footer) */
   .modal-overlay{padding:0;align-items:flex-end;}
@@ -759,10 +769,10 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
 #ddCodes code{display:inline-block;background:var(--gold-bg);border:1.5px solid var(--ink);border-radius:5px;padding:1px 6px;margin:2px 3px;font-size:.74rem;color:var(--ink);font-weight:800;font-family:'JetBrains Mono',monospace;}
 
 /* DNS Riêng: Horizontal actions on Desktop, 2x2 on Mobile */
-.dns-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);margin-bottom:6px;box-shadow:var(--shadow-sm);}
+.dns-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:#FFFFFF;border:2px solid var(--ink);border-radius:var(--radius-sm);margin-bottom:8px;box-shadow:var(--shadow-sm);}
 .dns-row-main{min-width:0;flex:1;}
-.dns-row-actions{display:flex;flex-direction:row;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px;max-width:320px;flex-shrink:0;}
-.dns-row-actions button{padding:5px 9px;font-size:.74rem;white-space:nowrap;}
+.dns-row-actions{display:flex;flex-direction:row;flex-wrap:nowrap;justify-content:flex-end;align-items:center;gap:6px;flex-shrink:0;}
+.dns-row-actions button{padding:5px 10px;font-size:.74rem;white-space:nowrap;height:30px;display:inline-flex;align-items:center;justify-content:center;gap:4px;box-sizing:border-box;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
@@ -870,20 +880,33 @@ window.addEventListener('DOMContentLoaded', () => {
           <label>Gói dịch vụ *</label>
           <div class="pkg-choice-grid">
             <button type="button" class="pkg-card-btn active" id="btnCreatePkg30k" onclick="selectCreatePkg('30k')">
-              <div class="pkg-card-icon">⭐</div>
+              <div class="pkg-card-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#F5C842" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+              </div>
               <div class="pkg-card-info">
                 <div class="pkg-card-title">Gói 30k</div>
                 <div class="pkg-card-sub">5s Vĩnh viễn · 30.000đ</div>
               </div>
-              <div class="pkg-card-check">✓</div>
+              <div class="pkg-card-check">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
             </button>
             <button type="button" class="pkg-card-btn" id="btnCreatePkg40k" onclick="selectCreatePkg('40k')">
-              <div class="pkg-card-icon">🌟</div>
+              <div class="pkg-card-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#F5C842" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  <path d="M19 2v4M21 4h-4" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
               <div class="pkg-card-info">
                 <div class="pkg-card-title">Gói 40k</div>
                 <div class="pkg-card-sub">15s Vĩnh viễn · 40.000đ</div>
               </div>
-              <div class="pkg-card-check">✓</div>
+              <div class="pkg-card-check">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
             </button>
           </div>
           <input type="hidden" id="cPackage" value="30k"/>
@@ -1013,20 +1036,32 @@ window.addEventListener('DOMContentLoaded', () => {
               <label>Cấu hình DNS</label>
               <div class="pkg-choice-grid">
                 <button type="button" class="pkg-card-btn active" id="btnDnsGen5s" onclick="selectDnsGenPkg('5s')">
-                  <div class="pkg-card-icon">🟢</div>
+                  <div class="pkg-card-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#E8F5E9" stroke="#16A34A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                  </div>
                   <div class="pkg-card-info">
                     <div class="pkg-card-title">DNS 5s</div>
                     <div class="pkg-card-sub">Dành cho Gói 30k</div>
                   </div>
-                  <div class="pkg-card-check">✓</div>
+                  <div class="pkg-card-check">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
                 </button>
                 <button type="button" class="pkg-card-btn" id="btnDnsGen15s" onclick="selectDnsGenPkg('15s')">
-                  <div class="pkg-card-icon">🔵</div>
+                  <div class="pkg-card-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#E0F2FE" stroke="#0284C7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                  </div>
                   <div class="pkg-card-info">
                     <div class="pkg-card-title">DNS 15s</div>
                     <div class="pkg-card-sub">Dành cho Gói 40k</div>
                   </div>
-                  <div class="pkg-card-check">✓</div>
+                  <div class="pkg-card-check">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
                 </button>
               </div>
               <input type="hidden" id="dnsGenPkg" value="5s"/>
@@ -1039,7 +1074,7 @@ window.addEventListener('DOMContentLoaded', () => {
       <!-- Tìm KH trong danh sách link đã tạo — lọc ngay trên dữ liệu đã tải (dnsListRows),
            không gọi lại API, để tra "khách này có làm DNS riêng chưa" tức thì. -->
       <div class="field" style="margin-bottom:10px">
-        <input type="text" id="dnsSearch" placeholder="🔎 Tìm mã KH / tên khách / link..." autocomplete="off" oninput="renderDnsList()"/>
+        <input type="text" id="dnsSearch" placeholder="Tìm mã KH / tên khách / link..." autocomplete="off" oninput="renderDnsList()"/>
       </div>
       <div id="dnsGenListWrap"><div style="text-align:center;padding:20px;color:var(--muted);font-size:.82rem;font-weight:600;">Đang tải...</div></div>
     </div>
@@ -1232,21 +1267,34 @@ window.addEventListener('DOMContentLoaded', () => {
       <div class="field-sm" style="margin-top:8px">
         <label>Gói cấp mã mới (Tự động cập nhật gói nếu đổi)</label>
         <div class="pkg-choice-grid">
-          <button type="button" class="pkg-card-btn" id="btnGenPkg30k" onclick="selectGenPkg('30k')">
-            <div class="pkg-card-icon">⭐</div>
+          <button type="button" class="pkg-card-btn active" id="btnGenPkg30k" onclick="selectGenPkg('30k')">
+            <div class="pkg-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#F5C842" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            </div>
             <div class="pkg-card-info">
               <div class="pkg-card-title">Gói 30k</div>
               <div class="pkg-card-sub">5s Vĩnh viễn · 30.000đ</div>
             </div>
-            <div class="pkg-card-check">✓</div>
+            <div class="pkg-card-check">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
           </button>
           <button type="button" class="pkg-card-btn" id="btnGenPkg40k" onclick="selectGenPkg('40k')">
-            <div class="pkg-card-icon">🌟</div>
+            <div class="pkg-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#F5C842" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                <path d="M19 2v4M21 4h-4" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
             <div class="pkg-card-info">
               <div class="pkg-card-title">Gói 40k</div>
               <div class="pkg-card-sub">15s Vĩnh viễn · 40.000đ</div>
             </div>
-            <div class="pkg-card-check">✓</div>
+            <div class="pkg-card-check">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
           </button>
         </div>
         <input type="hidden" id="genPkg" value="30k"/>
@@ -1275,21 +1323,34 @@ window.addEventListener('DOMContentLoaded', () => {
       <div class="field-sm">
         <label>Gói dịch vụ</label>
         <div class="pkg-choice-grid">
-          <button type="button" class="pkg-card-btn" id="btnEditPkg30k" onclick="selectEditPkg('30k')">
-            <div class="pkg-card-icon">⭐</div>
+          <button type="button" class="pkg-card-btn active" id="btnEditPkg30k" onclick="selectEditPkg('30k')">
+            <div class="pkg-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#F5C842" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            </div>
             <div class="pkg-card-info">
               <div class="pkg-card-title">Gói 30k</div>
               <div class="pkg-card-sub">5s Vĩnh viễn · 30.000đ</div>
             </div>
-            <div class="pkg-card-check">✓</div>
+            <div class="pkg-card-check">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
           </button>
           <button type="button" class="pkg-card-btn" id="btnEditPkg40k" onclick="selectEditPkg('40k')">
-            <div class="pkg-card-icon">🌟</div>
+            <div class="pkg-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#F5C842" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                <path d="M19 2v4M21 4h-4" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
             <div class="pkg-card-info">
               <div class="pkg-card-title">Gói 40k</div>
               <div class="pkg-card-sub">15s Vĩnh viễn · 40.000đ</div>
             </div>
-            <div class="pkg-card-check">✓</div>
+            <div class="pkg-card-check">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
           </button>
         </div>
         <input type="hidden" id="ePkg" value="30k"/>
@@ -1301,20 +1362,32 @@ window.addEventListener('DOMContentLoaded', () => {
         <label>Trạng thái</label>
         <div class="pkg-choice-grid">
           <button type="button" class="pkg-card-btn" id="btnEditSsPending" onclick="selectEditStatus('pending_gold')">
-            <div class="pkg-card-icon">⏳</div>
+            <div class="pkg-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
             <div class="pkg-card-info">
               <div class="pkg-card-title">Chưa lên Gold</div>
               <div class="pkg-card-sub">Đang cài đặt</div>
             </div>
-            <div class="pkg-card-check">✓</div>
+            <div class="pkg-card-check">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
           </button>
           <button type="button" class="pkg-card-btn" id="btnEditSsActive" onclick="selectEditStatus('active')">
-            <div class="pkg-card-icon">✅</div>
+            <div class="pkg-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+            </div>
             <div class="pkg-card-info">
               <div class="pkg-card-title">Đã lên Gold</div>
               <div class="pkg-card-sub">Đã hoàn tất</div>
             </div>
-            <div class="pkg-card-check">✓</div>
+            <div class="pkg-card-check">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
           </button>
         </div>
         <input type="hidden" id="eSs" value="pending_gold"/>
@@ -2067,12 +2140,17 @@ window.renderDnsList=function(){
   }):dnsListRows;
   if(!rows.length){wrap.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:.82rem;font-weight:600;">Không tìm thấy khách nào làm DNS riêng khớp "${esc(kw)}"</div>`;return;}
   try{
-    const statusMap={unopened:['⚪ Chưa mở','#94a3b8'],active:['🟢 Đang hoạt động','#16a34a'],expired:['⚫ Đã hết hạn','#64748b']};
+    const statusMap={unopened:['Chưa mở','#94a3b8'],active:['Đang hoạt động','#16a34a'],expired:['Đã hết hạn','#64748b']};
+    const statusDot=st=>{
+      const c=st==='active'?'#16a34a':(st==='expired'?'#64748b':'#94a3b8');
+      return `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${c};border:1px solid var(--ink);margin-right:4px;vertical-align:middle;"></span>`;
+    };
     const pkgBadge=p=>{
-      if(p==='5s')  return '<span style="display:inline-block;font-size:.68rem;font-weight:900;color:var(--green);background:var(--green-bg);border:1.5px solid var(--ink);border-radius:6px;padding:1px 7px;margin-left:6px;">🟢 5s</span>';
-      if(p==='15s') return '<span style="display:inline-block;font-size:.68rem;font-weight:900;color:var(--accent);background:var(--blue-bg);border:1.5px solid var(--ink);border-radius:6px;padding:1px 7px;margin-left:6px;">🔵 15s</span>';
-      if(p==='180') return '<span style="display:inline-block;font-size:.68rem;font-weight:900;color:#6B46C1;background:#EDE9FE;border:1.5px solid var(--ink);border-radius:6px;padding:1px 7px;margin-left:6px;">🟣 180</span>';
-      return p?`<span style="display:inline-block;font-size:.68rem;font-weight:900;color:var(--ink);background:var(--bg-surface);border:1.5px solid var(--ink);border-radius:6px;padding:1px 7px;margin-left:6px;">${esc(p)}</span>`:'';
+      const norm = (p==='40k'||p==='15s'||p==='180') ? '15s' : '5s';
+      const is15 = norm==='15s';
+      const color = is15 ? 'var(--accent)' : 'var(--green)';
+      const bg = is15 ? 'var(--blue-bg)' : 'var(--green-bg)';
+      return `<span style="display:inline-block;font-size:.68rem;font-weight:900;color:${color};background:${bg};border:1.5px solid var(--ink);border-radius:6px;padding:1px 7px;margin-left:6px;">${norm}</span>`;
     };
     wrap.innerHTML=rows.map(r=>{
       const cUpper = (r.customer_code||'').toUpperCase();
@@ -2091,20 +2169,20 @@ window.renderDnsList=function(){
       return `<div class="dns-row">
         <div class="dns-row-main">
           <div style="font-weight:800;font-size:.85rem;display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
-            ${isAvailable ? `<span style="color:#16a34a">🟢 Sẵn sàng cấp cho khách mới</span>` : esc(r.customer_code) + (custName ? ' — ' + esc(custName) : '')}
+            ${isAvailable ? `<span style="color:#16a34a;display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#16a34a;border:1.5px solid var(--ink);"></span>Sẵn sàng cấp cho khách mới</span>` : esc(r.customer_code) + (custName ? ' — ' + esc(custName) : '')}
             ${pkgBadge(r.package)}
-            <span style="color:${color};font-weight:700;font-size:.75rem;margin-left:6px;">${label}</span>
+            <span style="color:${color};font-weight:800;font-size:.75rem;margin-left:8px;display:inline-flex;align-items:center;">${statusDot(r.status)}${label}</span>
           </div>
           <div style="color:var(--muted);font-size:.75rem;word-break:break-all;margin-top:3px;">Link gửi khách: <b style="color:var(--fg);">${esc(link)}</b></div>
           <div style="color:var(--muted);font-size:.75rem;word-break:break-all;margin-top:2px;">Link DNS: <b style="color:var(--fg);">${esc(dnsUrl)}</b></div>
           <div style="color:var(--muted);font-size:.75rem;word-break:break-all;margin-top:2px;">TK DNS: <b style="color:var(--fg);">${esc(email)||'(chưa có)'}</b>${password?' / '+esc(password):''}</div>
         </div>
         <div class="dns-row-actions">
-          <button class="btn-copy-r" onclick="navigator.clipboard.writeText('${link}');showToast('✓ Đã copy link','green');">⧉ Copy link</button>
-          ${isAvailable ? `<button class="btn-copy-r" style="background:#E8F5E9;color:#1B5E20;border-color:#2E7D32;font-weight:800;" onclick="assignDnsSlotToCustomer('${r.id}')">👤 Gán khách</button>` : `<button class="btn-copy-r" style="background:#FFFBEB;color:#92400E;border-color:#D97706;font-weight:700;" onclick="recycleDnsSlot('${r.id}','${esc(r.customer_code)}')">♻ Thu hồi</button>`}
-          <button class="btn-copy-r" onclick="editDnsCreds('${r.id}','${urlSafe}','${emailSafe}','${passSafe}','${custCodeSafe}')">✎ Sửa</button>
-          ${r.status==='unopened'?'':`<button class="btn-copy-r" onclick="reactivateDnsLink('${r.id}','${esc(r.customer_code)}')">↻ Hồi sinh</button>`}
-          <button class="btn-copy-r" style="color:var(--red);border-color:rgba(239,68,68,.3)" onclick="deletePrivateDnsLink('${r.id}','${esc(r.customer_code)}')">🗑 Xóa</button>
+          <button class="btn-copy-r" onclick="navigator.clipboard.writeText('${link}');showToast('✓ Đã copy link','green');"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>Copy link</button>
+          ${isAvailable ? `<button class="btn-copy-r" style="background:#E8F5E9;color:#1B5E20;border-color:#2E7D32;font-weight:800;" onclick="assignDnsSlotToCustomer('${r.id}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>Gán khách</button>` : `<button class="btn-copy-r" style="background:#FFFBEB;color:#92400E;border-color:#D97706;font-weight:700;" onclick="recycleDnsSlot('${r.id}','${esc(r.customer_code)}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>Thu hồi</button>`}
+          <button class="btn-copy-r" onclick="editDnsCreds('${r.id}','${urlSafe}','${emailSafe}','${passSafe}','${custCodeSafe}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>Sửa</button>
+          ${r.status==='unopened'?'':`<button class="btn-copy-r" onclick="reactivateDnsLink('${r.id}','${esc(r.customer_code)}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>Hồi sinh</button>`}
+          <button class="btn-copy-r" style="color:var(--red);border-color:rgba(239,68,68,.3)" onclick="deletePrivateDnsLink('${r.id}','${esc(r.customer_code)}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Xóa</button>
         </div>
       </div>`;
     }).join('');

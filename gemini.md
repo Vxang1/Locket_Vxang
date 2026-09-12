@@ -322,6 +322,34 @@ Hệ thống đã trải qua 2 đợt rà soát đối chiếu chéo (Cross-Refe
       - `guide.html`: Cấu hình chuẩn `viewport-fit=cover`, bù trừ chính xác `env(safe-area-inset-top)` và `env(safe-area-inset-bottom)`. Tăng padding nội dung lên `calc(96px + env(safe-area-inset-bottom))` để triệt tiêu hoàn toàn hiện tượng thanh điều hướng cố định (Fixed Navbar) che khuất nút thao tác trên iPhone có tai thỏ / Dynamic Island.
       - `dns.html` & `index.html`: Bổ sung safe-area padding và breakpoints thích ứng cho các dòng iPhone cỡ nhỏ (< 360px).
 
+ 25. **🎨 Tối Ưu Pixel-Perfect Giao Diện Admin & Khắc Phục Triệt Để Lỗi Bất Đối Xứng Gây Khó Chịu Thị Giác (OCD Design Fix) (2026-09-12):**
+     - **Vấn đề thị giác & Nguyên nhân gốc rễ:**
+       1. *Lệch dòng & Nhảy bố cục Thẻ chọn gói (`.pkg-card-btn`):* Trong Modal Chi tiết khách (`#detailModal`), Form Tạo khách (`#custCreateCard`), Form DNS (`#tab-dnsgen`), Modal Sửa (`#editModal`):
+          - Vòng tròn tích chọn (`.pkg-card-check`) trước đây dùng `display: none` khi chưa chọn và `display: flex` khi được chọn (`.active`). Điều này làm thẻ đang chọn bị mất 30px chiều ngang (20px width + 10px flex gap), ép phụ đề "5s Vĩnh viễn · 30.000đ" phải ngắt xuống 2 dòng, trong khi thẻ chưa chọn (Gói 40k) còn nguyên chiều rộng nên phụ đề chỉ có 1 dòng.
+          - Hệ quả: Thẻ 30k cao 3 dòng chữ, thẻ 40k cao 2 dòng chữ. Thuộc tính `align-items: center` kéo tiêu đề "Gói 30k" lệch cao hơn tiêu đề "Gói 40k" khoảng 8px trên cùng một hàng.
+          - Hiệu ứng `transform: translate(-1px, -1px)` trên thẻ `.active` làm cạnh trên của thẻ được chọn bị lệch cao hơn 1px so với thẻ bên cạnh.
+          - Biểu tượng Star dùng emoji `⭐` (ngôi sao phẳng) và `🌟` (ngôi sao phát sáng), khác biệt về kích thước quang học và trọng số màu, vi phạm nguyên tắc "NO emojis as UI icons".
+       2. *Vỡ hàng Nút Thao tác Thẻ DNS Riêng (`.dns-row-actions`):*
+          - Thuộc tính `max-width: 320px; flex-wrap: wrap;` trên Desktop khiến khi xuất hiện nút `Gán khách` (hoặc khi font co giãn), tổng chiều rộng của 4 nút (`Copy link`, `Gán khách`, `Sửa`, `Xóa`) vượt quá 320px, ép nút `Xóa` bị rớt xuống dòng 2 một mình trơ trọi (orphan button), làm vỡ toàn bộ lưới thẳng hàng dù màn hình máy tính còn rất nhiều khoảng trống.
+          - Dùng emoji làm icon nút (`⧉`, `👤`, `♻️`, `✎`, `↻`, `🗑️`) và badge gói (`🟢 5s` vs `40k`), Twemoji thay thế bằng thẻ `<img>` không đồng đều về kích thước.
+     - **Giải pháp triệt để:**
+       1. *Vòng tròn Radio Indicator cố định 100% kích thước:*
+          - `.pkg-card-check` luôn hiện diện trên CẢ HAI thẻ (đã chọn và chưa chọn) với kích thước cố định `18x18px`, `flex-shrink: 0`.
+          - Thẻ chưa chọn: Vòng tròn viền mảnh `1.5px solid rgba(26,26,26,0.25)`, SVG tick ẩn (`display: none`).
+          - Thẻ đã chọn: Vòng tròn viền mực đen `2px solid var(--ink)` và bóng đổ cứng, SVG tick hiện (`display: block`).
+          - Triệt tiêu hoàn toàn layout shift: Hai thẻ luôn có khoảng không gian ngang dành cho văn bản bằng nhau tuyệt đối, chuyển đổi mượt mà không dịch chuyển dù chỉ 1 pixel.
+       2. *Khóa cứng phụ đề 1 dòng & Căn thẳng Baseline chữ:*
+          - Thêm `white-space: nowrap;` vào `.pkg-card-sub` và `.pkg-card-title`. Tinh chỉnh padding `9px 10px` và font-size `0.68rem` để nội dung luôn nằm gọn trên 1 dòng đơn.
+          - Bỏ `transform: translate(-1px, -1px)` trên `.pkg-card-btn.active`. Cả hai thẻ nằm trên cùng một mặt phẳng ngang, tiêu đề và phụ đề thẳng hàng trục tọa độ Y tuyệt đối.
+       3. *Vector hóa Icon SVG chuẩn công nghiệp:*
+          - Thay thế toàn bộ emoji `⭐` và `🌟` bằng SVG vector 20x20px chuẩn (5 cánh vàng `#F5C842` viền mực `#1A1A1A`), phiên bản 40k điểm thêm tia sáng tinh tế, tâm quang học và chiều cao đồng nhất 100%.
+          - Chuẩn hóa icon SVG cho các thẻ DNS (Lucide Shield) và thẻ Trạng thái (Lucide Clock, CheckCircle).
+       4. *Chuẩn hóa Hàng Nút DNS Riêng (.dns-row-actions):*
+          - Bỏ giới hạn `max-width: 320px`, áp dụng `flex-wrap: nowrap;` trên Desktop (>768px). Toàn bộ 4-5 nút thao tác luôn dàn đều trên 1 hàng ngang duy nhất, chiều cao đồng đều 30px, dùng icon Lucide SVG sắc nét.
+          - Trên Mobile (<=768px): Tự động chuyển thành lưới 2 cột `grid-template-columns: repeat(2, 1fr)` cân xứng hoàn hảo.
+          - Loại bỏ emoji `⚪`, `🟢`, `⚫`: Dùng chấm tròn CSS trạng thái `statusDot` 7x7px bo tròn viền đen sắc nét. Badge gói cước chuẩn hóa đồng nhất `5s` và `15s`.
+          - Bỏ emoji `🔎` khỏi placeholder ô tìm kiếm.
+
 ### Tiêu Chuẩn Kiểm Định Bắt Buộc Trước Khi Bàn Giao:
 - Cú pháp toàn bộ file Node.js đạt chuẩn `node -c` (exit code 0).
 - Toàn bộ script inline trong HTML (`admin.html`, `guide.html`, `index.html`) vượt qua kiểm tra cú pháp độc lập (`check_scripts.js`).
