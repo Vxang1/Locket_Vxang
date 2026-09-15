@@ -407,6 +407,14 @@ Hệ thống đã trải qua 2 đợt rà soát đối chiếu chéo (Cross-Refe
        3. *Safari trên iOS chuẩn (`isIOS() && !isInAppBrowser()`):* Cho phép truy cập bình thường.
      - **Triển khai đồng bộ:** Áp dụng thống nhất trên toàn bộ các trang frontend `index.html`, `guide.html`, và `dns.html`.
 
+ 30. **🎨 TINH CHỈNH GIAO DIỆN TRUY CẬP NHANH & ĐƠN GIẢN HÓA HIỂN THỊ GIÁ THANH TOÁN (2026-09-15):**
+     - **Truy cập nhanh cân đối tuyệt đối (`admin.html`):**
+       - Sửa tiêu đề nút số 5 từ `🔒 Quản lý DNS Riêng (1:1)` thành `🔒 Quản lý DNS` ngắn gọn, không bị rớt dòng trên desktop.
+       - Xóa bỏ đoạn CSS trùng lặp `.quick-btns` và `.btn-quick`, thiết lập chuẩn `min-height: 48px; padding: 10px 14px; font-size: .82rem; text-align: center;` (mobile `min-height: 44px;`). Đảm bảo toàn bộ 7 ô nút bấm (kể cả 2 ô "Appstore" và "Khách đặc biệt" ở hàng 2) đều có chiều cao, kích thước và lề đệm đồng nhất 100%.
+     - **Đơn giản hóa hiển thị giá thanh toán (`admin.html`):**
+       - Loại bỏ việc lặp lại số tiền trong ngoặc đơn ở box giá thanh toán (`#cPriceDisplay` và `#ePriceDisplay`).
+       - Chuẩn hóa hiển thị gọn gàng: `💰 Giá thanh toán: 30.000đ (5s Vĩnh viễn)` và `💰 Giá thanh toán: 40.000đ (15s Vĩnh viễn)`.
+
 ### Tiêu Chuẩn Kiểm Định Bắt Buộc Trước Khi Bàn Giao:
 - Cú pháp toàn bộ file Node.js đạt chuẩn `node -c` (exit code 0).
 - Toàn bộ script inline trong HTML (`admin.html`, `guide.html`, `index.html`) vượt qua kiểm tra cú pháp độc lập (`check_scripts.js`).

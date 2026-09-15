@@ -498,6 +498,15 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
       - Đồng bộ `isInAppBrowser()`, `isDevModeActive()`, `syncDevMode()`, `startDevModeSync()`, và `checkInApp()` trên cả 3 trang: `index.html`, `guide.html`, và `dns.html`.
       - Cơ chế đồng bộ realtime giữa các tab (qua sự kiện `storage`) và giữa các thiết bị (qua polling Firebase/Vercel `/api/guide/validate?action=dev_mode`).
 
+32. **🎨 TINH CHỈNH GIAO DIỆN TRUY CẬP NHANH & ĐƠN GIẢN HÓA HIỂN THỊ GIÁ THANH TOÁN (2026-09-15):**
+    - **Bối cảnh & Vấn đề:**
+      - Trên giao diện Dashboard Admin, hàng 1 của "Truy cập nhanh" có 5 nút trong đó nút số 5 "Quản lý DNS Riêng (1:1)" bị xuống dòng khiến cả hàng 1 bị kéo dãn chiều cao (~54px). Trong khi đó, hàng 2 gồm "Appstore" và "Khách đặc biệt" chỉ có 1 dòng nên chiều cao chỉ đạt ~36px, tạo cảm giác 2 ô này bị bé hơn hẳn.
+      - Box hiển thị giá thanh toán khi tạo khách mới hiển thị chuỗi dài thừa thãi: `💰 Giá thanh toán: 30.000đ (Gói 30.000đ (5s Vĩnh viễn))` bị lặp lại số tiền 30.000đ hai lần.
+    - **Giải pháp xử lý:**
+      - Đổi tiêu đề nút số 5 thành `🔒 Quản lý DNS` ngắn gọn, nằm gọn trên 1 dòng đơn.
+      - Xóa CSS duplicate, thiết lập `min-height: 48px; padding: 10px 14px; font-size: .82rem; text-align: center;` (mobile `min-height: 44px;`) đảm bảo toàn bộ 7 ô truy cập nhanh cao bằng nhau chằn chặn.
+      - Rút gọn hiển thị giá thanh toán thành `💰 Giá thanh toán: 30.000đ (5s Vĩnh viễn)` và `💰 Giá thanh toán: 40.000đ (15s Vĩnh viễn)`.
+
 ---
 
 🏆 **HỆ THỐNG ĐÃ HOÀN TẤT 100% VÀ ĐẠT CHUẨN SẢN XUẤT (PRODUCTION READY).**

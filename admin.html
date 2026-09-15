@@ -359,18 +359,19 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
 /* QUICK ACCESS BUTTONS IN DASHBOARD (DESKTOP & MOBILE) */
 .quick-btns{
   display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));
   gap:10px;
   margin-top:2px;
 }
 .btn-quick{
-  padding:12px 14px;
+  min-height:48px;
+  padding:10px 14px;
   background:#FFFFFF;
   border:2px solid var(--ink);
   border-radius:var(--radius-sm);
   color:var(--ink);
   font-family:'Space Grotesk',sans-serif;
-  font-size:.84rem;
+  font-size:.82rem;
   font-weight:900;
   letter-spacing:.02em;
   cursor:pointer;
@@ -378,6 +379,7 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
   align-items:center;
   justify-content:center;
   gap:6px;
+  text-align:center;
   box-shadow:var(--shadow-sm);
   transition:transform .12s, box-shadow .12s, background .12s;
   user-select:none;
@@ -516,11 +518,6 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
 .cis-dead{color:var(--warning);background:var(--gold-bg);}
 .cis-fraud{color:#FFFFFF;background:var(--red);border-color:var(--ink);}
 .ci-date{font-size:.72rem;color:var(--muted);font-weight:700;white-space:nowrap;}
-.quick-btns{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
-.btn-quick{padding:10px 12px;border:2px solid var(--ink);border-radius:var(--radius-sm);background:#FFFFFF;
-  color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:900;cursor:pointer;transition:transform .12s,box-shadow .12s;display:flex;align-items:center;justify-content:center;gap:6px;text-align:center;box-shadow:var(--shadow-sm);}
-.btn-quick:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow);background:var(--gold-bg);}
-.btn-quick:active{transform:translate(1px,1px);box-shadow:var(--shadow-active);}
 
 /* TYPE BADGE */
 .badge-bh{display:inline-flex;align-items:center;gap:4px;background:var(--green-bg);border:1.5px solid var(--ink);border-radius:20px;padding:2px 8px;font-size:.68rem;font-weight:900;color:var(--green);letter-spacing:.04em;white-space:nowrap;font-family:'Space Grotesk',sans-serif;}
@@ -719,7 +716,7 @@ input:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 2px var(--go
   .ci-code{min-width:unset;width:100%;font-size:.84rem;}
   .ci-cust{width:100%;font-size:.78rem;}
   .quick-btns{grid-template-columns:repeat(2,1fr);gap:6px;}
-  .quick-btns .btn-quick{padding:9px 6px;font-size:.75rem;}
+  .quick-btns .btn-quick{padding:9px 6px;font-size:.75rem;min-height:44px;}
   .pkg-card-btn{min-height:48px;padding:6px 10px;gap:6px;}
   .pkg-card-icon{font-size:1.1rem;}
   .pkg-card-title{font-size:.8rem;}
@@ -858,7 +855,7 @@ window.addEventListener('DOMContentLoaded', () => {
           <button class="btn-quick" onclick="switchTab('customer')">👥 Khách hàng</button>
           <button class="btn-quick" onclick="switchTab('sessions')">🟢 Phiên live</button>
           <button class="btn-quick" onclick="switchTab('codes')">🎫 Mã truy cập</button>
-          <button class="btn-quick" onclick="switchTab('dnsgen')">🔒 Quản lý DNS Riêng (1:1)</button>
+          <button class="btn-quick" onclick="switchTab('dnsgen')">🔒 Quản lý DNS</button>
           <button class="btn-quick" onclick="switchTab('appstore')">🍎 Appstore</button>
           <button class="btn-quick" onclick="switchTab('emergency')">🛡️ Khách đặc biệt</button>
         </div>
@@ -909,7 +906,7 @@ window.addEventListener('DOMContentLoaded', () => {
               </div>
             </button>
           </div>
-          <div id="cPriceDisplay" style="padding:8px 12px;background:var(--gold-bg);border:1.5px solid var(--ink);border-radius:var(--radius-sm);font-size:.82rem;font-weight:800;color:var(--ink);text-align:center;margin:10px 0 6px 0;box-shadow:1px 1px 0 var(--ink);">💰 Giá thanh toán: 30.000đ (Gói 30.000đ - 5s Vĩnh viễn)</div>
+          <div id="cPriceDisplay" style="padding:8px 12px;background:var(--gold-bg);border:1.5px solid var(--ink);border-radius:var(--radius-sm);font-size:.82rem;font-weight:800;color:var(--ink);text-align:center;margin:10px 0 6px 0;box-shadow:1px 1px 0 var(--ink);">💰 Giá thanh toán: 30.000đ (5s Vĩnh viễn)</div>
           <input type="hidden" id="cPackage" value="30k"/>
           <input type="hidden" id="cDuration" value="perm"/>
         </div>
@@ -1357,7 +1354,7 @@ window.addEventListener('DOMContentLoaded', () => {
         <input type="hidden" id="ePkg" value="30k"/>
         <input type="hidden" id="eDur" value="perm"/>
       </div>
-      <div id="ePriceDisplay" style="padding:10px;background:var(--gold-bg);border:2px solid var(--ink);border-radius:var(--radius-sm);font-size:.84rem;font-weight:800;color:var(--ink);text-align:center;margin:0">💰 Giá: 30.000đ (Gói 30.000đ - 5s Vĩnh viễn)</div>
+      <div id="ePriceDisplay" style="padding:10px;background:var(--gold-bg);border:2px solid var(--ink);border-radius:var(--radius-sm);font-size:.84rem;font-weight:800;color:var(--ink);text-align:center;margin:0">💰 Giá: 30.000đ (5s Vĩnh viễn)</div>
       <div class="field-sm"><label>SĐT / Link liên hệ *</label><input type="text" id="eContact" placeholder="Dán SĐT (09xxx) hoặc Link Zalo, FB..."/></div>
       <div class="field-sm">
         <label>Trạng thái</label>
@@ -1578,8 +1575,8 @@ async function loadDashboard(){
 }
 // Bảng giá client — PHẢI KHỚP api/_lib/utils.js PRICING (100% Vĩnh viễn: 30k & 40k)
 const PRICING = {
-  '30k': { 'perm': { price: 30000, label: '5s Vĩnh viễn - 30k', months: null } },
-  '40k': { 'perm': { price: 40000, label: '15s Vĩnh viễn - 40k', months: null } },
+  '30k': { 'perm': { price: 30000, label: '5s Vĩnh viễn', months: null } },
+  '40k': { 'perm': { price: 40000, label: '15s Vĩnh viễn', months: null } },
 };
 function isPermPkg(pkg){return true;}
 const PKG_LABELS={'30k':'Gói 30.000đ (5s Vĩnh viễn)','40k':'Gói 40.000đ (15s Vĩnh viễn)'};
@@ -1663,7 +1660,7 @@ window.updateCreatePrice=function(){
 
   const is40k = (pkg === '40k');
   const price = is40k ? '40.000đ' : '30.000đ';
-  const label = is40k ? 'Gói 40.000đ (15s Vĩnh viễn)' : 'Gói 30.000đ (5s Vĩnh viễn)';
+  const label = is40k ? '15s Vĩnh viễn' : '5s Vĩnh viễn';
   priceDisplay.innerHTML = `💰 <b>Giá thanh toán: ${price}</b> (${label})`;
 };
 let currentMsgKhCode = '', currentMsgXwCode = '';
