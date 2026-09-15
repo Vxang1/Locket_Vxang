@@ -93,10 +93,10 @@
 
 ## 4. BẢO MẬT & ĐỘNG CƠ CÔNG NGHỆ
 
-1. **Khóa Thiết Bị & Safari Lock:**
-   - Chặn PC/Laptop/Android (`!isIOS()`).
-   - Chặn trình duyệt In-App (Zalo, Facebook, TikTok, Messenger).
-   - Dev Mode bypass: `localStorage.xw_dev_mode = 1` hoặc Firebase `appstore/dev_mode = true`.
+1. **Khóa Thiết Bị & Safari Lock & Quy Tắc Dev Mode Tuyệt Đối:**
+   - **Chặn Trình Duyệt In-App 100% Không Ngoại Lệ:** Toàn bộ trình duyệt In-App (Zalo, Messenger, Facebook, TikTok, Instagram, Chrome/Firefox trên iOS...) BẮT BUỘC bị chặn 100% hiển thị modal yêu cầu mở bằng Safari. **TUYỆT ĐỐI KHÔNG cho phép bypass In-App kể cả khi bật Dev Mode**, vì hệ thống iOS không thể cài đặt `.mobileconfig` trong webview in-app.
+   - **Chặn Thiết Bị Không Phải iOS:** PC/Laptop/Android (`!isIOS()`) bị chặn với thông báo yêu cầu mở trên iPhone.
+   - **Dev Mode Bypass Dành Riêng Cho PC & Android:** Chỉ cho phép bypass thiết bị PC/Laptop/Android (`!isIOS()`) khi Admin bật Dev Mode (qua nút Dev Mode trong `admin.html`, Firebase `appstore/dev_mode = true`, query param `?dev=1`/`?bypass=1`, hoặc `localStorage.xw_dev_mode = '1'`). Không bao giờ áp dụng bypass cho In-App browser.
 2. **Anti-Share Live Heartbeat & Bẫy Gian Lận 2 Pha (Honeypot 6s + Khóa 15s):**
    - Client gửi ping mỗi 4s (`POST /api/guide/ping`).
    - **Pha 1 (Honeypot 6s):** Khi phát hiện 2 thiết bị ping cùng mã (`otherSessions.length > 0` hoặc `fbConcurrent`), hệ thống giữ nguyên giao diện hoạt động bình thường trong 6 giây để thu thập đầy đủ IP nguồn (`x-forwarded-for`), User-Agent và fingerprint thiết bị gian lận.
@@ -399,12 +399,16 @@ Hệ thống đã trải qua 2 đợt rà soát đối chiếu chéo (Cross-Refe
        9. *🟠 Chống Lỗi Cú Pháp PostgREST Khi Tên Khách Có Ký Tự Đặc Biệt (`api/_lib/telegram-bot.js`, `api/admin/customers.js`):* Bọc dấu ngoặc kép `"..."` cho các pattern tìm kiếm `or=(name.ilike."*${esc}*",...)` ngăn việc tên khách có dấu phẩy làm vỡ câu query.
        10. *🔴 Triệt Để Mã Hóa URL Parameters (`api/admin/customers.js`, `api/admin/sessions.js`, `api/admin/guide-steps.js`, `api/guide/validate.js`, `api/guide/ping.js`, `api/guide/steps.js`):* Bọc toàn bộ các tham số động (`id`, `session_id`, `access_code`, `customer_id`, `pkg`, `targetId`) bằng `encodeURIComponent()` trong tất cả các câu truy vấn PostgREST, sửa lỗi `targetId` bị undefined trong PATCH customer, bảo vệ hệ thống tuyệt đối khỏi injection và các chuỗi ký tự đặc biệt.
 
+ 29. **🔒 THẮT CHẶT BẢO MẬT SAFARI LOCK & PHÂN TÁCH ĐẶC QUYỀN DEV MODE (2026-09-15):**
+     - **Nguyên nhân cốt lõi:** Trước đây hàm `isDevModeActive()` kiểm tra dev mode trước khi kiểm tra trình duyệt in-app. Khi admin bật Dev Mode toàn hệ thống, cờ `dev_mode = true` vô tình gỡ bỏ lớp chắn trên tất cả thiết bị, bao gồm cả trình duyệt in-app (Zalo, Messenger, Facebook, TikTok...). Người dùng mở link trong Zalo sẽ bị vào thẳng luồng cài đặt và gặp lỗi không thể tải profile cấu hình `.mobileconfig`.
+     - **Quy tắc phân tách 3 lớp chuẩn hóa:**
+       1. *Trình duyệt In-App (Zalo, Messenger, Facebook, TikTok, Instagram, Chrome/Firefox iOS...):* **CHẶN 100% VĨNH VIỄN KHÔNG NGOẠI LỆ.** Tuyệt đối không cho phép bypass kể cả khi bật Dev Mode. Luôn hiện modal hướng dẫn chuyển sang Safari, khóa toàn bộ input và nút bấm.
+       2. *Thiết bị PC, Laptop, Android (`!isIOS()`):* **CHỈ CHO PHÉP BYPASS KHI BẬT DEV MODE.** Khi Admin bật Dev Mode (nút Dev Mode trong `admin.html`, Firebase `appstore/dev_mode = true`, query param `?dev=1`/`?bypass=1`, hoặc `localStorage.xw_dev_mode = '1'`), hệ thống cho phép PC/Android mở giao diện để phục vụ công việc test, debug của Admin. Khi tắt Dev Mode, PC/Android bị chặn với thông báo "Yêu Cầu Mở Trên iPhone".
+       3. *Safari trên iOS chuẩn (`isIOS() && !isInAppBrowser()`):* Cho phép truy cập bình thường.
+     - **Triển khai đồng bộ:** Áp dụng thống nhất trên toàn bộ các trang frontend `index.html`, `guide.html`, và `dns.html`.
+
 ### Tiêu Chuẩn Kiểm Định Bắt Buộc Trước Khi Bàn Giao:
 - Cú pháp toàn bộ file Node.js đạt chuẩn `node -c` (exit code 0).
 - Toàn bộ script inline trong HTML (`admin.html`, `guide.html`, `index.html`) vượt qua kiểm tra cú pháp độc lập (`check_scripts.js`).
 - Hạn mức tuyệt đối đúng 11 Serverless Functions Vercel được duy trì nguyên vẹn.
 - Mọi thay đổi logic kinh doanh phải được ghi nhận đầy đủ, chi tiết vào cả `GEMINI.md` và `handover.md`.
-
-
-
-

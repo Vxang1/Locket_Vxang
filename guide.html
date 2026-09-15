@@ -868,46 +868,32 @@ function isIOS() {
 
 function isInAppBrowser() {
   const ua = (navigator.userAgent || navigator.vendor || window.opera || '').toLowerCase();
-  return /zalo|zalomessenger|fbav|fban|fb_iab|messenger|instagram|tiktok|snapchat|line\/|micromessenger|telegram/i.test(ua);
+  return /zalo|zalomessenger|fbav|fban|fb_iab|messenger|instagram|tiktok|snapchat|line\/|micromessenger|telegram|crios|fxios|edgios/i.test(ua);
 }
 
 let devModeChecked = false;
 let globalDevModeOn = false;
 
 function isDevModeActive() {
-  if (new URLSearchParams(window.location.search).get('dev') === '1') return true;
-  if (globalDevModeOn === true) return true;
-  if (localStorage.getItem('xw_dev_mode') === '1') return true;
-  if (sessionStorage.getItem('xw_dev_mode') === '1') return true;
+  if (globalDevModeOn) return true;
+  const p = new URLSearchParams(window.location.search);
+  if (p.get('dev') === '1' || p.get('bypass') === '1') return true;
+  if (localStorage.getItem('xw_dev_mode') === '1' || sessionStorage.getItem('xw_dev_mode') === '1') return true;
   return false;
 }
 
 window.syncDevMode = function(isOn) {
-  const modal = document.getElementById('inappBlockModal');
-  const input = document.getElementById('codeInput');
-  const btn = document.getElementById('enterBtn');
-
   if (isOn === true) {
     globalDevModeOn = true;
     localStorage.setItem('xw_dev_mode', '1');
     sessionStorage.setItem('xw_dev_mode', '1');
-    if (modal) modal.style.display = 'none';
-    if (input) input.disabled = false;
-    if (btn && window.location.pathname.includes('/guide')) {
-      btn.disabled = false;
-      btn.style.opacity = '1';
-      btn.style.cursor = 'pointer';
-    }
-    if (typeof loadDnsInfo === 'function') loadDnsInfo();
   } else if (isOn === false) {
-    if (new URLSearchParams(window.location.search).get('dev') === '1') return;
+    if (new URLSearchParams(window.location.search).get('dev') === '1' || new URLSearchParams(window.location.search).get('bypass') === '1') return;
     globalDevModeOn = false;
     localStorage.removeItem('xw_dev_mode');
     sessionStorage.removeItem('xw_dev_mode');
-    if (!isIOS() || isInAppBrowser()) {
-      showInappBlock();
-    }
   }
+  checkInApp();
 };
 
 function startDevModeSync() {
@@ -945,60 +931,73 @@ function startDevModeSync() {
   });
 }
 
-function showInappBlock() {
-  const modal = document.getElementById('inappBlockModal');
-  if (!modal) return;
-  modal.style.display = 'flex';
-  const t = document.getElementById('inappTitle');
-  const m = document.getElementById('inappMsg');
-  const g = document.getElementById('inappGuide');
-
-  if (!isIOS()) {
-    if (t) t.textContent = 'Yêu cầu mở trên iPhone';
-    if (m) m.innerHTML = '⛔ <b style="color:#B71C1C;">Dịch vụ Locket Gold chỉ hỗ trợ cài đặt trên điện thoại iPhone/iPad</b>. Vui lòng không sử dụng máy tính, PC hay Android!';
-    if (g) g.innerHTML = '<div style="font-weight:800;color:var(--ink);margin-bottom:6px;font-family:\'Space Grotesk\',sans-serif;">📌 Hướng dẫn:</div><div>Bấm nút sao chép bên dưới, gửi link này qua Zalo/Tin nhắn cho chính bạn 👉 <b style="color:var(--accent,#0284c7);">Dùng iPhone mở link đó bằng Safari</b> để tiếp tục.</div>';
-  } else {
-    if (t) t.textContent = 'Bắt Buộc Mở Bằng Safari';
-    if (m) m.innerHTML = '⛔ <b style="color:#B71C1C;">Trình duyệt ứng dụng này (Zalo/Messenger/FB) không thể tải cấu hình Locket Gold</b>. Bạn bắt buộc phải chuyển sang ứng dụng <b style="color:var(--ink);">Safari</b> của iPhone!';
-    if (g) g.innerHTML = '<div style="font-weight:800;color:var(--ink);margin-bottom:6px;font-family:\'Space Grotesk\',sans-serif;">👉 Cách mở trên Safari:</div><div><b>Cách 1:</b> Bấm dấu <b style="color:var(--ink);">(•••)</b> ở góc màn hình ➔ Chọn <b style="color:var(--accent,#0284c7);">"Mở bằng trình duyệt" (Safari)</b>.</div><div style="margin-top:6px;"><b>Cách 2:</b> Bấm nút sao chép bên dưới ➔ Mở ứng dụng <b style="color:var(--ink);">Safari</b> trên iPhone và dán link vào.</div>';
-  }
-
-  const input = document.getElementById('codeInput');
-  if (input) input.disabled = true;
-  const btn = document.getElementById('enterBtn');
-  if (btn && window.location.pathname.includes('/guide')) {
-    btn.disabled = true;
-    btn.style.opacity = '.5';
-    btn.style.cursor = 'not-allowed';
-  }
-}
-
 function checkInApp() {
   startDevModeSync();
 
-  if (isDevModeActive()) {
-    const modal = document.getElementById('inappBlockModal');
-    if (modal) modal.style.display = 'none';
-    const input = document.getElementById('codeInput');
-    if (input) input.disabled = false;
-    const btn = document.getElementById('enterBtn');
-    if (btn && window.location.pathname.includes('/guide')) {
-      btn.disabled = false;
-      btn.style.opacity = '1';
-      btn.style.cursor = 'pointer';
-    }
-    return false;
-  }
-
   const inApp = isInAppBrowser();
   const ios = isIOS();
-  
-  if (inApp || !ios) {
-    showInappBlock();
+
+  // 1. Trình duyệt In-App (Zalo, Messenger, Facebook, TikTok, Instagram...):
+  // Tuyệt đối chặn 100%, KHÔNG cho phép bypass kể cả khi bật Dev Mode
+  if (inApp) {
+    const modal = document.getElementById('inappBlockModal');
+    if (modal) {
+      modal.style.display = 'flex';
+      const t = document.getElementById('inappTitle');
+      if (t) t.textContent = 'Bắt Buộc Mở Bằng Safari';
+      const m = document.getElementById('inappMsg');
+      if (m) m.innerHTML = '⛔ <b>Trình duyệt Zalo/In-app không thể tải cấu hình Locket Gold</b>. Bạn bắt buộc phải chuyển sang ứng dụng <b>Safari</b> của iPhone!';
+      const g = document.getElementById('inappGuide');
+      if (g) g.innerHTML = '<div style="font-weight:800;color:var(--ink);margin-bottom:6px;">👉 Cách mở trên Safari:</div><div><b>Cách 1:</b> Bấm dấu <b>(•••)</b> ở góc màn hình ➔ Chọn <b>"Mở bằng trình duyệt" (Safari)</b>.</div><div style="margin-top:6px;"><b>Cách 2:</b> Bấm nút sao chép bên dưới ➔ Mở ứng dụng <b>Safari</b> trên iPhone và dán link vào.</div>';
+    }
+    const input = document.getElementById('codeInput');
+    if (input) input.disabled = true;
+    const btn = document.getElementById('enterBtn');
+    if (btn) { btn.disabled = true; btn.style.opacity = '.5'; btn.style.cursor = 'not-allowed'; }
     return true;
   }
+
+  // 2. Thiết bị PC, Laptop, Android (!isIOS):
+  // Chỉ cho phép bypass trên PC/Android khi bật Dev Mode
+  if (!ios) {
+    if (isDevModeActive()) {
+      const modal = document.getElementById('inappBlockModal');
+      if (modal) modal.style.display = 'none';
+      const input = document.getElementById('codeInput');
+      if (input) input.disabled = false;
+      const btn = document.getElementById('enterBtn');
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+      return false; // Admin được phép test giao diện trên PC / Android
+    }
+
+    const modal = document.getElementById('inappBlockModal');
+    if (modal) {
+      modal.style.display = 'flex';
+      const t = document.getElementById('inappTitle');
+      if (t) t.textContent = 'Yêu Cầu Mở Trên iPhone';
+      const m = document.getElementById('inappMsg');
+      if (m) m.innerHTML = '⛔ <b>Dịch vụ Locket_Vxang chỉ hỗ trợ cài đặt trên điện thoại iPhone/iPad</b>. Vui lòng không sử dụng máy tính, PC hay Android!';
+      const g = document.getElementById('inappGuide');
+      if (g) g.innerHTML = '<div style="font-weight:800;color:var(--ink);margin-bottom:6px;">📌 Hướng dẫn:</div><div>Bấm nút sao chép bên dưới, gửi link này qua Zalo/Tin nhắn cho chính bạn 👉 <b>Dùng iPhone mở link đó bằng Safari</b> để tiếp tục.</div>';
+    }
+    const input = document.getElementById('codeInput');
+    if (input) input.disabled = true;
+    const btn = document.getElementById('enterBtn');
+    if (btn) { btn.disabled = true; btn.style.opacity = '.5'; btn.style.cursor = 'not-allowed'; }
+    return true;
+  }
+
+  // 3. Safari trên iOS chuẩn -> Cho phép hoạt động bình thường
+  const modal = document.getElementById('inappBlockModal');
+  if (modal) modal.style.display = 'none';
+  const input = document.getElementById('codeInput');
+  if (input) input.disabled = false;
+  const btn = document.getElementById('enterBtn');
+  if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
   return false;
 }
+checkInApp();
+document.addEventListener('DOMContentLoaded', checkInApp);
 
 function copyCurrentUrl(btn) {
   const url = window.location.href;

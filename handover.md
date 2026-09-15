@@ -487,7 +487,17 @@ Sau quá trình rà soát và so sánh chuyên sâu (Deep Comparative Audit) gi�
       9. *🟠 Chống Lỗi Cú Pháp PostgREST Khi Tên Khách Có Ký Tự Đặc Biệt (`api/_lib/telegram-bot.js`, `api/admin/customers.js`):* Bọc dấu ngoặc kép `"..."` cho các pattern tìm kiếm `or=(name.ilike."*${esc}*",...)` ngăn việc tên khách có dấu phẩy làm vỡ câu query.
       10. *🔴 Triệt Để Mã Hóa URL Parameters (`api/admin/customers.js`, `api/admin/sessions.js`, `api/admin/guide-steps.js`, `api/guide/validate.js`, `api/guide/ping.js`, `api/guide/steps.js`):* Bọc toàn bộ các tham số động (`id`, `session_id`, `access_code`, `customer_id`, `pkg`, `targetId`) bằng `encodeURIComponent()` trong tất cả các câu truy vấn PostgREST, sửa lỗi `targetId` bị undefined trong PATCH customer, bảo vệ hệ thống tuyệt đối khỏi injection và các chuỗi ký tự đặc biệt.
 
+31. **🔒 THẮT CHẶT BẢO MẬT SAFARI LOCK & PHÂN TÁCH ĐẶC QUYỀN DEV MODE (2026-09-15):**
+    - **Bối cảnh & Vấn đề:**
+      - Trước đây hàm `isDevModeActive()` kiểm tra dev mode trước khi kiểm tra trình duyệt in-app. Khi admin bật Dev Mode toàn hệ thống, cờ `dev_mode = true` vô tình gỡ bỏ lớp chắn trên tất cả thiết bị, bao gồm cả trình duyệt in-app (Zalo, Messenger, Facebook, TikTok...). Người dùng mở link trong Zalo sẽ bị vào thẳng luồng cài đặt và gặp lỗi không thể tải profile cấu hình `.mobileconfig`.
+    - **Quy tắc phân tách 3 lớp chuẩn hóa:**
+      1. *Trình duyệt In-App (Zalo, Messenger, Facebook, TikTok, Instagram, Chrome/Firefox iOS...):* **CHẶN 100% VĨNH VIỄN KHÔNG NGOẠI LỆ.** Tuyệt đối không cho phép bypass kể cả khi bật Dev Mode. Luôn hiện modal hướng dẫn chuyển sang Safari, khóa toàn bộ input và nút bấm.
+      2. *Thiết bị PC, Laptop, Android (`!isIOS()`):* **CHỈ CHO PHÉP BYPASS KHI BẬT DEV MODE.** Khi Admin bật Dev Mode (nút Dev Mode trong `admin.html`, Firebase `appstore/dev_mode = true`, query param `?dev=1`/`?bypass=1`, hoặc `localStorage.xw_dev_mode = '1'`), hệ thống cho phép PC/Android mở giao diện để phục vụ công việc test, debug của Admin. Khi tắt Dev Mode, PC/Android bị chặn với thông báo "Yêu Cầu Mở Trên iPhone".
+      3. *Safari trên iOS chuẩn (`isIOS() && !isInAppBrowser()`):* Cho phép truy cập bình thường.
+    - **Triển khai kỹ thuật:**
+      - Đồng bộ `isInAppBrowser()`, `isDevModeActive()`, `syncDevMode()`, `startDevModeSync()`, và `checkInApp()` trên cả 3 trang: `index.html`, `guide.html`, và `dns.html`.
+      - Cơ chế đồng bộ realtime giữa các tab (qua sự kiện `storage`) và giữa các thiết bị (qua polling Firebase/Vercel `/api/guide/validate?action=dev_mode`).
+
 ---
 
 🏆 **HỆ THỐNG ĐÃ HOÀN TẤT 100% VÀ ĐẠT CHUẨN SẢN XUẤT (PRODUCTION READY).**
-
